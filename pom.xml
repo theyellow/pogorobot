@@ -1,0 +1,651 @@
+<!--
+ Copyright 2019 Benjamin Marstaller
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+    http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>pogosibu</groupId>
+	<artifactId>telegrambot</artifactId>
+	<version>1.0.4-SNAPSHOT</version>
+	<name>telegrambot</name>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.10.RELEASE</version>
+	</parent>
+
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss</maven.build.timestamp.format>
+		<spring-boot.version>1.5.10.RELEASE</spring-boot.version>
+		<db.name>telegramdb</db.name>
+		<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName>
+		<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
+		<jdbc.url>jdbc:mysql://localhost/${db.name}?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url>
+		<jdbc.url.prev>jdbc:mysql://localhost/${db.name}_prev?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url.prev>
+		<!-- <jdbc.password /> -->
+		<hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
+		<liquibase.hibernate.version>3.6</liquibase.hibernate.version>
+		<!-- <hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</hibernate.dialect> -->
+		<jdbc.groupId>mysql</jdbc.groupId>
+		<jdbc.artifactId>mysql-connector-java</jdbc.artifactId>
+		<jdbc.version>5.1.45</jdbc.version>
+		<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+		<!-- <jdbc.url>jdbc:mysql://localhost:3306/telegramdb</jdbc.url> -->
+		<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
+		<jdbc.username>telegram</jdbc.username>
+		<jdbc.password>25m3rux7</jdbc.password>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambots</artifactId>
+			<version>3.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.10.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.telegram</groupId>
+			<artifactId>telegrambotsextensions</artifactId>
+			<version>3.3</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.5.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- tag::actuator[] -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- end::actuator[] -->
+		<!-- tag::tests[] -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- end::tests[] -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-c3p0</artifactId>
+			<version>5.2.12.Final</version>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.hibernate</groupId> -->
+		<!-- <artifactId>hibernate-maven-plugin</artifactId> -->
+		<!-- <version>4.3.1.Final</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<groupId>com.google.maps</groupId>
+			<artifactId>google-maps-services</artifactId>
+			<version>0.2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.bbn</groupId>
+			<artifactId>openmap</artifactId>
+			<version>5.1.13-1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<!-- <version>3.5.3</version> -->
+		</dependency>
+		<dependency>
+			<groupId>org.liquibase.ext</groupId>
+			<artifactId>liquibase-hibernate5</artifactId>
+			<version>${liquibase.hibernate.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-maven-plugin</artifactId>
+			<version>3.5.3</version>
+			<type>maven-plugin</type>
+		</dependency>
+		<dependency>
+			<groupId>de.jpdigital</groupId>
+			<artifactId>hibernate5-ddl-maven-plugin</artifactId>
+			<type>pom</type>
+			<version>2.1.0</version>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>de.jpdigital</groupId> -->
+		<!-- <artifactId>hibernate5-ddl-maven-plugin</artifactId> -->
+		<!-- <version>1.0.1-hibernate-5.2.4.Final</version> -->
+		<!-- <type>maven-plugin</type> -->
+		<!-- </dependency> -->
+		<dependency>
+		    <groupId>org.seleniumhq.selenium</groupId>
+		    <artifactId>selenium-java</artifactId>
+	    </dependency>
+<!-- 		<dependency> -->
+<!-- 		    <groupId>org.seleniumhq.selenium</groupId> -->
+<!-- 		    <artifactId>htmlunit-driver</artifactId> -->
+<!-- 		    <version>2.32.1</version> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>org.bytedeco.javacpp-presets</groupId>
+			<artifactId>tesseract-platform</artifactId>
+			<version>4.0.0-beta.3-1.4.2</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<defaultGoal>install</defaultGoal>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources/liquibase</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.liquibase</groupId>
+				<artifactId>liquibase-maven-plugin</artifactId>
+				<!-- <version>3.5.3</version> -->
+				<configuration>
+					<skip>${skipTests}</skip>
+					<propertyFile>target/classes/liquibase/liquibase.properties</propertyFile>
+					<changeLogFile>target/classes/liquibase/datadir/db.changelog.xml</changeLogFile>
+				</configuration>
+				<executions>
+<!-- 					<execution> -->
+						<!-- drop db before generating schema with hbm2ddl to avoid any inconsistencies 
+							between changelog files and DATABASECHANGELOG table -->
+<!-- 						<id>drop-db</id> -->
+<!-- 						<phase>clean</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>dropAll</goal> -->
+<!-- 						</goals> -->
+<!-- 						<configuration> -->
+<!-- 							<propertyFile>target/classes/liquibase/liquibase.properties</propertyFile> -->
+<!-- 							<changeLogFile>target/classes/liquibase/datadir/db.changelog.xml</changeLogFile> -->
+<!-- 						</configuration> -->
+<!-- 					</execution> -->
+					<!-- mark db up-to-date in the DATABASECHANGELOG table after generating 
+						schema with hbm2ddl so that no migration is executed -->
+<!-- 					<execution> -->
+<!-- 						<id>mark-db-up-to-date</id> -->
+<!-- 						<phase>test</phase> -->
+<!-- 						<goals> -->
+<!-- 							<goal>changelogSync</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
+
+
+
+					<!-- <execution> -->
+					<!-- <phase>clean</phase> -->
+					<!-- <goals> -->
+					<!-- <goal>generateChangeLog</goal> -->
+					<!-- </goals> -->
+					<!-- <configuration> -->
+					<!-- <systemProperties> -->
+					<!-- <user.name>liquibaseMavenPlugin</user.name> -->
+					<!-- </systemProperties> -->
+					<!-- </configuration> -->
+					<!-- </execution> -->
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>db-diff</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.liquibase</groupId>
+						<artifactId>liquibase-maven-plugin</artifactId>
+						<version>${liquibase.version}</version>
+						<configuration>
+							<propertyFile>target/classes/liquibase/liquibase-diff.properties</propertyFile>
+							<changeLogFile>target/classes/liquibase/datadir/db.changelog.xml</changeLogFile>
+							<diffChangeLogFile>src/main/resources/liquibase/datadir/db-${maven.build.timestamp}.structure.changelog.xml</diffChangeLogFile>
+							<logging>info</logging>
+						</configuration>
+						<executions>
+							<execution>
+								<id>generate-db-prev</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>update</goal>
+								</goals>
+								<configuration>
+									<dropFirst>true</dropFirst>
+								</configuration>
+							</execution>
+							<execution>
+								<id>generate-db-diff</id>
+								<phase>process-test-resources</phase>
+								<goals>
+									<goal>diff</goal>
+								</goals>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>org.liquibase.ext</groupId>
+								<artifactId>liquibase-hibernate5</artifactId>
+								<version>${liquibase.hibernate.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework</groupId>
+								<artifactId>spring-beans</artifactId>
+								<version>${spring.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework.boot</groupId>
+								<artifactId>spring-boot</artifactId>
+								<version>${spring-boot.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework.data</groupId>
+								<artifactId>spring-data-jpa</artifactId>
+								<version>1.11.10.RELEASE</version>
+							</dependency>
+							<dependency>
+								<groupId>org.hibernate</groupId>
+								<artifactId>hibernate-validator</artifactId>
+								<version>${hibernate-validator.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>${jdbc.groupId}</groupId>
+								<artifactId>${jdbc.artifactId}</artifactId>
+								<version>${jdbc.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+
+
+
+
+		<profile>
+			<id>db-data2</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.liquibase</groupId>
+						<artifactId>liquibase-maven-plugin</artifactId>
+						<version>${liquibase.version}</version>
+						<configuration>
+							<propertyFile>target/classes/liquibase/liquibase.properties</propertyFile>
+							<changeLogFile>target/classes/liquibase/datadir/db.changelog.xml</changeLogFile>
+							<diffChangeLogFile>src/main/resources/liquibase/datadir/db-${maven.build.timestamp}.data.changelog.xml</diffChangeLogFile>
+							<logging>info</logging>
+						</configuration>
+						<executions>
+							<execution>
+								<id>generate-db-prev</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>update</goal>
+								</goals>
+								<configuration>
+									<dropFirst>false</dropFirst>
+								</configuration>
+							</execution>
+							<execution>
+								<id>generate-db-diff</id>
+								<phase>process-test-resources</phase>
+								<goals>
+									<goal>generateChangeLog</goal>
+								</goals>
+								<configuration>
+									<!-- <propertyFileWillOverride>false</propertyFileWillOverride> -->
+									<diffTypes>data</diffTypes>
+									<outputChangeLogFile>src/main/resources/liquibase/datadir/db-${maven.build.timestamp}.data.changelog.xml</outputChangeLogFile>
+								</configuration>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>org.liquibase.ext</groupId>
+								<artifactId>liquibase-hibernate5</artifactId>
+								<version>${liquibase.hibernate.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework</groupId>
+								<artifactId>spring-beans</artifactId>
+								<version>${spring.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework.boot</groupId>
+								<artifactId>spring-boot</artifactId>
+								<version>${spring-boot.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.springframework.data</groupId>
+								<artifactId>spring-data-jpa</artifactId>
+								<version>1.11.10.RELEASE</version>
+							</dependency>
+							<dependency>
+								<groupId>org.hibernate</groupId>
+								<artifactId>hibernate-validator</artifactId>
+								<version>${hibernate-validator.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>${jdbc.groupId}</groupId>
+								<artifactId>${jdbc.artifactId}</artifactId>
+								<version>${jdbc.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+			</build>
+			<!-- TODO: Really necessary? -->
+			<properties>
+				<!-- avoid generating db schema + inserting db-unit -->
+				<!-- <skipTests>true</skipTests> -->
+			</properties>
+		</profile>
+		<!-- ============================================================================================ -->
+		<!-- Generate database data changelog for liquibase (run previously mvn 
+			-Pprod test-compile if you want to generate changelog for production data) -->
+		<!-- ============================================================================================ -->
+		<profile>
+			<id>db-data</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.2.1</version>
+						<executions>
+							<execution>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<mainClass>liquibase.integration.commandline.Main</mainClass>
+									<includePluginDependencies>true</includePluginDependencies>
+									<arguments>
+										<argument>--driver=com.mysql.jdbc.Driver</argument>
+										<argument>--changeLogFile=src/main/resources/liquibase/datadir/db-${maven.build.timestamp}.data.changelog.xml</argument>
+										<argument>--url=${jdbc.url}</argument>
+										<argument>--username=${jdbc.username}</argument>
+										<argument>--password=${jdbc.password}</argument>
+										<argument>--diffTypes=data</argument>
+										<argument>--logLevel=info</argument>
+										<argument>generateChangeLog</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>${jdbc.groupId}</groupId>
+								<artifactId>${jdbc.artifactId}</artifactId>
+								<version>${jdbc.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.liquibase</groupId>
+								<artifactId>liquibase-maven-plugin</artifactId>
+								<version>${liquibase.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
+			<properties>
+				<!-- avoid generating db schema + inserting db-unit -->
+				<skipTests>true</skipTests>
+			</properties>
+		</profile>
+
+		<!-- ========================================================================================================== -->
+		<!-- Test db migration by dropping database, skipping hbm2ddl and dbunit, 
+			so that all the db migrations are run -->
+		<!-- ========================================================================================================== -->
+		<profile>
+			<id>db-test</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.liquibase</groupId>
+						<artifactId>liquibase-maven-plugin</artifactId>
+						<version>${liquibase.version}</version>
+						<executions>
+							<execution>
+								<id>drop-db</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>dropAll</goal>
+								</goals>
+								<configuration>
+									<propertyFile>target/classes/liquibase/liquibase.properties</propertyFile>
+									<skip>false</skip>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			<properties>
+				<!-- avoid generating db schema + inserting db-unit -->
+				<skipTests>true</skipTests>
+			</properties>
+		</profile>
+
+
+
+		<!-- ================= Production Settings Profile ================= -->
+		<!-- Use "-P prod" when you want to use the settings in this profile -->
+		<!-- =============================================================== -->
+		<profile>
+			<id>prod</id>
+			<build>
+				<plugins>
+					<!-- Override location of data file for DbUnit to load (doesn't have 
+						negative keys) -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>dbunit-maven-plugin</artifactId>
+						<configuration>
+							<src>src/main/resources/liquibase/datadir/default-data.xml</src>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- ================= Database Profiles ================= -->
+		<profile>
+			<id>h2</id>
+			<properties>
+				<dbunit.dataTypeFactoryName>org.dbunit.ext.h2.H2DataTypeFactory</dbunit.dataTypeFactoryName>
+				<hibernate.dialect>org.hibernate.dialect.H2Dialect</hibernate.dialect>
+				<jdbc.groupId>com.h2database</jdbc.groupId>
+				<jdbc.artifactId>h2</jdbc.artifactId>
+				<jdbc.version>1.2.134</jdbc.version>
+				<jdbc.driverClassName>org.h2.Driver</jdbc.driverClassName>
+				<jdbc.url>jdbc:h2:/tmp/${db.name};MVCC=TRUE</jdbc.url>
+				<jdbc.username>sa</jdbc.username>
+			</properties>
+		</profile>
+		<profile>
+			<id>mysql</id>
+			<properties>
+				<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName>
+				<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
+				<jdbc.url>jdbc:mysql://localhost/${db.name}?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url>
+				<jdbc.url.prev>jdbc:mysql://localhost/${db.name}_prev?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url.prev>
+				<!-- <jdbc.password /> -->
+				<hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
+				<!-- <hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</hibernate.dialect> -->
+				<jdbc.groupId>mysql</jdbc.groupId>
+				<jdbc.artifactId>mysql-connector-java</jdbc.artifactId>
+				<jdbc.version>5.1.45</jdbc.version>
+				<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
+				<!-- <jdbc.url>jdbc:mysql://localhost:3306/telegramdb</jdbc.url> -->
+				<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
+				<jdbc.username>telegram</jdbc.username>
+				<jdbc.password>25m3rux7</jdbc.password>
+			</properties>
+		</profile>
+		<!-- <profile> -->
+		<!-- <id>postgresql</id> -->
+		<!-- <properties> -->
+		<!-- <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect> -->
+		<!-- <jdbc.groupId>postgresql</jdbc.groupId> -->
+		<!-- <jdbc.artifactId>postgresql</jdbc.artifactId> -->
+		<!-- <jdbc.version>8.1-407.jdbc3</jdbc.version> -->
+		<!-- <jdbc.driverClassName>org.postgresql.Driver</jdbc.driverClassName> -->
+		<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
+		<!-- <jdbc.username>postgres</jdbc.username> -->
+		<!-- <jdbc.password>postgres</jdbc.password> -->
+		<!-- </properties> -->
+		<!-- </profile> -->
+		<!-- <profile> -->
+		<!-- You need to enable TCP/IP Connections for SQL Server 2005 after installing. -->
+		<!-- http://www.mattwoodward.com/blog/index.cfm?commentID=211 -->
+		<!-- <id>sqlserver</id> -->
+		<!-- <properties> -->
+		<!-- <dbunit.dataTypeFactoryName>org.dbunit.ext.mssql.MsSqlDataTypeFactory</dbunit.dataTypeFactoryName> -->
+		<!-- <dbunit.operation.type>MSSQL_CLEAN_INSERT</dbunit.operation.type> -->
+		<!-- <hibernate.dialect>org.hibernate.dialect.SQLServerDialect</hibernate.dialect> -->
+		<!-- <jdbc.groupId>net.sourceforge.jtds</jdbc.groupId> -->
+		<!-- <jdbc.artifactId>jtds</jdbc.artifactId> -->
+		<!-- <jdbc.version>1.2</jdbc.version> -->
+		<!-- <jdbc.driverClassName>net.sourceforge.jtds.jdbc.Driver</jdbc.driverClassName> -->
+		<!-- <jdbc.url>jdbc:jtds:sqlserver://localhost:3683/${db.name}</jdbc.url> -->
+		<!-- <jdbc.username>sa</jdbc.username> -->
+		<!-- <jdbc.password>appfuse</jdbc.password> -->
+		<!-- </properties> -->
+		<!-- </profile> -->
+
+		<!-- ================= Container Profiles ================= -->
+		<!-- <profile> -->
+		<!-- <id>jboss</id> -->
+		<!-- <properties> -->
+		<!-- <cargo.container>jboss4x</cargo.container> -->
+		<!-- <cargo.container.home>${env.JBOSS_HOME}</cargo.container.home> -->
+		<!-- <cargo.container.url>http://easynews.dl.sourceforge.net/sourceforge/jboss/jboss-4.0.5.GA.zip</cargo.container.url> -->
+		<!-- </properties> -->
+		<!-- </profile> -->
+	</profiles>
+
+
+
+	<repositories>
+
+		<repository>
+			<id>nuiton.release</id>
+			<name>NuitonReleaseRepository</name>
+			<url>http://maven.nuiton.org/release</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+		</repository>
+
+		<repository>
+			<id>spring-repo</id>
+			<name>Spring Repository</name>
+			<url>https://repo.spring.io/release</url>
+		</repository>
+		<!-- <repository> -->
+		<!-- <releases> -->
+		<!-- <updatePolicy>never</updatePolicy> -->
+		<!-- </releases> -->
+		<!-- <snapshots> -->
+		<!-- <enabled>false</enabled> -->
+		<!-- </snapshots> -->
+		<!-- <id>central</id> -->
+		<!-- <name>Maven Plugin Repository</name> -->
+		<!-- <url>https://repo.maven.apache.org/maven2/</url> -->
+		<!-- </repository> -->
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring repo</id>
+			<url>https://repo.spring.io/release</url>
+		</pluginRepository>
+		<!-- <pluginRepository> -->
+		<!-- <id>central</id> -->
+		<!-- <name>Maven Plugin Repository</name> -->
+		<!-- <url>http://repo1.maven.org/maven2</url> -->
+		<!-- <layout>default</layout> -->
+		<!-- <snapshots> -->
+		<!-- <enabled>false</enabled> -->
+		<!-- </snapshots> -->
+		<!-- <releases> -->
+		<!-- <updatePolicy>never</updatePolicy> -->
+		<!-- </releases> -->
+		<!-- </pluginRepository> -->
+	</pluginRepositories>
+
+</project>

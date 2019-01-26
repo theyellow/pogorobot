@@ -1,0 +1,5 @@
+start - Beginnen wir einen Chat
+stop - Beende die Pokémon Nachricheten
+stopall - Beende den Bot
+hello - Sag Hallo zu mir
+help - Eine kleine Hilfe

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+<!--   <include file="../initial-database-old.xml" relativeToChangelogFile="true"/> -->
+<!--   <include file="db-prod-2018-04-07T08-17-56.data.changelog.xml" relativeToChangelogFile="true"/> -->
+
+<!--   <include file="db-raidAtGymEvent.structure.changelog.xml" relativeToChangelogFile="true"/> -->
+<!--   <include file="db-gyms.data.changelog.xml" relativeToChangelogFile="true"/> -->
+  
+<!--   <include file="db-possible-raid-pokemon.changelog.xml" relativeToChangelogFile="true"/> -->
+<!--   <include file="db-processed-raids.changelog.xml" relativeToChangelogFile="true"/> -->
+
+<!--   <include file="db-2018-04-07T09-46-21.structure.changelog.xml" relativeToChangelogFile="true"/> -->
+<!--  <include file="db-2018-04-07T09-46-21.structure.changelog.xml" relativeToChangelogFile="true"/> -->
+<!--  <include file="db-2018-04-07T09-46-21.structure.changelog.xml" relativeToChangelogFile="true"/> -->
+   
+</databaseChangeLog> 
