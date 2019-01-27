@@ -78,15 +78,15 @@ public interface FilterService {
 
 	Set<Geofence> getGeofencesForTelegramId(Long telegramId);
 
-	boolean isPointInOneGeofenceOfTelegramId(Double latitude, Double longitude, Long telegramId);
+	boolean isPointInOneGeofenceOfTelegramId(double latitude, double longitude, Long telegramId);
 
-	boolean isPointInGeofence(Double latitude, Double longitude, String geofenceName);
+	boolean isPointInGeofence(double latitude, double longitude, String geofenceName);
 
-	boolean isPointInOneGeofenceOfFilterByType(Double latitude, Double longitude, Filter filter, Type pokemonFence);
+	boolean isPointInOneGeofenceOfFilterByType(double latitude, double longitude, Filter filter, Type pokemonFence);
 
-	boolean isPointInOneOfManyGeofences(Double latitude, Double longitude, Set<Geofence> geofences);
+	boolean isPointInOneOfManyGeofences(double latitude, double longitude, Set<Geofence> geofences);
 
-	boolean isDistanceNearby(Double latitude, Double longitude, Double userLatitude, Double userLongitude,
+	boolean isDistanceNearby(double latitude, double longitude, Double userLatitude, Double userLongitude,
 			Double radius);
 
 	// Filter setUserradius(Long telegramId, String radius);

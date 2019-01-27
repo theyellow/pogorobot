@@ -321,11 +321,13 @@ public class TelegramServiceImpl implements TelegramService {
 				|| (raidPokemon != null && raidPokemon.contains(pokemonId))) {
 			Double latitude = gym.getLatitude();
 			Double longitude = gym.getLongitude();
+			boolean gymCoordsGiven = latitude != null && longitude != null;
 			boolean geoGiven = filter.getRadius() != null && filter.getLatitude() != null
-					&& filter.getLongitude() != null;
-			boolean pointInOneGeofence = filterService.isPointInOneGeofenceOfFilterByType(latitude, longitude, filter,
-					Type.RAID);
-			if (pointInOneGeofence || (geoGiven && filterService.isDistanceNearby(latitude, longitude,
+					&& filter.getLongitude() != null && filter.getRadiusRaids() != null;
+			boolean pointInOneGeofence = gymCoordsGiven
+					? filterService.isPointInOneGeofenceOfFilterByType(latitude, longitude, filter, Type.RAID)
+					: false;
+			if (pointInOneGeofence || (gymCoordsGiven && geoGiven && filterService.isDistanceNearby(latitude, longitude,
 					filter.getLatitude(), filter.getLongitude(), filter.getRadiusRaids()))) {
 
 				// magic number: pokemonId -1 means "egg"

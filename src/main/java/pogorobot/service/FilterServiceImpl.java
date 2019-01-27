@@ -341,7 +341,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
-	public boolean isPointInGeofence(Double latitude, Double longitude, String geofenceName) {
+	public boolean isPointInGeofence(double latitude, double longitude, String geofenceName) {
 		Geo geo = new Geo(latitude, longitude);
 		GeoArray polygon = getGeoArrayForGeofence(geofenceName);
 		return Intersection.isPointInPolygon(geo, polygon);
@@ -349,7 +349,7 @@ public class FilterServiceImpl implements FilterService {
 
 	@Override
 	@Deprecated
-	public boolean isPointInOneGeofenceOfTelegramId(Double latitude, Double longitude, Long telegramId) {
+	public boolean isPointInOneGeofenceOfTelegramId(double latitude, double longitude, Long telegramId) {
 		Set<Geofence> geofences = getGeofencesForTelegramId(telegramId);
 		if (geofences == null || geofences.size() == 0) {
 			return false;
@@ -369,7 +369,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
-	public boolean isPointInOneOfManyGeofences(Double latitude, Double longitude, Set<Geofence> geofences) {
+	public boolean isPointInOneOfManyGeofences(double latitude, double longitude, Set<Geofence> geofences) {
 		if (geofences == null || geofences.size() == 0) {
 			return true;
 		}
@@ -388,7 +388,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
-	public boolean isDistanceNearby(Double latitude, Double longitude, Double latitudeCenter, Double longitudeCenter,
+	public boolean isDistanceNearby(double latitude, double longitude, Double latitudeCenter, Double longitudeCenter,
 			Double radius) {
 		if (radius == null || latitudeCenter == null || longitudeCenter == null) {
 			return false;
@@ -423,7 +423,8 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
-	public boolean isPointInOneGeofenceOfFilterByType(Double latitude, Double longitude, Filter filter, Type pokemonFence) {
+	public boolean isPointInOneGeofenceOfFilterByType(double latitude, double longitude, Filter filter,
+			Type pokemonFence) {
 		Set<Geofence> geofences = null;
 		switch (pokemonFence) {
 		case POKEMON:
