@@ -6,6 +6,8 @@ It can
 - deliver monster-messages to users and/or groups
 - deliver raid-messages to users and/or groups
 - be used to submit manual raid-entries by users
+- be webhooked up by Rocketmap, RDM, PGSS
+
 
 Users can manually select in telegram what and where they want to see monsters and raids. 
 
@@ -14,9 +16,3 @@ Groups are configured in some config-files, your bot can deliver to many telegra
 
 There is no need for external webservers.
 
-Short installation instructions: <br>
-https://github.com/theyellow/pogorobot/wiki/Short-Installation-usage-guide
-
-Nigthly Build from 2019-01-27: <br>
-https://mycloud.marstaller.org/index.php/s/Oq2tQH8WNjY6Zl0 <br>
-(password is pogorobot)
