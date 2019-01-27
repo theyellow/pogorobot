@@ -37,20 +37,18 @@
 		<db.name>telegramdb</db.name>
 		<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName>
 		<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
+		<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
 		<jdbc.url>jdbc:mysql://localhost/${db.name}?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url>
 		<jdbc.url.prev>jdbc:mysql://localhost/${db.name}_prev?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url.prev>
-		<!-- <jdbc.password /> -->
+		<!-- <hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</hibernate.dialect> -->
 		<hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
 		<liquibase.hibernate.version>3.6</liquibase.hibernate.version>
-		<!-- <hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</hibernate.dialect> -->
 		<jdbc.groupId>mysql</jdbc.groupId>
 		<jdbc.artifactId>mysql-connector-java</jdbc.artifactId>
 		<jdbc.version>5.1.45</jdbc.version>
 		<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
-		<!-- <jdbc.url>jdbc:mysql://localhost:3306/telegramdb</jdbc.url> -->
-		<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
 		<jdbc.username>telegram</jdbc.username>
-		<jdbc.password>25m3rux7</jdbc.password>
+		<jdbc.password>telegram</jdbc.password>
 	</properties>
 
 	<dependencies>
@@ -106,11 +104,6 @@
 			<artifactId>hibernate-c3p0</artifactId>
 			<version>5.2.12.Final</version>
 		</dependency>
-		<!-- <dependency> -->
-		<!-- <groupId>org.hibernate</groupId> -->
-		<!-- <artifactId>hibernate-maven-plugin</artifactId> -->
-		<!-- <version>4.3.1.Final</version> -->
-		<!-- </dependency> -->
 		<dependency>
 			<groupId>com.google.maps</groupId>
 			<artifactId>google-maps-services</artifactId>
@@ -144,22 +137,10 @@
 			<type>pom</type>
 			<version>2.1.0</version>
 		</dependency>
-
-		<!-- <dependency> -->
-		<!-- <groupId>de.jpdigital</groupId> -->
-		<!-- <artifactId>hibernate5-ddl-maven-plugin</artifactId> -->
-		<!-- <version>1.0.1-hibernate-5.2.4.Final</version> -->
-		<!-- <type>maven-plugin</type> -->
-		<!-- </dependency> -->
 		<dependency>
 		    <groupId>org.seleniumhq.selenium</groupId>
 		    <artifactId>selenium-java</artifactId>
 	    </dependency>
-<!-- 		<dependency> -->
-<!-- 		    <groupId>org.seleniumhq.selenium</groupId> -->
-<!-- 		    <artifactId>htmlunit-driver</artifactId> -->
-<!-- 		    <version>2.32.1</version> -->
-<!-- 		</dependency> -->
 		<dependency>
 			<groupId>org.bytedeco.javacpp-presets</groupId>
 			<artifactId>tesseract-platform</artifactId>
@@ -537,19 +518,17 @@
 			<properties>
 				<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName>
 				<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
+				<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
 				<jdbc.url>jdbc:mysql://localhost/${db.name}?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url>
 				<jdbc.url.prev>jdbc:mysql://localhost/${db.name}_prev?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url.prev>
-				<!-- <jdbc.password /> -->
 				<hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
 				<!-- <hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</hibernate.dialect> -->
 				<jdbc.groupId>mysql</jdbc.groupId>
 				<jdbc.artifactId>mysql-connector-java</jdbc.artifactId>
 				<jdbc.version>5.1.45</jdbc.version>
 				<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
-				<!-- <jdbc.url>jdbc:mysql://localhost:3306/telegramdb</jdbc.url> -->
-				<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
 				<jdbc.username>telegram</jdbc.username>
-				<jdbc.password>25m3rux7</jdbc.password>
+				<jdbc.password>telegram</jdbc.password>
 			</properties>
 		</profile>
 		<!-- <profile> -->
