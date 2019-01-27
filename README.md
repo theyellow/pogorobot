@@ -14,9 +14,9 @@ Groups are configured in some config-files, your bot can deliver to many telegra
 
 There is no need for external webservers.
 
-Short installation instructions: 
+Short installation instructions: <br>
 https://github.com/theyellow/pogorobot/wiki/Short-Installation-usage-guide
 
-Nigthly Build from 2019-01-27: 
-https://mycloud.marstaller.org/index.php/s/H1VXb2ey4GOR5cc 
+Nigthly Build from 2019-01-27: <br>
+https://mycloud.marstaller.org/index.php/s/Oq2tQH8WNjY6Zl0 <br>
 (password is pogorobot)
