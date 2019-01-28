@@ -1,4 +1,4 @@
-# pogorobot
+# pogorobot [![Build Status](https://travis-ci.org/theyellow/pogorobot.svg?branch=master)](https://travis-ci.org/theyellow/pogorobot)
 
 the telegrambot for Pokemon Go
 
