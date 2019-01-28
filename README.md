@@ -1,6 +1,6 @@
-# pogorobot
+# pogorobot [![Build Status](https://travis-ci.org/theyellow/pogorobot.svg?branch=master)](https://travis-ci.org/theyellow/pogorobot)
 
-the telegrambot for Pokemon Go
+the telegrambot for Pokemon Go 
 
 It can
 - deliver monster-messages to users and/or groups
