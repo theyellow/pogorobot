@@ -3,10 +3,10 @@ install: true
 script:
   - ./mvnw clean install
   - bash <(curl -s https://codecov.io/bash)
- deploy:
+deploy:
   -
     on:
-      branch: master
+      branch: release
     provider: bintray
     skip_cleanup: true
     file: target/bin/bintray.json
