@@ -2,16 +2,17 @@ language: java
 jdk: oraclejdk8
 install: true
 script:
+  - export DATE_TIME=`date +'%y.%m.%d %H:%M:%S'`
   - mvn clean install
 cache:
   directories:
   - $HOME/.m2
-deploy:
-  -
-    on:
-      branch: master
-    provider: bintray
-    skip_cleanup: true
-    file: target/bin/bintray.json
-    user: theyellow
-    key: $BINTRAY_API_KEY
+#deploy:
+#  -
+#    on:
+#      branch: master
+#    provider: bintray
+#    skip_cleanup: true
+#    file: target/bin/bintray.json
+#    user: theyellow
+#    key: $BINTRAY_API_KEY
