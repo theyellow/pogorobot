@@ -16,4 +16,4 @@ deploy:
     file: bintray-descriptor.json
     user: theyellow
     key: $BINTRAY_API_KEY
-    dry_run: true
+    dry_run: false
