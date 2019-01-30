@@ -1,0 +1,25 @@
+{
+    "package": {
+        "name": "pogorobot",
+        "repo": "repo",
+        "subject": "theyellow",
+        "desc": "I was pushed completely automatically",
+        "website_url": "https://theyellow.github.io/pogorobot/",
+        "issue_tracker_url": "https://github.com/theyellow/pogorobot/issues",
+        "vcs_url": "https://github.com/theyellow/pogorobot.git",
+        "licenses": ["Apache-2.0"],
+        "labels": ["cool", "awesome", "gorilla"],
+        "public_download_numbers": false,
+        "public_stats": false
+    },
+
+    "version": {
+        "name": "latest"
+    },
+
+    "files":
+        [
+        {"includePattern": "target/(.*\\.jar)", "uploadPattern": "$1"}
+        ],
+    "publish": true
+}
