@@ -13,6 +13,6 @@ deploy:
       branch: master
     provider: bintray
     skip_cleanup: true
-    file: target/bin/bintray.json
+#    file: target/bin/bintray.json
     user: theyellow
     key: $BINTRAY_API_KEY
