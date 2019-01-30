@@ -10,9 +10,9 @@ cache:
 deploy:
   -
     on:
-      branch: master
+      branch: release
     provider: bintray
     skip_cleanup: true
-#    file: target/bin/bintray.json
+    file: bintray-descriptor.json
     user: theyellow
     key: $BINTRAY_API_KEY
