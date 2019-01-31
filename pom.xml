@@ -20,7 +20,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.theyellow</groupId>
 	<artifactId>pogorobot</artifactId>
-	<version>1.0.4-SNAPSHOT</version>
+	<version>1.0.4</version>
 	<name>telegrambot</name>
 
 	<parent>
