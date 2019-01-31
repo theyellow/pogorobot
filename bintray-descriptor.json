@@ -8,7 +8,6 @@
         "issue_tracker_url": "https://github.com/theyellow/pogorobot/issues",
         "vcs_url": "https://github.com/theyellow/pogorobot.git",
         "licenses": ["Apache-2.0"],
-        "labels": ["cool", "awesome", "gorilla"],
         "public_download_numbers": false,
         "public_stats": false
     },
@@ -19,7 +18,9 @@
 
     "files":
         [
-        {"includePattern": "target/(.*\\.jar)", "uploadPattern": "$1"}
+        {"includePattern": "target/(.*\\.jar)", "uploadPattern": "$1"},
+        {"includePattern": "config/(.*\\.*)", "uploadPattern": "config/$1"},
+        {"includePattern": "./(.*\\.sh)", "uploadPattern": "$1"}
         ],
     "publish": true
 }
