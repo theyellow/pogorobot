@@ -295,7 +295,14 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	/**
-	 * Constructor.
+	 * Start PogoBot
+	 * 
+	 * @param options
+	 *            telegramOptions
+	 * @param allowCommandsWithUsername
+	 *            true if allowed with user name
+	 * @param botUsername
+	 *            name of the bot
 	 */
 	public PogoBot(DefaultBotOptions options, boolean allowCommandsWithUsername, String botUsername) {
 		super(options, true, botUsername);
@@ -323,11 +330,25 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		});
 	}
 
+	/**
+	 * 
+	 * @param botUsername
+	 *            name of the bot
+	 * @param bottoken
+	 *            token from botfather
+	 */
 	public PogoBot(String botUsername, String bottoken) {
 		this(ApiContext.getInstance(DefaultBotOptions.class), botUsername);
 		this.bottoken = bottoken;
 	}
 
+	/**
+	 * 
+	 * @param options
+	 *            telegram options
+	 * @param botUsername
+	 *            name of the bot
+	 */
 	public PogoBot(DefaultBotOptions options, String botUsername) {
 		this(options, true, botUsername);
 	}

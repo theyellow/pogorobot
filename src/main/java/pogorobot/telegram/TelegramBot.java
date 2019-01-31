@@ -38,21 +38,19 @@ public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 	// order of calls. Sends to different chats can be out-of-order depending on
 	// timing.
 	// Example of call:
-	/**
-	 * SendMessage sendMessageRequest = new SendMessage();
-	 * sendMessageRequest.setChatId(chatId);
-	 * sendMessageRequest.setParseMode("HTML");
-	 * sendMessageRequest.setText(text);
-	 * sendMessageRequest.setReplyMarkup(replyMarkup); sendTimed(chatId,
-	 * sendMessageRequest); // <-- Instead of sendMessage() API method
-	 */
+	/// **
+	// * SendMessage sendMessageRequest = new SendMessage();
+	// * sendMessageRequest.setChatId(chatId);
+	// * sendMessageRequest.setParseMode("HTML");
+	// * sendMessageRequest.setText(text);
+	// * sendMessageRequest.setReplyMarkup(replyMarkup); sendTimed(chatId,
+	// * sendMessageRequest); // <= Instead of sendMessage() API method
+	// */
 	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
 
 	// When time of actual send comes this callback is called with the same
 	// parameters as in call to sendTimed().
-	// @Override
 	void sendMessageCallback(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
-	// */
 
 	void processNonCommandUpdate(Update update);
 

@@ -3,7 +3,7 @@ jdk: oraclejdk8
 install: true
 script:
   - export DATE_TIME=`date +'%y.%m.%d %H:%M:%S'`
-  - mvn clean compile install
+  - mvn clean compile package install
 cache:
   directories:
   - $HOME/.m2

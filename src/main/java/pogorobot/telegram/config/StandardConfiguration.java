@@ -18,12 +18,6 @@ package pogorobot.telegram.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 
-/**
- * @author Ruben Bermudez
- * @version 1.0
- * @brief Custom build vars FILL EVERYTHING CORRECTLY
- * @date 20 of June of 2015
- */
 @Qualifier("standard")
 public class StandardConfiguration extends Configuration {
 
