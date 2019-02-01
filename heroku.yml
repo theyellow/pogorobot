@@ -5,5 +5,3 @@ setup:
 build:
   languages:
     - java
-run:
-  web: bundle exec java -Dserver.port=$PORT $JAVA_OPTS -Dext.properties.dir=file:config-example -jar target/pogorobot-1.0.4-exec.jar
