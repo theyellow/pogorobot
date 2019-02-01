@@ -1,1 +1,1 @@
-web: java -Dext.properties.dir=file:config-example $JAVA_OPTS -jar target/dependency/webapp-runner.jar --port $PORT target/*.war
+web: java -Dserver.port=$PORT -Dext.properties.dir=file:config-example $JAVA_OPTS -jar target/dependency/webapp-runner.jar --port $PORT target/*.war
