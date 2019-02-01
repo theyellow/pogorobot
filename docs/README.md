@@ -2,22 +2,19 @@
 
 the telegrambot for Pokemon Go
 
-It can
-- deliver monster-messages to users and/or groups
-- deliver raid-messages to users and/or groups
-- be used to submit manual raid-entries by users
-- be webhooked up by Rocketmap, RDM, PGSS
+It can be used for
+- delivering monster-messages to users and/or groups
+- delivering raid-messages to users and/or groups
+- submitting manual raid-entries by users
+- being webhooked up by Rocketmap, RDM, PGSS (submit an issue if you would like to have monocle or something else, needs to be tested...)
 
+To be used it in private-mode or in groups or channels.
 
-Users can manually select in telegram what and where they want to see monsters and raids. 
+In private mode users can manually select in telegram what and where they want to see monsters and raids. 
 
-Groups are configured in some config-files, your bot can deliver to many telegram-groups or channels. So there are different config-files for everything you might want to filter/send.
+There is no need for external webservers, but you need java and a database (at the moment only mysql-build exists, submit an issue if you would like to have postgres or h2).
 
+[Short installation instructions for hosting your bot](https://github.com/theyellow/pogorobot/wiki/Short-installation-and-usage-guide)
 
-There is no need for external webservers.
+[Download](https://bintray.com/beta/#/theyellow/repo/pogorobot/latest?tab=files)
 
-[Short installation instructions](https://github.com/theyellow/pogorobot/wiki/Short-installation-and-usage-guide)
-
-[Nightly Build](https://mycloud.marstaller.org/index.php/s/Oq2tQH8WNjY6Zl0)
-
-(password is pogorobot)

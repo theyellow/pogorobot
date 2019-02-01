@@ -134,9 +134,9 @@
 			<artifactId>selenium-java</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.bytedeco.javacpp-presets</groupId>
-			<artifactId>tesseract-platform</artifactId>
-			<version>4.0.0-beta.3-1.4.2</version>
+			<groupId>com.pokebattler</groupId>
+			<artifactId>pogoprotos</artifactId>
+			<version>2.38.5</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.interceptor</groupId>
@@ -261,27 +261,27 @@
 						</configuration>
 					</execution>
 					<execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>com.github.jsimone</groupId>
-                                    <artifactId>webapp-runner</artifactId>
-                                    <version>8.0.30.2</version>
-                                    <destFileName>webapp-runner.jar</destFileName>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
+						<phase>package</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>com.github.jsimone</groupId>
+									<artifactId>webapp-runner</artifactId>
+									<version>8.0.30.2</version>
+									<destFileName>webapp-runner.jar</destFileName>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <executions>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<executions>
 					<execution>
 						<id>package</id>
 						<goals>
@@ -289,10 +289,10 @@
 						</goals>
 					</execution>
 				</executions>
-                <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
 		</plugins>
 
 	</build>
@@ -314,7 +314,12 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</releases>
 		</repository>
-
+		
+		<repository>
+            <id>jcenter</id>
+            <url>https://jcenter.bintray.com/</url>
+        </repository>
+        
 		<repository>
 			<id>spring-repo</id>
 			<name>Spring Repository</name>
