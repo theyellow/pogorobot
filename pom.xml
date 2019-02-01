@@ -281,7 +281,14 @@
 			<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.3</version>
+                <executions>
+					<execution>
+						<id>package</id>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+				</executions>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
