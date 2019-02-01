@@ -18,8 +18,8 @@
 
     "files":
         [
-        {"includePattern": "target/(.*\\.jar)", "uploadPattern": "$1"},
-        {"includePattern": "target/dependency/(.*\\.pom)", "uploadPattern": "$1"},
+        {"includePattern": "target/(pogorobot.*\\.jar)", "uploadPattern": "$1"},
+        {"includePattern": "target/dependency/(pogorobot.*\\.pom)", "uploadPattern": "$1"},
         {"includePattern": "config-example/(.*\\.*)", "uploadPattern": "config-example/$1"},
         {"includePattern": "./(.*\\.sh)", "uploadPattern": "$1"}
         ],
