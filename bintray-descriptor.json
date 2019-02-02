@@ -18,10 +18,7 @@
 
     "files":
         [
-        {"includePattern": "target/target-repo/(.*)", "uploadPattern": "$1"},
-        {"includePattern": "target/(pogorobot.*exec\\.jar)", "excludePattern": ".*/WEB-INF/.*", "uploadPattern": "$1"},
-        {"includePattern": "config-example/(.*\\.*)",  "uploadPattern": "config-example/$1"}, 
-        {"includePattern": "./(.*\\.sh)", "uploadPattern": "$1"}
+        {"includePattern": "target/target-repo/(.*)", "uploadPattern": "./$1"}
         ],
     "publish": true
 }
