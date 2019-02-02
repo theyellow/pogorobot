@@ -25,6 +25,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss</maven.build.timestamp.format>
+		<!-- <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version> -->
 		<spring-boot.version>1.5.10.RELEASE</spring-boot.version>
 		<db.name>telegramdb</db.name>
 		<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName>
@@ -145,6 +146,15 @@
 		</dependency>
 	</dependencies>
 
+	<distributionManagement>
+		<repository>
+			<!-- local repo -->
+			<id>target-repo</id>
+			<name>Create in target directory for distribution</name>
+			<url>file://${project.build.directory}/target-repo/</url>
+		</repository>
+	</distributionManagement>
+
 	<build>
 		<defaultGoal>install</defaultGoal>
 		<resources>
@@ -238,63 +248,14 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.1.1</version>
-				<executions>
-					<execution>
-						<id>copy-with-alternalte-repo</id>
-						<phase>install</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>${project.groupId}</groupId>
-									<artifactId>${project.artifactId}</artifactId>
-									<version>${project.version}</version>
-									<type>pom</type>
-								</artifactItem>
-							</artifactItems>
-							<localRepositoryDirectory>${project.build.directory}/localrepo</localRepositoryDirectory>
-						</configuration>
-					</execution>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<configuration>
-							<artifactItems>
-								<artifactItem>
-									<groupId>com.github.jsimone</groupId>
-									<artifactId>webapp-runner</artifactId>
-									<version>8.0.30.2</version>
-									<destFileName>webapp-runner.jar</destFileName>
-								</artifactItem>
-							</artifactItems>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>package</id>
-						<goals>
-							<goal>war</goal>
-						</goals>
-					</execution>
-				</executions>
+				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
-					<failOnMissingWebXml>false</failOnMissingWebXml>
+					<descriptors>
+						<descriptor>src/main/assembly/repository.xml</descriptor>
+					</descriptors>
 				</configuration>
 			</plugin>
 		</plugins>
-
 	</build>
 
 
@@ -314,12 +275,12 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</releases>
 		</repository>
-		
+
 		<repository>
-            <id>jcenter</id>
-            <url>https://jcenter.bintray.com/</url>
-        </repository>
-        
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+
 		<repository>
 			<id>spring-repo</id>
 			<name>Spring Repository</name>
