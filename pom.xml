@@ -26,7 +26,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<maven.build.timestamp.format>yyyy-MM-dd'T'HH-mm-ss</maven.build.timestamp.format>
 		<!-- <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version> -->
-		<spring-boot.version>1.5.10.RELEASE</spring-boot.version>
+		
 		<db.name>telegramdb</db.name>
 		<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName>
 		<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
@@ -42,29 +42,41 @@
 		<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName>
 		<jdbc.username>telegram</jdbc.username>
 		<jdbc.password>telegram</jdbc.password>
+		
+		<pogoprotos.version>2.38.5</pogoprotos.version>
+		<protobuf-java.version>3.5.1</protobuf-java.version>
+		<telegrambots.version>3.6.1</telegrambots.version>
+		<telegrambots-extensions.version>3.3</telegrambots-extensions.version>
+		<jsoup.version>1.10.3</jsoup.version>
+		<hibernate-c3p0.version>5.2.12.Final</hibernate-c3p0.version>
+		<google-maps-services.version>0.2.6</google-maps-services.version>
+		<openmap.version>5.1.13-1</openmap.version>
+		<liquibase-maven-plugin.version>3.5.3</liquibase-maven-plugin.version>
+		<hibernate5-ddl-maven-plugin.version>2.1.0</hibernate5-ddl-maven-plugin.version>
+		<javax.interceptor-api.version>1.2</javax.interceptor-api.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.telegram</groupId>
 			<artifactId>telegrambots</artifactId>
-			<version>3.6.1</version>
+			<version>${telegrambots.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.10.3</version>
+			<version>${jsoup.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.telegram</groupId>
 			<artifactId>telegrambotsextensions</artifactId>
-			<version>3.3</version>
+			<version>${telegrambots-extensions.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
-			<version>3.5.1</version>
+			<version>${protobuf-java.version}</version>
 		</dependency>
 
 		<dependency>
@@ -95,17 +107,17 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-c3p0</artifactId>
-			<version>5.2.12.Final</version>
+			<version>${hibernate-c3p0.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.maps</groupId>
 			<artifactId>google-maps-services</artifactId>
-			<version>0.2.6</version>
+			<version>${google-maps-services.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.bbn</groupId>
 			<artifactId>openmap</artifactId>
-			<version>5.1.13-1</version>
+			<version>${openmap.version}</version>
 		</dependency>
 
 		<dependency>
@@ -121,14 +133,14 @@
 		<dependency>
 			<groupId>org.liquibase</groupId>
 			<artifactId>liquibase-maven-plugin</artifactId>
-			<version>3.5.3</version>
+			<version>${liquibase-maven-plugin.version}</version>
 			<type>maven-plugin</type>
 		</dependency>
 		<dependency>
 			<groupId>de.jpdigital</groupId>
 			<artifactId>hibernate5-ddl-maven-plugin</artifactId>
 			<type>pom</type>
-			<version>2.1.0</version>
+			<version>${hibernate5-ddl-maven-plugin.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
@@ -137,12 +149,12 @@
 		<dependency>
 			<groupId>com.pokebattler</groupId>
 			<artifactId>pogoprotos</artifactId>
-			<version>2.38.5</version>
+			<version>${pogoprotos.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>javax.interceptor</groupId>
 			<artifactId>javax.interceptor-api</artifactId>
-			<version>1.2</version>
+			<version>${javax.interceptor-api.version}</version>
 		</dependency>
 	</dependencies>
 
