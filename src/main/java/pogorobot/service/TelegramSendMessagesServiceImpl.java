@@ -431,7 +431,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			}
 			if (now > endTime) {
 				logger.info("Delete message - time difference in minutes is " + (now - endTime) / 60);
-				owningRaid = processedRaidRepository.findOne(owningRaid.getId());
+				owningRaid = processedRaidRepository.findById(owningRaid.getId()).orElse(null);
 				owningRaid.removeFromGroupsRaidIsPosted(groupMessages);
 				processedRaidRepository.save(owningRaid);
 				Long groupChatId = groupMessages.getGroupChatId();

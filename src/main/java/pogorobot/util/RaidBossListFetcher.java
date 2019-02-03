@@ -20,8 +20,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,24 +32,16 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
-import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.InteractivePage;
-import com.gargoylesoftware.htmlunit.ScriptException;
-import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.WebWindow;
-import com.gargoylesoftware.htmlunit.html.DomElement;
-import com.gargoylesoftware.htmlunit.html.DomNode;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.javascript.JavaScriptErrorListener;
 
 public class RaidBossListFetcher {
 
@@ -65,95 +55,43 @@ public class RaidBossListFetcher {
 	}
 
 	public void createXmlFile() {
-		WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED);
-		webClient.getOptions().setUseInsecureSSL(true); // ignore ssl certificate
-		webClient.getOptions().setThrowExceptionOnScriptError(false);
-		webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-		webClient.setCssErrorHandler(new SilentCssErrorHandler());
-		webClient.setJavaScriptErrorListener(new JavaScriptErrorListener() {
-			@Override
-			public void scriptException(InteractivePage page, ScriptException scriptException) {
-			}
-
-			@Override
-			public void timeoutError(InteractivePage page, long allowedTime, long executionTime) {
-			}
-
-			@Override
-			public void malformedScriptURL(InteractivePage page, String url,
-					MalformedURLException malformedURLException) {
-			}
-
-			@Override
-			public void loadScriptError(InteractivePage page, URL scriptUrl, Exception exception) {
-			}
-		});
 		String url = "https://pokemongo.gamepress.gg/raid-boss-list";
-		HtmlPage myPage = null;
-		try {
-			myPage = webClient.getPage(url);
-		} catch (FailingHttpStatusCodeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		webClient.waitForBackgroundJavaScriptStartingBefore(200);
-		webClient.waitForBackgroundJavaScript(20000);
 
-		final List<WebWindow> windows = webClient.getWebWindows();
-		for (final WebWindow wd : windows) {
-			wd.getJobManager().removeAllJobs();
-		}
+		WebDriver webDriver = openUrl(url);
 
-		webClient.close();
-
-		System.gc();
-
-		// do stuff on page ex: myPage.getElementById("main")
-		// myPage.asXml() <- tags and elements
 		StringBuilder sb = new StringBuilder("<all>\n");
+
+		WebElement raidBossTable = webDriver.findElement(By.id("raid-boss-table"));
+		raidBossTable.findElements(By.tagName("tr")).stream().filter(tr -> tr.isDisplayed()).forEach(tr -> {
+			System.out.println(tr);
+			tr.findElements(By.tagName("td")).stream().forEach(td -> {
+				System.out.println(td);
+				// Is it the level?
+				if (td.getTagName().equals("div") && td.getAttribute("class").equals("raid-tier-stars")) {
+					sb.append(parseLevel(td));
+				} else
+				// or is it the pokemon?
+				if (td.getTagName().equals("a") && td.getAttribute("hreflang") != null) {
+					sb.append(parsePokemon(td));
+				}
+
+			});
+			sb.append("  </row>\n");
+		});
+		sb.append("</all>");
+		webDriver.close();
 		try {
-			HtmlElement htmlElementById = myPage.getHtmlElementById("raid-boss-table");
-			List<DomElement> list = new ArrayList<>();
-			htmlElementById.getChildElements().forEach(x -> list.add(x));
-			if (list.isEmpty()) {
-				return;
-			}
-			list.stream().filter(x -> x.getAttribute("style").contains("display: none;") ? false : true)
-					.forEach(trElement -> {
-						sb.append("  <row>\n");
-						// For each tableRow
-						trElement.getChildElements().forEach(tdElement -> {
-							if (tdElement.getChildren() != null) {
-								// For each table column
-								tdElement.getChildren().forEach(tdElementChild -> {
-									// Is it the level?
-									if (tdElementChild.getNodeName().equals("div") && tdElementChild.getAttributes()
-											.getNamedItem("class").getNodeValue().equals("raid-tier-stars")) {
-										sb.append(parseLevel(tdElementChild));
-									} else
-									// or is it the pokemon?
-									if (tdElementChild.getNodeName().equals("a")
-											&& tdElementChild.getAttributes().getNamedItem("hreflang") != null) {
-										sb.append(parsePokemon(tdElementChild));
-									}
-								});
-							}
-						});
-						sb.append("  </row>\n");
-					});
-			sb.append("</all>");
 			writeXml(sb.toString());
-		} catch (ElementNotFoundException | IOException e) {
-			// TODO Auto-generated catch block
+		} catch (IOException e) {
 			e.printStackTrace();
+			System.out.println("Error while parsing raidbosslist.");
 		}
-		// webClient.close();
+	}
+
+	private WebDriver openUrl(String url) {
+		HtmlUnitDriver driver = new HtmlUnitDriver(BrowserVersion.BEST_SUPPORTED, true);
+		driver.navigate().to(url);
+		return driver;
 	}
 
 	public List<String> parseXmlFile() {
@@ -198,13 +136,14 @@ public class RaidBossListFetcher {
 		}
 		return result;
 	}
-	private String parseLevel(DomNode tdElementChild) {
-		String level = "   <level>" + tdElementChild.getTextContent().trim() + "</level>\n";
+
+	private String parseLevel(WebElement tdElementChild) {
+		String level = "   <level>" + tdElementChild.getText().trim() + "</level>\n";
 		return level;
 	}
 
-	private String parsePokemon(DomNode tdElementChild) {
-		String nodeValue = tdElementChild.getAttributes().getNamedItem("href").getNodeValue();
+	private String parsePokemon(WebElement tdElementChild) {
+		String nodeValue = tdElementChild.getAttribute("href");
 		nodeValue = "   <pokemon>" + nodeValue.substring(9, nodeValue.length()) + "</pokemon>\n";
 		return nodeValue;
 	}

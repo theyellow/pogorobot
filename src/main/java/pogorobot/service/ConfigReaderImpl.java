@@ -82,7 +82,7 @@ public class ConfigReaderImpl implements ConfigReader {
 				fencesToSave.add(newFence);
 			}
 		}
-		geofenceDAO.save(fencesToSave);
+		geofenceDAO.saveAll(fencesToSave);
 	}
 
 	@Override

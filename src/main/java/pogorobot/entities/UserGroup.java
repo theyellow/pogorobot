@@ -45,35 +45,35 @@ public class UserGroup extends AbstractPersistable<Long> {
 	// this.setId(id);
 	// }
 
-	public final String getGroupName() {
+	public String getGroupName() {
 		return groupName;
 	}
 
-	public final void setGroupName(String groupName) {
+	public void setGroupName(String groupName) {
 		this.groupName = groupName;
 	}
 
-	public final String getPicture() {
+	public String getPicture() {
 		return picture;
 	}
 
-	public final void setPicture(String picture) {
+	public void setPicture(String picture) {
 		this.picture = picture;
 	}
 
-	public final Filter getGroupFilter() {
+	public Filter getGroupFilter() {
 		return groupFilter;
 	}
 
-	public final void setGroupFilter(Filter groupFilter) {
+	public void setGroupFilter(Filter groupFilter) {
 		this.groupFilter = groupFilter;
 	}
 
-	public final Long getChatId() {
+	public Long getChatId() {
 		return chatId;
 	}
 
-	public final void setChatId(Long chatId) {
+	public void setChatId(Long chatId) {
 		this.chatId = chatId;
 	}
 

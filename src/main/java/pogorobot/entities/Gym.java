@@ -67,107 +67,107 @@ public class Gym extends AbstractPersistable<Long> {
 	@ElementCollection()
 	private List<GymPokemon> pokemon;
 
-	public final String getGymId() {
+	public String getGymId() {
 		return gymId;
 	}
 
-	public final void setGymId(String gymId) {
+	public void setGymId(String gymId) {
 		this.gymId = gymId;
 	}
 
-	public final Double getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
 
-	public final void setLatitude(Double latitude) {
+	public void setLatitude(Double latitude) {
 		this.latitude = latitude;
 	}
 
-	public final Double getLongitude() {
+	public Double getLongitude() {
 		return longitude;
 	}
 
-	public final void setLongitude(Double longitude) {
+	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
 	}
 
-	public final Boolean getEnabled() {
+	public Boolean getEnabled() {
 		return enabled;
 	}
 
-	public final void setEnabled(Boolean enabled) {
+	public void setEnabled(Boolean enabled) {
 		this.enabled = enabled;
 	}
 
-	public final Long getTeamId() {
+	public Long getTeamId() {
 		return teamId;
 	}
 
-	public final void setTeamId(Long teamId) {
+	public void setTeamId(Long teamId) {
 		this.teamId = teamId;
 	}
 
-	public final String getName() {
+	public String getName() {
 		return name;
 	}
 
-	public final void setName(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public final String getDescription() {
+	public String getDescription() {
 		return description;
 	}
 
-	public final void setDescription(String description) {
+	public void setDescription(String description) {
 		this.description = description;
 	}
 
-	public final String getUrl() {
+	public String getUrl() {
 		return url;
 	}
 
-	public final void setUrl(String url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
-	public final Long getOccupiedSince() {
+	public Long getOccupiedSince() {
 		return occupiedSince;
 	}
 
-	public final void setOccupiedSince(Long occupiedSince) {
+	public void setOccupiedSince(Long occupiedSince) {
 		this.occupiedSince = occupiedSince;
 	}
 
-	public final Long getLastModified() {
+	public Long getLastModified() {
 		return lastModified;
 	}
 
-	public final void setLastModified(Long lastModified) {
+	public void setLastModified(Long lastModified) {
 		this.lastModified = lastModified;
 	}
 
-	public final Long getSlotsAvailable() {
+	public Long getSlotsAvailable() {
 		return slotsAvailable;
 	}
 
-	public final void setSlotsAvailable(Long slotsAvailable) {
+	public void setSlotsAvailable(Long slotsAvailable) {
 		this.slotsAvailable = slotsAvailable;
 	}
 
-	public final Long getRaidActiveUntil() {
+	public Long getRaidActiveUntil() {
 		return raidActiveUntil;
 	}
 
-	public final void setRaidActiveUntil(Long raidActiveUntil) {
+	public void setRaidActiveUntil(Long raidActiveUntil) {
 		this.raidActiveUntil = raidActiveUntil;
 	}
 
-	public final List<GymPokemon> getPokemon() {
+	public List<GymPokemon> getPokemon() {
 		return pokemon;
 	}
 
-	public final void setPokemon(List<GymPokemon> pokemon) {
+	public void setPokemon(List<GymPokemon> pokemon) {
 		this.pokemon = pokemon;
 	}
 
@@ -203,11 +203,11 @@ public class Gym extends AbstractPersistable<Long> {
 	// this.egg = egg;
 	// }
 
-	public final String getAddress() {
+	public String getAddress() {
 		return address;
 	}
 
-	public final void setAddress(String address) {
+	public void setAddress(String address) {
 		this.address = address;
 	}
 }

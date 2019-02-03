@@ -36,83 +36,83 @@ public class Egg {
 	public Egg() {
 	}
 //
-//	public final Double getLatitude() {
+	// public Double getLatitude() {
 //		return latitude;
 //	}
 //
-//	public final void setLatitude(Double latitude) {
+	// public void setLatitude(Double latitude) {
 //		this.latitude = latitude;
 //	}
 //
-//	public final Double getLongitude() {
+	// public Double getLongitude() {
 //		return longitude;
 //	}
 //
-//	public final void setLongitude(Double longitude) {
+	// public void setLongitude(Double longitude) {
 //		this.longitude = longitude;
 //	}
 
-//	public final Long getSpawn() {
+	// public Long getSpawn() {
 //		return spawn;
 //	}
 //
-//	public final void setSpawn(Long spawn) {
+	// public void setSpawn(Long spawn) {
 //		this.spawn = spawn;
 //	}
 
-	// public final Long getStart() {
+	// public Long getStart() {
 	// return start;
 	// }
 
-	// public final void setStart(Long start) {
+	// public void setStart(Long start) {
 	// this.start = start;
 	// }
 
-//	public final Long getEnd() {
+	// public Long getEnd() {
 //		return end;
 //	}
 //
-//	public final void setEnd(Long end) {
+	// public void setEnd(Long end) {
 //		this.end = end;
 //	}
 
-	public final Long getLevel() {
+	public Long getLevel() {
 		return level;
 	}
 
-	public final void setLevel(Long level) {
+	public void setLevel(Long level) {
 		this.level = level;
 	}
 
-//	public final Long getPokemonId() {
+	// public Long getPokemonId() {
 //		return pokemonId;
 //	}
 //
-//	public final void setPokemonId(Long pokemonId) {
+	// public void setPokemonId(Long pokemonId) {
 //		this.pokemonId = pokemonId;
 //	}
 
-//	public final Long getCp() {
+	// public Long getCp() {
 //		return cp;
 //	}
 //
-//	public final void setCp(Long cp) {
+	// public void setCp(Long cp) {
 //		this.cp = cp;
 //	}
 
-//	public final String getMove1() {
+	// public String getMove1() {
 //		return move1;
 //	}
 //
-//	public final void setMove1(String move1) {
+	// public void setMove1(String move1) {
 //		this.move1 = move1;
 //	}
 //
-//	public final String getMove2() {
+	// public String getMove2() {
 //		return move2;
 //	}
 //
-//	public final void setMove2(String move2) {
+	// public void setMove2(String move2) {
 //		this.move2 = move2;
 //	}
 

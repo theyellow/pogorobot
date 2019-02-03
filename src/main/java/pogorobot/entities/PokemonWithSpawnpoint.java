@@ -62,203 +62,203 @@ public class PokemonWithSpawnpoint extends AbstractPersistable<Long> {
 		this.setId(id);
 	}
 
-	public final String getSpawnpointId() {
+	public String getSpawnpointId() {
 		return spawnpointId;
 	}
 
-	public final void setSpawnpointId(String spawnpointId) {
+	public void setSpawnpointId(String spawnpointId) {
 		this.spawnpointId = spawnpointId;
 	}
 
-	public final Long getPokemonId() {
+	public Long getPokemonId() {
 		return pokemonId;
 	}
 
-	public final void setPokemonId(Long pokemonId) {
+	public void setPokemonId(Long pokemonId) {
 		this.pokemonId = pokemonId;
 	}
 
-	public final Double getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
 
-	public final void setLatitude(Double latitude) {
+	public void setLatitude(Double latitude) {
 		this.latitude = latitude;
 	}
 
-	public final Double getLongitude() {
+	public Double getLongitude() {
 		return longitude;
 	}
 
-	public final void setLongitude(Double longitude) {
+	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
 	}
 
-	public final Long getDisappearTime() {
+	public Long getDisappearTime() {
 		return disappearTime;
 	}
 
-	public final void setDisappearTime(Long disappearTime) {
+	public void setDisappearTime(Long disappearTime) {
 		this.disappearTime = disappearTime;
 	}
 
-	public final Long getTimeUntilHidden_ms() {
+	public Long getTimeUntilHidden_ms() {
 		return timeUntilHidden_ms;
 	}
 
-	public final void setTimeUntilHidden_ms(Long timeUntilHidden_ms) {
+	public void setTimeUntilHidden_ms(Long timeUntilHidden_ms) {
 		this.timeUntilHidden_ms = timeUntilHidden_ms;
 	}
 
-	public final Long getLastModified() {
+	public Long getLastModified() {
 		return lastModified;
 	}
 
-	public final void setLastModified(Long lastModified) {
+	public void setLastModified(Long lastModified) {
 		this.lastModified = lastModified;
 	}
 
-	public final Long getSecondsUntilDespawn() {
+	public Long getSecondsUntilDespawn() {
 		return secondsUntilDespawn;
 	}
 
-	public final void setSecondsUntilDespawn(Long secondsUntilDespawn) {
+	public void setSecondsUntilDespawn(Long secondsUntilDespawn) {
 		this.secondsUntilDespawn = secondsUntilDespawn;
 	}
 
-	public final Long getSpawnStart() {
+	public Long getSpawnStart() {
 		return spawnStart;
 	}
 
-	public final void setSpawnStart(Long spawnStart) {
+	public void setSpawnStart(Long spawnStart) {
 		this.spawnStart = spawnStart;
 	}
 
-	public final Long getSpawnEnd() {
+	public Long getSpawnEnd() {
 		return spawnEnd;
 	}
 
-	public final void setSpawnEnd(Long spawnEnd) {
+	public void setSpawnEnd(Long spawnEnd) {
 		this.spawnEnd = spawnEnd;
 	}
 
-	public final Long getGender() {
+	public Long getGender() {
 		return gender;
 	}
 
-	public final void setGender(Long gender) {
+	public void setGender(Long gender) {
 		this.gender = gender;
 	}
 
-	public final String getForm() {
+	public String getForm() {
 		return form;
 	}
 
-	public final void setForm(String form) {
+	public void setForm(String form) {
 		this.form = form;
 	}
 
-	public final String getIndividualAttack() {
+	public String getIndividualAttack() {
 		return individualAttack;
 	}
 
-	public final void setIndividualAttack(String individualAttack) {
+	public void setIndividualAttack(String individualAttack) {
 		this.individualAttack = individualAttack;
 	}
 
-	public final String getIndividualDefense() {
+	public String getIndividualDefense() {
 		return individualDefense;
 	}
 
-	public final void setIndividualDefense(String individualDefense) {
+	public void setIndividualDefense(String individualDefense) {
 		this.individualDefense = individualDefense;
 	}
 
-	public final String getIndividualStamina() {
+	public String getIndividualStamina() {
 		return individualStamina;
 	}
 
-	public final void setIndividualStamina(String individualStamina) {
+	public void setIndividualStamina(String individualStamina) {
 		this.individualStamina = individualStamina;
 	}
 
-	public final Double getCpMultiplier() {
+	public Double getCpMultiplier() {
 		return cpMultiplier;
 	}
 
-	public final void setCpMultiplier(Double cpMultiplier) {
+	public void setCpMultiplier(Double cpMultiplier) {
 		this.cpMultiplier = cpMultiplier;
 	}
 
-	public final String getMove1() {
+	public String getMove1() {
 		return move1;
 	}
 
-	public final void setMove1(String move1) {
+	public void setMove1(String move1) {
 		this.move1 = move1;
 	}
 
-	public final String getMove2() {
+	public String getMove2() {
 		return move2;
 	}
 
-	public final void setMove2(String move2) {
+	public void setMove2(String move2) {
 		this.move2 = move2;
 	}
 
-	public final Double getWeight() {
+	public Double getWeight() {
 		return weight;
 	}
 
-	public final void setWeight(Double weight) {
+	public void setWeight(Double weight) {
 		this.weight = weight;
 	}
 
-	public final Double getHeight() {
+	public Double getHeight() {
 		return height;
 	}
 
-	public final void setHeight(Double height) {
+	public void setHeight(Double height) {
 		this.height = height;
 	}
 
-	public final Long getPlayerLevel() {
+	public Long getPlayerLevel() {
 		return playerLevel;
 	}
 
-	public final void setPlayerLevel(Long playerLevel) {
+	public void setPlayerLevel(Long playerLevel) {
 		this.playerLevel = playerLevel;
 	}
 
-	public final Boolean getVerified() {
+	public Boolean getVerified() {
 		return verified;
 	}
 
-	public final void setVerified(Boolean verified) {
+	public void setVerified(Boolean verified) {
 		this.verified = verified;
 	}
 
-	public final String getEncounterId() {
+	public String getEncounterId() {
 		return encounterId;
 	}
 
-	public final void setEncounterId(String encounterId) {
+	public void setEncounterId(String encounterId) {
 		this.encounterId = encounterId;
 	}
 
-	public final String getCp() {
+	public String getCp() {
 		return cp;
 	}
 
-	public final void setCp(String cp) {
+	public void setCp(String cp) {
 		this.cp = cp;
 	}
 
-	public final String getCostumeId() {
+	public String getCostumeId() {
 		return costumeId;
 	}
 
-	public final void setCostumeId(String costumeId) {
+	public void setCostumeId(String costumeId) {
 		this.costumeId = costumeId;
 	}
 

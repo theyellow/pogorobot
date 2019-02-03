@@ -311,7 +311,7 @@ public class GymServiceImpl implements GymService {
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
 		for (Long mon : allGymMonIds) {
-			gymPokemonDao.delete(mon);
+			gymPokemonDao.deleteById(mon);
 			numberOfDeleted++;
 		}
 		long time = (new Date().getTime() - start.getTime()) / 1000;
@@ -321,6 +321,6 @@ public class GymServiceImpl implements GymService {
 
 	@Override
 	public Gym getGymByInternalId(Long id) {
-		return gymRepository.findOne(id);
+		return gymRepository.findById(id).orElse(null);
 	}
 }

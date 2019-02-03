@@ -49,27 +49,27 @@ public class EventWithSubscribers extends AbstractPersistable<Long> implements C
 		this.setId(id);
 	}
 
-	public final String getTime() {
+	public String getTime() {
 		return time;
 	}
 
-	public final void setTime(String time) {
+	public void setTime(String time) {
 		this.time = time;
 	}
 
-	public final Set<Subscriber> getSubscribers() {
+	public Set<Subscriber> getSubscribers() {
 		return subscribers;
 	}
 
-	public final void setSubscribers(Set<Subscriber> users) {
+	public void setSubscribers(Set<Subscriber> users) {
 		this.subscribers = users;
 	}
 
-	public final void addSubcriber(Subscriber subscriber) {
+	public void addSubcriber(Subscriber subscriber) {
 		this.subscribers.add(subscriber);
 	}
 
-	public final void removeSubscriber(Subscriber user) {
+	public void removeSubscriber(Subscriber user) {
 		// for (Subscriber subscriber : subscribers) {
 		// if (this.users.contains(subscriber.getSubscriber())
 		// }
@@ -79,7 +79,7 @@ public class EventWithSubscribers extends AbstractPersistable<Long> implements C
 	}
 
 	@Transient
-	public final void removeSubscriber(User user) {
+	public void removeSubscriber(User user) {
 		for (Subscriber subscriber : subscribers) {
 			if (user.getId().equals(subscriber.getSubscriber().getId())) {
 				this.subscribers.remove(subscriber);
@@ -87,11 +87,11 @@ public class EventWithSubscribers extends AbstractPersistable<Long> implements C
 		}
 	}
 
-	public final RaidAtGymEvent getRaid() {
+	public RaidAtGymEvent getRaid() {
 		return raid;
 	}
 
-	public final void setRaid(RaidAtGymEvent raid) {
+	public void setRaid(RaidAtGymEvent raid) {
 		this.raid = raid;
 	}
 

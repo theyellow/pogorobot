@@ -37,27 +37,27 @@ public class GymPokemon extends AbstractPersistable<Long> {
 		this.setId(id);
 	}
 
-	public final String getTrainerName() {
+	public String getTrainerName() {
 		return trainerName;
 	}
 
-	public final void setTrainerName(String trainerName) {
+	public void setTrainerName(String trainerName) {
 		this.trainerName = trainerName;
 	}
 
-	public final Long getTrainerLevel() {
+	public Long getTrainerLevel() {
 		return trainerLevel;
 	}
 
-	public final void setTrainerLevel(Long trainerLevel) {
+	public void setTrainerLevel(Long trainerLevel) {
 		this.trainerLevel = trainerLevel;
 	}
 
-	public final Long getPokemonId() {
+	public Long getPokemonId() {
 		return pokemonId;
 	}
 
-	public final void setPokemonId(Long pokemonId) {
+	public void setPokemonId(Long pokemonId) {
 		this.pokemonId = pokemonId;
 	}
 
