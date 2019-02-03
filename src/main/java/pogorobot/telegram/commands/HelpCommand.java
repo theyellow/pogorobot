@@ -20,12 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.objects.Chat;
-import org.telegram.telegrambots.api.objects.User;
-import org.telegram.telegrambots.bots.AbsSender;
-import org.telegram.telegrambots.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.bots.AbsSender;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.UserService;
@@ -74,7 +75,7 @@ public class HelpCommand extends BotCommand {
 		StringBuilder helpMessageBuilder = new StringBuilder("<b>Help</b>\n");
 		helpMessageBuilder.append("Das sind die Befehle für diesen Bot:\n\n");
 
-		for (BotCommand botCommand : pogoBot.getRegisteredCommands()) {
+		for (IBotCommand botCommand : pogoBot.getRegisteredCommands()) {
 			helpMessageBuilder.append(botCommand.toString()).append("\n\n");
 		}
 

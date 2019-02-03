@@ -18,7 +18,7 @@ package pogorobot.telegram.util;
 
 import java.io.Serializable;
 
-import org.telegram.telegrambots.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class SendRaidAnswer {
 

@@ -38,14 +38,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.api.objects.Chat;
-import org.telegram.telegrambots.api.objects.Location;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Location;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import pogorobot.PoGoRobotApplication.RaidBossListUpdater;
 import pogorobot.entities.EventWithSubscribers;
@@ -364,7 +364,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	}
 
 	@Override
-	public SendMessage answerUserMessage(Message message, org.telegram.telegrambots.api.objects.User from) {
+	public SendMessage answerUserMessage(Message message, org.telegram.telegrambots.meta.api.objects.User from) {
 		User user = null;
 		if (userService != null) {
 			user = userService.getOrCreateUser(from.getId().toString());
@@ -902,7 +902,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		if (chat.isUserChat()) {
 			fromId = chat.getId().intValue();
 		} else {
-			org.telegram.telegrambots.api.objects.User from = callbackQuery.getFrom();
+			org.telegram.telegrambots.meta.api.objects.User from = callbackQuery.getFrom();
 			fromId = from.getId();
 		}
 		User user = userService.getOrCreateUser(fromId.toString());

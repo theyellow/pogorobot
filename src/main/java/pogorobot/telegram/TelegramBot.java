@@ -18,10 +18,10 @@ package pogorobot.telegram;
 
 import java.io.Serializable;
 
-import org.telegram.telegrambots.api.methods.BotApiMethod;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.bots.commandbot.commands.ICommandRegistry;
-import org.telegram.telegrambots.generics.LongPollingBot;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.generics.LongPollingBot;
 
 public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 

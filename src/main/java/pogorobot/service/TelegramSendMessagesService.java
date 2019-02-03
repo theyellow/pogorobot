@@ -20,9 +20,9 @@ import java.io.FileNotFoundException;
 import java.util.SortedSet;
 
 import org.apache.commons.codec.DecoderException;
-import org.telegram.telegrambots.api.methods.PartialBotApiMethod;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
