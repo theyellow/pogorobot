@@ -56,7 +56,7 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 	@Transactional(TxType.REQUIRES_NEW)
 	public SortedSet<EventWithSubscribers> getSubscribersForRaid(String gymId) {
 
-		RaidAtGymEvent gymEvent = raidAtGymEventRepository.findOne(gymId);
+		RaidAtGymEvent gymEvent = raidAtGymEventRepository.findById(gymId).orElse(null);
 		if (gymEvent == null) {
 			System.out.println("Error, no gym found for gymId:" + gymId);
 			// EventWithSubscribers.
@@ -113,7 +113,7 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 	@Override
 	@Transactional(TxType.REQUIRED)
 	public void deleteEvent(String gymId) {
-		RaidAtGymEvent gymEvent = raidAtGymEventRepository.findOne(gymId);
+		RaidAtGymEvent gymEvent = raidAtGymEventRepository.findById(gymId).orElse(null);
 		if (gymEvent == null) {
 			System.out.println("No Raid found for gymId " + gymId);
 			return;

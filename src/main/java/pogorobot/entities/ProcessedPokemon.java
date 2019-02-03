@@ -41,11 +41,11 @@ public class ProcessedPokemon implements Persistable<String> {
 	@Column(length = 32)
 	String id;
 
-	// public final String getEncounterId() {
+	// public String getEncounterId() {
 	// return id;
 	// }
 	//
-	// public final void setEncounterId(String id) {
+	// public void setEncounterId(String id) {
 	// this.encounterId = id;
 	// }
 

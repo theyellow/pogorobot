@@ -24,11 +24,11 @@ public class EggWithGym extends Raid {
 		this.gymId = gymId;
 	}
 
-	public final String getGymId() {
+	public String getGymId() {
 		return gymId;
 	}
 
-	public final void setGymId(String gymId) {
+	public void setGymId(String gymId) {
 		this.gymId = gymId;
 	}
 	

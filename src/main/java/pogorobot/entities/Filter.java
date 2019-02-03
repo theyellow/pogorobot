@@ -100,51 +100,51 @@ public class Filter extends AbstractPersistable<Long> {
 		this.setId(id);
 	}
 
-	public final Double getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
 
-	public final void setLatitude(Double latitude) {
+	public void setLatitude(Double latitude) {
 		this.latitude = latitude;
 	}
 
-	public final Double getLongitude() {
+	public Double getLongitude() {
 		return longitude;
 	}
 
-	public final void setLongitude(Double longitude) {
+	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
 	}
 
-	public final Double getRadius() {
+	public Double getRadius() {
 		return radius;
 	}
 
-	public final void setRadius(Double radius) {
+	public void setRadius(Double radius) {
 		this.radius = radius;
 	}
 
-	public final List<Integer> getPokemons() {
+	public List<Integer> getPokemons() {
 		return pokemons;
 	}
 
-	public final void setPokemons(List<Integer> pokemons) {
+	public void setPokemons(List<Integer> pokemons) {
 		this.pokemons = pokemons;
 	}
 
-	// public final List<Gym> getGyms() {
+	// public List<Gym> getGyms() {
 	// return gyms;
 	// }
 	//
-	// public final void setGyms(List<Gym> gyms) {
+	// public void setGyms(List<Gym> gyms) {
 	// this.gyms = gyms;
 	// }
 
-	public final List<Integer> getGymPokemons() {
+	public List<Integer> getGymPokemons() {
 		return gymPokemons;
 	}
 
-	public final void setGymPokemons(List<Integer> gymPokemons) {
+	public void setGymPokemons(List<Integer> gymPokemons) {
 		this.gymPokemons = gymPokemons;
 	}
 	
@@ -169,126 +169,126 @@ public class Filter extends AbstractPersistable<Long> {
 				+ (gymPokemons != null ? "gymPokemons=" + gymPokemons : "") + "]";
 	}
 
-	public final User getOwner() {
+	public User getOwner() {
 		return owner;
 	}
 
-	public final void setOwner(User owner) {
+	public void setOwner(User owner) {
 		this.owner = owner;
 		if (owner != null && owner.getUserFilter() == null) {
 			owner.setUserFilter(this);
 		}
 	}
 
-	public final List<User> getReceivers() {
+	public List<User> getReceivers() {
 		return receivers;
 	}
 
-	public final void setReceivers(List<User> receivers) {
+	public void setReceivers(List<User> receivers) {
 		this.receivers = receivers;
 	}
 
-	public final UserGroup getGroup() {
+	public UserGroup getGroup() {
 		return group;
 	}
 
-	public final void setGroup(UserGroup group) {
+	public void setGroup(UserGroup group) {
 		this.group = group;
 	}
 
-	public final List<UserGroup> getReceiveFromGroups() {
+	public List<UserGroup> getReceiveFromGroups() {
 		return receiveFromGroups;
 	}
 
-	public final void setReceiveFromGroups(List<UserGroup> receiveFromGroups) {
+	public void setReceiveFromGroups(List<UserGroup> receiveFromGroups) {
 		this.receiveFromGroups = receiveFromGroups;
 	}
 
-	public final List<Integer> getRaidPokemon() {
+	public List<Integer> getRaidPokemon() {
 		return raidPokemon;
 	}
 
-	public final void setRaidPokemon(List<Integer> raidPokemon) {
+	public void setRaidPokemon(List<Integer> raidPokemon) {
 		this.raidPokemon = raidPokemon;
 	}
 
-	public final Integer getRaidLevel() {
+	public Integer getRaidLevel() {
 		return raidLevel;
 	}
 
-	public final void setRaidLevel(Integer raidLevel) {
+	public void setRaidLevel(Integer raidLevel) {
 		this.raidLevel = raidLevel;
 	}
 
-	public final Set<Geofence> getGeofences() {
+	public Set<Geofence> getGeofences() {
 		return geofences;
 	}
 
-	public final void setGeofences(Set<Geofence> geofences) {
+	public void setGeofences(Set<Geofence> geofences) {
 		this.geofences = geofences;
 	}
 
-	public final Set<Geofence> getRaidGeofences() {
+	public Set<Geofence> getRaidGeofences() {
 		return raidGeofences;
 	}
 
-	public final void setRaidGeofences(Set<Geofence> raidGeofences) {
+	public void setRaidGeofences(Set<Geofence> raidGeofences) {
 		this.raidGeofences = raidGeofences;
 	}
 
-	public final Double getMinIV() {
+	public Double getMinIV() {
 		return minIV;
 	}
 
-	public final void setMinIV(Double minIV) {
+	public void setMinIV(Double minIV) {
 		this.minIV = minIV;
 	}
 
-	public final Integer getMinWP() {
+	public Integer getMinWP() {
 		return minWP;
 	}
 
-	public final void setMinWP(Integer minWP) {
+	public void setMinWP(Integer minWP) {
 		this.minWP = minWP;
 	}
 
-	public final Boolean getOnlyWithIV() {
+	public Boolean getOnlyWithIV() {
 		return onlyWithIV;
 	}
 
-	public final void setOnlyWithIV(Boolean onlyWithIV) {
+	public void setOnlyWithIV(Boolean onlyWithIV) {
 		this.onlyWithIV = onlyWithIV;
 	}
 
-	public final Double getRadiusPokemon() {
+	public Double getRadiusPokemon() {
 		return radiusPokemon;
 	}
 
-	public final void setRadiusPokemon(Double radiusPokemon) {
+	public void setRadiusPokemon(Double radiusPokemon) {
 		this.radiusPokemon = radiusPokemon;
 	}
 
-	public final Double getRadiusRaids() {
+	public Double getRadiusRaids() {
 		return radiusRaids;
 	}
 
-	public final void setRadiusRaids(Double radiusRaids) {
+	public void setRadiusRaids(Double radiusRaids) {
 		this.radiusRaids = radiusRaids;
 	}
 
-	public final Double getRadiusIV() {
+	public Double getRadiusIV() {
 		return radiusIV;
 	}
 
-	public final void setRadiusIV(Double radiusIV) {
+	public void setRadiusIV(Double radiusIV) {
 		this.radiusIV = radiusIV;
 	}
 
-	public final Set<Geofence> getIvGeofences() {
+	public Set<Geofence> getIvGeofences() {
 		return ivGeofences;
 	}
 
-	public final void setIvGeofences(Set<Geofence> ivGeofences) {
+	public void setIvGeofences(Set<Geofence> ivGeofences) {
 		this.ivGeofences = ivGeofences;
 	}
 

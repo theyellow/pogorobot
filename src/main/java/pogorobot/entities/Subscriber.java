@@ -33,19 +33,19 @@ public class Subscriber extends AbstractPersistable<Long> {
 
 	private Integer additionalParticipants;
 
-	public final User getSubscriber() {
+	public User getSubscriber() {
 		return subscriber;
 	}
 
-	public final void setSubscriber(User subscriber) {
+	public void setSubscriber(User subscriber) {
 		this.subscriber = subscriber;
 	}
 
-	public final Integer getAdditionalParticipants() {
+	public Integer getAdditionalParticipants() {
 		return additionalParticipants;
 	}
 
-	public final void setAdditionalParticipants(Integer additionalParticipants) {
+	public void setAdditionalParticipants(Integer additionalParticipants) {
 		this.additionalParticipants = additionalParticipants;
 	}
 

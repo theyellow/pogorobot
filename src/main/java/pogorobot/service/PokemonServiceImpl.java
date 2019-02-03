@@ -84,7 +84,7 @@ public class PokemonServiceImpl implements PokemonService {
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
 		for (String mon : processedMons) {
-			processedPokemonDAO.delete(mon);
+			processedPokemonDAO.deleteById(mon);
 			numberOfDeleted++;
 		}
 		long time = (new Date().getTime() - start.getTime()) / 1000;

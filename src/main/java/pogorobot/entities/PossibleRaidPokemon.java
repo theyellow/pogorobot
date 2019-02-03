@@ -37,27 +37,27 @@ public class PossibleRaidPokemon extends AbstractPersistable<Long> {
 		this.setId(id);
 	}
 
-	public final Integer getPokemonId() {
+	public Integer getPokemonId() {
 		return pokemonId;
 	}
 
-	public final void setPokemonId(Integer pokemonId) {
+	public void setPokemonId(Integer pokemonId) {
 		this.pokemonId = pokemonId;
 	}
 
-	public final Integer getLevel() {
+	public Integer getLevel() {
 		return level;
 	}
 
-	public final void setLevel(Integer level) {
+	public void setLevel(Integer level) {
 		this.level = level;
 	}
 
-	public final String getType() {
+	public String getType() {
 		return type;
 	}
 
-	public final void setType(String type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 }

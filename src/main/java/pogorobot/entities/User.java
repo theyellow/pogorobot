@@ -104,59 +104,59 @@ public class User extends AbstractPersistable<Long> {
 		this.setId(id);
 	}
 
-	public final String getTelegramId() {
+	public String getTelegramId() {
 		return telegramId;
 	}
 
-	public final void setTelegramId(String telegramId) {
+	public void setTelegramId(String telegramId) {
 		this.telegramId = telegramId;
 	}
 
-	public final String getName() {
+	public String getName() {
 		return name;
 	}
 
-	public final void setName(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 
-	public final String getIngameName() {
+	public String getIngameName() {
 		return ingameName;
 	}
 
-	public final void setIngameName(String ingameName) {
+	public void setIngameName(String ingameName) {
 		this.ingameName = ingameName;
 	}
 
-	public final Long getTrainerLevel() {
+	public Long getTrainerLevel() {
 		return trainerLevel;
 	}
 
-	public final void setTrainerLevel(Long trainerLevel) {
+	public void setTrainerLevel(Long trainerLevel) {
 		this.trainerLevel = trainerLevel;
 	}
 
-	public final List<Filter> getFilters() {
+	public List<Filter> getFilters() {
 		return filters;
 	}
 
-	public final void setFilters(List<Filter> filters) {
+	public void setFilters(List<Filter> filters) {
 		this.filters = filters;
 	}
 
-	public final boolean isPayed() {
+	public boolean isPayed() {
 		return payed;
 	}
 
-	public final void setPayed(boolean payed) {
+	public void setPayed(boolean payed) {
 		this.payed = payed;
 	}
 
-	public final boolean isAdmin() {
+	public boolean isAdmin() {
 		return admin;
 	}
 
-	public final void setAdmin(boolean admin) {
+	public void setAdmin(boolean admin) {
 		this.admin = admin;
 	}
 
@@ -168,19 +168,19 @@ public class User extends AbstractPersistable<Long> {
 		this.raidadmin = raidadmin;
 	}
 
-	public final boolean isSuperadmin() {
+	public boolean isSuperadmin() {
 		return superadmin;
 	}
 
-	public final void setSuperadmin(boolean superadmin) {
+	public void setSuperadmin(boolean superadmin) {
 		this.superadmin = superadmin;
 	}
 
-	public final List<UserGroup> getGroups() {
+	public List<UserGroup> getGroups() {
 		return groups;
 	}
 
-	public final void setGroups(List<UserGroup> groups) {
+	public void setGroups(List<UserGroup> groups) {
 		this.groups = groups;
 	}
 
@@ -202,22 +202,22 @@ public class User extends AbstractPersistable<Long> {
 		this.telegramName = telegramName;
 	}
 
-	public final Filter getUserFilter() {
+	public Filter getUserFilter() {
 		return userFilter;
 	}
 
-	public final void setUserFilter(Filter userFilter) {
+	public void setUserFilter(Filter userFilter) {
 		this.userFilter = userFilter;
 		if (userFilter != null && userFilter.getOwner() == null) {
 			userFilter.setOwner(this);
 		}
 	}
 
-	public final boolean isTelegramActive() {
+	public boolean isTelegramActive() {
 		return telegramActive;
 	}
 
-	public final void setTelegramActive(boolean telegramActive) {
+	public void setTelegramActive(boolean telegramActive) {
 		this.telegramActive = telegramActive;
 	}
 
@@ -237,11 +237,11 @@ public class User extends AbstractPersistable<Long> {
 		this.showRaidMessages = showRaidMessages;
 	}
 
-	public final String getChatId() {
+	public String getChatId() {
 		return chatId;
 	}
 
-	public final void setChatId(String chatId) {
+	public void setChatId(String chatId) {
 		this.chatId = chatId;
 	}
 

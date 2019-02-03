@@ -38,43 +38,43 @@ public class GroupMessages extends AbstractPersistable<Long> {
 
 	private Integer locationId;
 
-	public final ProcessedRaids getOwningRaid() {
+	public ProcessedRaids getOwningRaid() {
 		return owningRaid;
 	}
 
-	public final void setOwningRaid(ProcessedRaids owningRaid) {
+	public void setOwningRaid(ProcessedRaids owningRaid) {
 		this.owningRaid = owningRaid;
 	}
 
-	public final Long getGroupChatId() {
+	public Long getGroupChatId() {
 		return groupChatId;
 	}
 
-	public final void setGroupChatId(Long chatId) {
+	public void setGroupChatId(Long chatId) {
 		this.groupChatId = chatId;
 	}
 
-	public final Integer getStickerId() {
+	public Integer getStickerId() {
 		return stickerId;
 	}
 
-	public final void setStickerId(Integer stickerId) {
+	public void setStickerId(Integer stickerId) {
 		this.stickerId = stickerId;
 	}
 
-	public final Integer getMessageId() {
+	public Integer getMessageId() {
 		return messageId;
 	}
 
-	public final void setMessageId(Integer messageId) {
+	public void setMessageId(Integer messageId) {
 		this.messageId = messageId;
 	}
 
-	public final Integer getLocationId() {
+	public Integer getLocationId() {
 		return locationId;
 	}
 
-	public final void setLocationId(Integer locationId) {
+	public void setLocationId(Integer locationId) {
 		this.locationId = locationId;
 	}
 

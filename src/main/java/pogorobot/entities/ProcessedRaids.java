@@ -54,37 +54,37 @@ public class ProcessedRaids extends AbstractPersistable<Long> {
 	@OneToMany(cascade = CascadeType.ALL)
 	Set<GroupMessages> groupsRaidIsPosted;
 
-	public final String getGymId() {
+	public String getGymId() {
 		return gymId;
 	}
 
-	public final void setGymId(String gymId) {
+	public void setGymId(String gymId) {
 		this.gymId = gymId;
 	}
 
-	public final Long getEndTime() {
+	public Long getEndTime() {
 		return endTime;
 	}
 
-	public final void setEndTime(Long endTime) {
+	public void setEndTime(Long endTime) {
 		this.endTime = endTime;
 	}
 
-	public final Set<GroupMessages> getGroupsRaidIsPosted() {
+	public Set<GroupMessages> getGroupsRaidIsPosted() {
 		if (groupsRaidIsPosted == null) {
 			groupsRaidIsPosted = new HashSet<>();
 		}
 		return groupsRaidIsPosted;
 	}
 
-	public final void addToGroupsRaidIsPosted(GroupMessages group) {
+	public void addToGroupsRaidIsPosted(GroupMessages group) {
 		if (group != null) {
 			getGroupsRaidIsPosted().add(group);
 			group.setOwningRaid(this);
 		}
 	}
 
-	public final boolean removeFromGroupsRaidIsPosted(GroupMessages group) {
+	public boolean removeFromGroupsRaidIsPosted(GroupMessages group) {
 		group.setOwningRaid(null);
 		return getGroupsRaidIsPosted().remove(group);
 	}

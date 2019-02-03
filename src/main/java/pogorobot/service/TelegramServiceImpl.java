@@ -97,7 +97,7 @@ public class TelegramServiceImpl implements TelegramService {
 	public synchronized void triggerPokemonMessages(PokemonWithSpawnpoint pokemon) {
 		if (pokemon.getPokemonId() != null) // && pokemon.getVerified() deleted 'cause of RDRM
 		{
-			ProcessedPokemon processedPokemon = processedPokemonDAO.findOne(pokemon.getEncounterId());
+			ProcessedPokemon processedPokemon = processedPokemonDAO.findById(pokemon.getEncounterId()).orElse(null);
 			if (processedPokemon == null) {
 				processedPokemonDAO.save(new ProcessedPokemon(pokemon.getEncounterId()));
 				for (User user : userService.getAllUsers()) {
@@ -119,7 +119,7 @@ public class TelegramServiceImpl implements TelegramService {
 	private CompletableFuture<SendRaidAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
 			Filter filter) {
 		Long id = filter.getId();
-		filter = filterDAO.findOne(id);
+		filter = filterDAO.findById(id).orElse(null);
 		CompletableFuture<SendRaidAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
 		if (withIv) {
@@ -278,7 +278,7 @@ public class TelegramServiceImpl implements TelegramService {
 
 			for (User user : userService.getAllUsers()) {
 				if (user.isShowRaidMessages()) {
-					Filter userFilter = filterDAO.findOne(user.getUserFilter().getId());
+					Filter userFilter = filterDAO.findById(user.getUserFilter().getId()).orElse(null);
 					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
 					CompletableFuture<SendRaidAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
 							userFilter, pokemonId, chatId, eventsWithSubscribers);

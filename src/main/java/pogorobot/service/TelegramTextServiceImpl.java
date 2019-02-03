@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import POGOProtos.Enums.PokemonIdOuterClass.PokemonId;
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.Gym;
@@ -84,6 +85,19 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 	private JSONObject jsonBaseStats;
 
 	private JSONObject jsonForms;
+
+	public String getPokemonNameFromProtobuf(String pokemon) {
+		if ("-1".equals(pokemon)) {
+			return "Ei";
+		}
+		int value = Integer.valueOf(pokemon);
+		PokemonId pokemonId = PokemonId.forNumber(value);
+		String normalizedPokemonName = pokemonId.name();
+		// PokemonDisplay.newBuilder().getForm().name()getClass();
+		// PokemonForm pf = PokemonForm.forNumber(pokemonId.getNumber());
+
+		return "";
+	}
 
 	@Override
 	public String getPokemonName(String pokemon) {
@@ -271,7 +285,7 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 	@Override
 	public String createPokemonMessageWithIVText(String formattedTime, String pokemonName, String pokemonId,
 			String form, String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
-			PokemonWithSpawnpoint pokemon) {
+			PokemonWithSpawnpoint pokemon) throws NumberFormatException {
 		String ivAttack = "0";
 		String ivDefense = "0";
 		String ivStamina = "0";

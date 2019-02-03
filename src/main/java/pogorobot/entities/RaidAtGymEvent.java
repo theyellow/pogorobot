@@ -70,11 +70,11 @@ public class RaidAtGymEvent {
 
 	private Long level;
 
-	public final Long getLevel() {
+	public Long getLevel() {
 		return level;
 	}
 
-	public final void setLevel(Long level) {
+	public void setLevel(Long level) {
 		this.level = level;
 	}
 
@@ -86,19 +86,19 @@ public class RaidAtGymEvent {
 	@Transient
 	private Double longitude;
 
-	public final Double getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
 
-	public final void setLatitude(Double latitude) {
+	public void setLatitude(Double latitude) {
 		this.latitude = latitude;
 	}
 
-	public final Double getLongitude() {
+	public Double getLongitude() {
 		return longitude;
 	}
 
-	public final void setLongitude(Double longitude) {
+	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
 	}
 
@@ -132,14 +132,14 @@ public class RaidAtGymEvent {
 		setId(id);
 	}
 
-	public final SortedSet<EventWithSubscribers> getEventsWithSubscribers() {
+	public SortedSet<EventWithSubscribers> getEventsWithSubscribers() {
 		if (null == eventsWithSubscribers) {
 			eventsWithSubscribers = createEmptyEventSet();
 		}
 		return eventsWithSubscribers;
 	}
 
-	public final void setEventsWithSubscribers(SortedSet<EventWithSubscribers> eventsWithSubscribers) {
+	public void setEventsWithSubscribers(SortedSet<EventWithSubscribers> eventsWithSubscribers) {
 		if (null == this.eventsWithSubscribers) {
 			this.eventsWithSubscribers = eventsWithSubscribers == null ? createEmptyEventSet() : eventsWithSubscribers;
 		} else {
@@ -168,7 +168,7 @@ public class RaidAtGymEvent {
 	}
 
 	@Transient
-	public final void addEventsWithSubscribers(EventWithSubscribers eventWithSubscribers) {
+	public void addEventsWithSubscribers(EventWithSubscribers eventWithSubscribers) {
 		if (null == eventsWithSubscribers) {
 			this.eventsWithSubscribers = createEmptyEventSet();
 		}
@@ -177,7 +177,7 @@ public class RaidAtGymEvent {
 	}
 
 	@Transient
-	public final void addUserAtTime(User user, String time) {
+	public void addUserAtTime(User user, String time) {
 		if (null == eventsWithSubscribers) {
 			this.eventsWithSubscribers = createEmptyEventSet();
 		}
@@ -329,19 +329,19 @@ public class RaidAtGymEvent {
 	// .forEachOrdered(x -> System.out.println(x.getTime()));
 	// }
 
-	public final String getId() {
+	public String getId() {
 		return id;
 	}
 
-	public final void setId(String id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
-	public final String getGymId() {
+	public String getGymId() {
 		return gymId;
 	}
 
-	public final void setGymId(String gymId) {
+	public void setGymId(String gymId) {
 		this.gymId = gymId;
 	}
 
