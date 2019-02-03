@@ -45,8 +45,8 @@
 
 		<pogoprotos.version>2.38.5</pogoprotos.version>
 		<protobuf-java.version>3.5.1</protobuf-java.version>
-		<telegrambots.version>3.6.1</telegrambots.version>
-		<telegrambots-extensions.version>3.3</telegrambots-extensions.version>
+		<telegrambots.version>4.1.2</telegrambots.version>
+		<telegrambots-extensions.version>4.1.2</telegrambots-extensions.version>
 		<jsoup.version>1.10.3</jsoup.version>
 <!-- 		<hibernate-c3p0.version>5.2.12.Final</hibernate-c3p0.version> -->
 		<google-maps-services.version>0.2.6</google-maps-services.version>

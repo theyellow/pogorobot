@@ -30,30 +30,30 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.telegram.telegrambots.ApiContext;
-import org.telegram.telegrambots.api.methods.AnswerCallbackQuery;
-import org.telegram.telegrambots.api.methods.AnswerInlineQuery;
-import org.telegram.telegrambots.api.methods.BotApiMethod;
-import org.telegram.telegrambots.api.methods.GetFile;
-import org.telegram.telegrambots.api.methods.send.SendMessage;
-import org.telegram.telegrambots.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.api.objects.CallbackQuery;
-import org.telegram.telegrambots.api.objects.Document;
-import org.telegram.telegrambots.api.objects.File;
-import org.telegram.telegrambots.api.objects.Location;
-import org.telegram.telegrambots.api.objects.Message;
-import org.telegram.telegrambots.api.objects.PhotoSize;
-import org.telegram.telegrambots.api.objects.Update;
-import org.telegram.telegrambots.api.objects.inlinequery.InlineQuery;
-import org.telegram.telegrambots.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
-import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResult;
-import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResultArticle;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.bots.commandbot.TelegramLongPollingCommandBot;
-import org.telegram.telegrambots.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.exceptions.TelegramApiException;
-import org.telegram.telegrambots.exceptions.TelegramApiRequestException;
-import org.telegram.telegrambots.exceptions.TelegramApiValidationException;
+import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
+import org.telegram.telegrambots.meta.ApiContext;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.Location;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResult;
+import org.telegram.telegrambots.meta.api.objects.inlinequery.result.InlineQueryResultArticle;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
 import pogorobot.entities.User;
 import pogorobot.events.telegrambot.IncomingManualRaid;
@@ -316,7 +316,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 			messageBuilder.append("Das sind die Befehle des Bot:\n\n");
 
-			for (BotCommand botCommand : this.getRegisteredCommands()) {
+			for (IBotCommand botCommand : this.getRegisteredCommands()) {
 				messageBuilder.append(botCommand.toString()).append("\n\n");
 			}
 			commandUnknownMessage.setText(messageBuilder.toString());
@@ -416,7 +416,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				raidImageScanner.scanImage(url);
 			}
 			if (message.isUserMessage()) {
-				handleUserMessage = handleUserMessage(message, message.getFrom());
+				handleUserMessage = handleUserMessage(message);
 			} else if (message.hasText()) {
 				handleUserMessage = handleMessageText(message);
 			}
@@ -426,7 +426,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 	}
 
-	private void updateUser(org.telegram.telegrambots.api.objects.User from) {
+	private void updateUser(org.telegram.telegrambots.meta.api.objects.User from) {
 		User user;
 		if (userService != null) {
 			user = userService.getOrCreateUser(from.getId().toString());
@@ -441,7 +441,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	private void handleEditedMessage(Message editedMessage) {
-		org.telegram.telegrambots.api.objects.User from = editedMessage.getFrom();
+		org.telegram.telegrambots.meta.api.objects.User from = editedMessage.getFrom();
 		User user = userService.getOrCreateUser(from.getId().toString());
 		if (userService == null || !userService.getOrCreateUser(from.getId().toString()).isTelegramActive()) {
 			return;
@@ -459,7 +459,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	private void handleInlineQuery(InlineQuery inlineQuery) {
-		org.telegram.telegrambots.api.objects.User from = inlineQuery.getFrom();
+		org.telegram.telegrambots.meta.api.objects.User from = inlineQuery.getFrom();
 		User user = null;
 		if (userService == null || !userService.getOrCreateUser(from.getId().toString()).isTelegramActive()) {
 			return;
@@ -490,10 +490,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		return executeBotApiMethod(echoMessage);
 	}
 
-	private Message handleUserMessage(Message message,
-			org.telegram.telegrambots.api.objects.User from) {
+	private Message handleUserMessage(Message message) {
 
-		SendMessage echoMessage = telegramHandlerService.answerUserMessage(message, from);
+		SendMessage echoMessage = telegramHandlerService.answerUserMessage(message, message.getFrom());
 		return executeBotApiMethod(echoMessage);
 	}
 
