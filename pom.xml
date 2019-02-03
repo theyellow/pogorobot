@@ -12,7 +12,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.theyellow</groupId>
 	<artifactId>pogorobot</artifactId>
-	<version>1.0.5-SNAPSHOT</version>
+	<version>1.0.5</version>
 	<name>pogorobot</name>
 
 	<parent>
