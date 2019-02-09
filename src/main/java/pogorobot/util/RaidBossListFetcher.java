@@ -22,6 +22,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,9 +33,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -42,50 +41,106 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class RaidBossListFetcher {
 
 	public static void main(String[] args) {
 		RaidBossListFetcher rblf = new RaidBossListFetcher();
-		rblf.createXmlFile();
-		List<String> parseXmlFile = rblf.parseXmlFile();
+		// rblf.createXmlFile();
+		List<String> parseXmlFile = rblf.getBosses();
 		for (String string : parseXmlFile) {
 			System.out.println(string);
 		}
 	}
 
-	public void createXmlFile() {
-		String url = "https://pokemongo.gamepress.gg/raid-boss-list";
+	private boolean waitForFetch = false;
 
-		WebDriver webDriver = openUrl(url);
-
+	private void createXmlFile() {
+		waitForFetch = true;
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF);
 		StringBuilder sb = new StringBuilder("<all>\n");
-
-		WebElement raidBossTable = webDriver.findElement(By.id("raid-boss-table"));
-		raidBossTable.findElements(By.tagName("tr")).stream().filter(tr -> tr.isDisplayed()).forEach(tr -> {
-			System.out.println(tr);
-			tr.findElements(By.tagName("td")).stream().forEach(td -> {
-				System.out.println(td);
-				// Is it the level?
-				if (td.getTagName().equals("div") && td.getAttribute("class").equals("raid-tier-stars")) {
-					sb.append(parseLevel(td));
-				} else
-				// or is it the pokemon?
-				if (td.getTagName().equals("a") && td.getAttribute("hreflang") != null) {
-					sb.append(parsePokemon(td));
+		String url = "https://pokemongo.gamepress.gg/raid-boss-list";
+		Runnable r = () -> {
+			WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED);
+			webClient.getOptions().setThrowExceptionOnScriptError(false);
+			try {
+				final HtmlPage startPage = webClient.getPage(url);
+				DomElement raidbosstable = startPage.getElementById("raid-boss-table");
+				try {
+					TimeUnit.SECONDS.sleep(8);
+				} catch (InterruptedException e) {
 				}
+				raidbosstable.getElementsByTagName("tr").stream().filter(row -> row.isDisplayed()).forEach(row -> {
+					System.out.println(row);
+					sb.append("  <row>\n");
+					row.getElementsByTagName("td").stream().forEach(td -> {
+						System.out.println(td);
+						if (td.hasChildNodes()) {
+							td.getChildElements().forEach(subelement -> {
+								// Is it the pokemon?
+								if (subelement.getTagName().equals("a") && subelement.hasAttribute("hreflang")) {
+									sb.append(parsePokemon(subelement));
+								} else
+								// Or is it the level?
+								if (subelement.getTagName().equals("div")
+										&& subelement.getAttribute("class").equals("raid-tier-stars")) {
+									sb.append(parseLevel(subelement));
+								}
+							});
+						}
+						// if (td.getTagName().equals("div") &&
+						// td.getAttribute("class").equals("raid-tier-stars")) {
+						// sb.append(parseLevel(td));
+						// } else
+						// if (td.getTagName().equals("a") && td.getAttribute("hreflang") != null) {
+						// sb.append(parsePokemon(td));
+						// }
 
-			});
-			sb.append("  </row>\n");
-		});
-		sb.append("</all>");
-		webDriver.close();
-		try {
-			writeXml(sb.toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Error while parsing raidbosslist.");
-		}
+					});
+					sb.append("  </row>\n");
+				});
+			} catch (FailingHttpStatusCodeException | IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			webClient.close();
+			webClient = null;
+			// WebDriver webDriver = openUrl(url);
+			//
+			// WebElement raidBossTable = webDriver.findElement(By.id("raid-boss-table"));
+			// raidBossTable.findElements(By.tagName("tr")).stream().filter(tr ->
+			// tr.isDisplayed()).forEach(tr -> {
+			// System.out.println(tr);
+			// tr.findElements(By.tagName("td")).stream().forEach(td -> {
+			// System.out.println(td);
+			// // Is it the level?
+			// if (td.getTagName().equals("div") &&
+			// td.getAttribute("class").equals("raid-tier-stars")) {
+			// sb.append(parseLevel(td));
+			// } else
+			// // or is it the pokemon?
+			// if (td.getTagName().equals("a") && td.getAttribute("hreflang") != null) {
+			// sb.append(parsePokemon(td));
+			// }
+			//
+			// });
+			// sb.append(" </row>\n");
+			// });
+			// webDriver.close();
+			sb.append("</all>");
+			try {
+				writeXml(sb.toString());
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.out.println("Error while parsing raidbosslist.");
+			}
+			waitForFetch = false;
+		};
+		r.run();
 	}
 
 	private WebDriver openUrl(String url) {
@@ -137,13 +192,13 @@ public class RaidBossListFetcher {
 		return result;
 	}
 
-	private String parseLevel(WebElement tdElementChild) {
-		String level = "   <level>" + tdElementChild.getText().trim() + "</level>\n";
+	private String parseLevel(DomElement subelement) {
+		String level = "   <level>" + subelement.getTextContent().trim() + "</level>\n";
 		return level;
 	}
 
-	private String parsePokemon(WebElement tdElementChild) {
-		String nodeValue = tdElementChild.getAttribute("href");
+	private String parsePokemon(DomElement subelement) {
+		String nodeValue = subelement.getAttribute("href");
 		nodeValue = "   <pokemon>" + nodeValue.substring(9, nodeValue.length()) + "</pokemon>\n";
 		return nodeValue;
 	}
@@ -165,6 +220,21 @@ public class RaidBossListFetcher {
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(inputLine);
 		bw.close();
+	}
+
+	public List<String> getBosses() {
+		createXmlFile();
+		while (true) {
+			if (waitForFetch) {
+				try {
+					TimeUnit.SECONDS.sleep(3);
+				} catch (InterruptedException e) {
+				}
+			} else {
+				break;
+			}
+		}
+		return parseXmlFile();
 	}
 
 }

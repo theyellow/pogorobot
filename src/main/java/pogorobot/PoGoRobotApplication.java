@@ -138,29 +138,30 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		}
 
 		public void updateRaidBossList() {
-		RaidBossListFetcher raidBossListFetcher = new RaidBossListFetcher();
-		raidBossListFetcher.createXmlFile();
-		List<String> possibleRaidBosses = raidBossListFetcher.parseXmlFile();
-		if (possibleRaidBosses != null && possibleRaidBosses.size() > 0) {
-			raidPokemonRepository.findAll().forEach(x -> raidPokemonRepository.delete(x));
-			for (String levelAndPokemon : possibleRaidBosses) {
-				String level = levelAndPokemon.substring(0, 1);
-				String pokemonWithType = levelAndPokemon.substring(2);
-				int pokemonStringLength = pokemonWithType.length();
-				int endIndex = pokemonStringLength < 3 ? pokemonStringLength : 3;
-				String pokemon = pokemonWithType.substring(0, endIndex);
-				String type = "";
-				if (endIndex <= pokemonStringLength) {
-					type = pokemonWithType.substring(endIndex, pokemonStringLength).replaceAll("-", "");
+			RaidBossListFetcher raidBossListFetcher = new RaidBossListFetcher();
+
+			// Attention, selenium is not threadsave and will be used here
+			List<String> possibleRaidBosses = raidBossListFetcher.getBosses();
+			if (possibleRaidBosses != null && possibleRaidBosses.size() > 0) {
+				raidPokemonRepository.findAll().forEach(x -> raidPokemonRepository.delete(x));
+				for (String levelAndPokemon : possibleRaidBosses) {
+					String level = levelAndPokemon.substring(0, 1);
+					String pokemonWithType = levelAndPokemon.substring(2);
+					int pokemonStringLength = pokemonWithType.length();
+					int endIndex = pokemonStringLength < 3 ? pokemonStringLength : 3;
+					String pokemon = pokemonWithType.substring(0, endIndex);
+					String type = "";
+					if (endIndex <= pokemonStringLength) {
+						type = pokemonWithType.substring(endIndex, pokemonStringLength).replaceAll("-", "");
+					}
+					PossibleRaidPokemon possibleRaidPokemon = new PossibleRaidPokemon();
+					possibleRaidPokemon.setLevel(Integer.valueOf(level));
+					possibleRaidPokemon.setPokemonId(Integer.valueOf(pokemon));
+					possibleRaidPokemon.setType(type);
+					raidPokemonRepository.save(possibleRaidPokemon);
 				}
-				PossibleRaidPokemon possibleRaidPokemon = new PossibleRaidPokemon();
-				possibleRaidPokemon.setLevel(Integer.valueOf(level));
-				possibleRaidPokemon.setPokemonId(Integer.valueOf(pokemon));
-				possibleRaidPokemon.setType(type);
-				raidPokemonRepository.save(possibleRaidPokemon);
 			}
 		}
-	}
 	}
 
 	@Bean
@@ -176,8 +177,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 		Properties additionalProperties = new Properties();
 		additionalProperties.put("hibernate.hbm2ddl.auto", "update");
-		additionalProperties.put("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
-
+		additionalProperties.put("hibernate.dialect", standardConfiguration.getHibernateDialect());
+		additionalProperties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
+		additionalProperties.put("hibernate.jdbc.lob.non_contextual_creation", "true");
 		factoryBean.setJpaProperties(additionalProperties);
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
