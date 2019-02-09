@@ -41,6 +41,8 @@ public class Configuration {
 	// private String DirectionsApiKey = "<your-api-key>";
 	//
 
+	private String hibernateDialect;
+
 	private String pathToLogs;
 
 	private String gmapsKey;
@@ -56,7 +58,8 @@ public class Configuration {
 	public Configuration(Boolean debug, Boolean useWebHook, int port, String externalWebhookUrl,
 			String internalWebhookUrl, String pathToCertificatePublicKey, String pathToCertificateStore,
 			String certificateStorePassword, String pathToLogs, String linkDB, String controllerDB, String user,
-			String password, boolean generateDdl, String gmapsKey, String botname, String bottoken, int raidtime) {
+			String password, boolean generateDdl, String gmapsKey, String botname, String bottoken, int raidtime,
+			String hibernateDialect) {
 		this.debug = debug;
 		this.useWebHook = useWebHook;
 		this.port = port;
@@ -75,6 +78,7 @@ public class Configuration {
 		this.botname = botname;
 		this.bottoken = bottoken;
 		this.raidtime = raidtime;
+		this.hibernateDialect = hibernateDialect;
 	}
 
 	public Boolean getDebug() {
@@ -147,5 +151,13 @@ public class Configuration {
 
 	public final String getBottoken() {
 		return bottoken;
+	}
+
+	public String getHibernateDialect() {
+		return hibernateDialect;
+	}
+
+	public void setHibernateDialect(String hibernateDialect) {
+		this.hibernateDialect = hibernateDialect;
 	}
 }

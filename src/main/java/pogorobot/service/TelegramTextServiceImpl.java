@@ -145,7 +145,7 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 		try {
 			pokemonForms = jsonForms.getJSONObject(pokemonId);
 		} catch (JSONException ex){
-			logger.error("Form \"" + form + "\" not found for pokemon: " + jsonPokemons.getJSONObject(pokemonId)
+			logger.error("Form \"" + form + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
 					+ " -> send message to developer to update internal configuration.");
 		}
 		if (pokemonForms != null && pokemonForms.getString(form) != null) {

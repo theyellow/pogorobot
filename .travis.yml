@@ -4,7 +4,7 @@ install: true
 script:
   - export DATE_TIME=`date +'%y.%m.%d %H:%M:%S'`
 #  - mvn clean compile package install -DrepositoryId=local -Durl=file:./target/distribution
-  - mvn clean compile assembly:single package install deploy
+  - mvn clean compile package install deploy
 #  - mvn deploy:deploy-file -Durl=file:./target/distribution -DrepositoryId=local -Dfile=./target/pogorobot-1.0.5-SNAPSHOT.jar -DpomFile=pom.xml
 cache:
   directories:
