@@ -24,10 +24,11 @@ public class StandardConfiguration extends Configuration {
 	public StandardConfiguration(Boolean debug, Boolean useWebHook, int port, String externalWebhookUrl, String internalWebhookUrl,
 			String pathToCertificatePublicKey, String pathToCertificateStore, String certificateStorePassword,
 			String pathToLogs, String linkDB, String controllerDB, String user, String password,
-			boolean generateDdl, String gmapsKey, String botname, String bottoken, int raidtime) {
+			boolean generateDdl, String gmapsKey, String botname, String bottoken, int raidtime,
+			String hibernateDialect) {
 		super(debug, useWebHook, port, externalWebhookUrl, internalWebhookUrl, pathToCertificatePublicKey,
 				pathToCertificateStore, certificateStorePassword, pathToLogs, linkDB, controllerDB, user, password,
-				generateDdl, gmapsKey, botname, bottoken, raidtime);
+				generateDdl, gmapsKey, botname, bottoken, raidtime, hibernateDialect);
 	}
 
 }

@@ -66,6 +66,7 @@ public class RaidAtGymEvent {
 
 	private Long start;
 
+	@Column(name = "\"end\"")
 	private Long end;
 
 	private Long level;

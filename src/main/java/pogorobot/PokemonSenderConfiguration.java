@@ -80,6 +80,9 @@ public class PokemonSenderConfiguration {
 	@Value("${standard.bottoken}")
 	private String bottoken;
 
+	@Value("${standard.hibernate-dialect}")
+	private String hibernateDialect;
+
 	@Value("${standard.generateDdl}")
 	private boolean generateDdl;
 
@@ -87,7 +90,7 @@ public class PokemonSenderConfiguration {
 	public StandardConfiguration getStandardConfiguration() {
 		StandardConfiguration vars = new StandardConfiguration(debug, useWebHook, port, externalwebhookurl, internalwebhookurl,
 				pathToCertificatePublicKey, pathToCertificateStore, certificateStorePassword, pathToLogs, jdbcUrl,
-				controllerDB, user, password, generateDdl, gmapskey, botname, bottoken, raidtime);
+				controllerDB, user, password, generateDdl, gmapskey, botname, bottoken, raidtime, hibernateDialect);
 		return vars;
 	}
 }

@@ -9,6 +9,9 @@
     <repository>
       <includeMetadata>true</includeMetadata>
       <outputDirectory>maven2</outputDirectory>
+      <includes>
+      	<include>io.github.theyellow:pogorobot</include>
+      </includes>
     </repository>
   </repositories>
 </assembly>

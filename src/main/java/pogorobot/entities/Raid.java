@@ -16,6 +16,7 @@
 
 package pogorobot.entities;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 @Embeddable
@@ -26,6 +27,7 @@ public class Raid {
 //	private Double longitude;
 	private Long spawn;
 	private Long start;
+	@Column(name = "\"end\"")
 	private Long end;
 	private Long raidLevel;
 	private Long pokemonId;
