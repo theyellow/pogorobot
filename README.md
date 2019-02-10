@@ -16,6 +16,5 @@ There is no need for external webservers, but you need java and a database (at t
 
 [Short installation instructions for hosting your bot](https://github.com/theyellow/pogorobot/wiki/Short-installation-and-usage-guide)
 
-[Download](https://bintray.com/beta/#/theyellow/repo/pogorobot/latest?tab=files)
-[ ![Download](https://api.bintray.com/packages/theyellow/repo/pogorobot/images/download.svg?version=latest) ](https://bintray.com/theyellow/repo/pogorobot/latest/link)<br>
+[Download compiled ![Download](https://api.bintray.com/packages/theyellow/repo/pogorobot/images/download.svg?version=latest) ](https://bintray.com/theyellow/repo/pogorobot/latest/link)<br>
 (config-example directly at github, shell-script for linux with 'screen' also available there)
