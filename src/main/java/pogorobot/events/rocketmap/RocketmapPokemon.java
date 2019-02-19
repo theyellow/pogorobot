@@ -16,6 +16,8 @@
 
 package pogorobot.events.rocketmap;
 
+import java.util.Date;
+
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.events.EventMessage;
 
@@ -239,9 +241,11 @@ public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
 		PokemonWithSpawnpoint pokemon = new PokemonWithSpawnpoint();
 		pokemon.setSpawnpointId(spawnpoint_id);
 		pokemon.setPokemonId(pokemon_id);
+		pokemon.setPlayerLevel(pokemon_level != null ? Long.valueOf(pokemon_level) : -1);
 		pokemon.setLatitude(latitude);
 		pokemon.setLongitude(longitude);
-		pokemon.setSecondsUntilDespawn(seconds_until_despawn);
+		pokemon.setSecondsUntilDespawn(seconds_until_despawn != null ? seconds_until_despawn
+				: disappear_time != null ? (disappear_time - new Date().getTime() / 1000) : 0);
 		pokemon.setSpawnEnd(spawn_end);
 		pokemon.setSpawnStart(spawn_start);
 		pokemon.setTimeUntilHidden_ms(time_until_hidden_ms);

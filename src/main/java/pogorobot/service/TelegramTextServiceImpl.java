@@ -494,7 +494,16 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				result = pokemonId;
 			} else if (string.equals("iv")) {
 				result = ivString;
-
+			} else if (string.equals("tthm")) {
+				result = String
+						.valueOf(pokemon.getSecondsUntilDespawn() != null ? pokemon.getSecondsUntilDespawn() / 60 : "");
+			} else if (string.equals("tths")) {
+				result = String
+						.valueOf(pokemon.getSecondsUntilDespawn() != null ? pokemon.getSecondsUntilDespawn() % 60 : "");
+			} else if (string.equals("level")) {
+				// Hack, should be pokemon level but i don't want to change database atm
+				// -> see transformToEntity in RocketmapPokemon
+				result = String.valueOf(pokemon.getPlayerLevel() != null ? pokemon.getPlayerLevel() : "");
 			} else if (string.equals("ivAttack") || string.equals("atk")) {
 				result = ivAttack;
 
