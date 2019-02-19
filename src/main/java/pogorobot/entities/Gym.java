@@ -22,10 +22,12 @@ import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"Gym\"")
 public class Gym extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = -5526899994303851549L;
@@ -36,6 +38,7 @@ public class Gym extends AbstractPersistable<Long> {
 	private Double latitude;
 	private Double longitude;
 	private Boolean enabled;
+	private Boolean pokestop;
 	private Long teamId;
 	@Column(length = 512)
 	private String name;
@@ -209,5 +212,13 @@ public class Gym extends AbstractPersistable<Long> {
 
 	public void setAddress(String address) {
 		this.address = address;
+	}
+
+	public Boolean getPokestop() {
+		return pokestop;
+	}
+
+	public void setPokestop(Boolean pokestop) {
+		this.pokestop = pokestop;
 	}
 }

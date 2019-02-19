@@ -373,7 +373,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		SendMessage echoMessage = new SendMessage();
 		Long chatId = message.getChatId();
 		echoMessage.setChatId(chatId);
-		echoMessage.enableHtml(true);
+		echoMessage.enableMarkdown(true);
 		echoMessage.disableNotification();
 		String inputText = "";
 		Location location = message.getLocation();
@@ -390,8 +390,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		}
 		inputText = message.getText() == null ? inputText : message.getText();
 
-		if (inputText.startsWith("raidbossupdate")
-				&& (user.isRaidadmin() || user.isAdmin() || user.isSuperadmin())) {
+		if (inputText.startsWith("raidbossupdate") && (user.isRaidadmin() || user.isAdmin() || user.isSuperadmin())) {
 			raidBossListUpdater.updateRaidBossList();
 			echoMessage.setText("Raidboss-Liste wurde aktualisiert. Es geht nun normal weiter " + Emoji.SUN_WITH_FACE);
 		} else if (inputText.startsWith("Zurück zum Start")) {
@@ -660,7 +659,9 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		Map<Gym, Double> gymWithDistance = new HashMap<>();
 		Iterable<Gym> allGyms = gymService.getAllGym();
 		allGyms.forEach(x -> {
-			if (x.getLatitude() != null && x.getLongitude() != null) {
+			boolean latLonExists = x.getLatitude() != null && x.getLongitude() != null;
+			boolean isNoPokestop = x.getPokestop() == null || (x.getPokestop() != null && !x.getPokestop());
+			if (isNoPokestop && latLonExists) {
 				Double distance = filterService.calculateDistanceInKilometer(x.getLatitude(), x.getLongitude(),
 						latitude, longitude);
 				if (distance != null && distance < radius) {
@@ -720,9 +721,8 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 
 		editMessage.setText(telegramTextService.getChooseTimeForRaidForHour(eggOrRaid));
 		// editMessage.setReplyMarkup(null);
-		editMessage.setReplyMarkup(
-				telegramKeyboardService.getChooseHoursForRaidKeyboard(eggOrRaid, internalGymId, pokemonOrLevel,
-						dayOfYear));
+		editMessage.setReplyMarkup(telegramKeyboardService.getChooseHoursForRaidKeyboard(eggOrRaid, internalGymId,
+				pokemonOrLevel, dayOfYear));
 		return editMessage;
 	}
 
@@ -937,7 +937,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		EditMessageText editMessage = new EditMessageText();
 		editMessage.setText(pokemonText + participantsText);
 		editMessage.setChatId(callbackQuery.getMessage().getChatId());
-		editMessage.enableHtml(true);
+		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
 		editMessage.setReplyMarkup(telegramKeyboardService.getRaidSignupKeyboard(eventsWithSubscribers, gymId));

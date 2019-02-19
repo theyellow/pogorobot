@@ -176,7 +176,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 	private SendRaidAnswer sendAllMessagesForEventInternally(SendSticker stickerMessage,
 			BotApiMethod<? extends Serializable> message,
-			SendLocation location) throws InterruptedException, TelegramApiException {
+			SendLocation location, boolean isGroupMessage) throws InterruptedException, TelegramApiException {
 		Thread.sleep(100);
 		SendRaidAnswer answer = new SendRaidAnswer();
 		Message stickerAnswer = sendMessage(stickerMessage);
@@ -186,8 +186,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		Thread.sleep(100);
 		if (message instanceof SendMessage) {
 			SendMessage sendMessage = (SendMessage) message;
+			sendMessage.enableMarkdown(true);
 			ReplyKeyboard originalKeyboard = sendMessage.getReplyMarkup();
-			ReplyKeyboard replyMarkup = originalKeyboard == null && !(originalKeyboard instanceof InlineKeyboardMarkup)
+			ReplyKeyboard replyMarkup = originalKeyboard == null && !isGroupMessage
+					&& !(originalKeyboard instanceof InlineKeyboardMarkup)
 					? telegramKeyboardService.getSettingsKeyboard(true)
 					: originalKeyboard;
 			sendMessage.setReplyMarkup(replyMarkup);
@@ -196,14 +198,16 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				answer.setMainMessageAnswer(messageAnswer);
 			}
 		} else if (message instanceof EditMessageText) {
-			Serializable eventMessageAnswer = pogoBot.execute((EditMessageText) message);
+			Serializable eventMessageAnswer = pogoBot.execute(((EditMessageText) message).enableMarkdown(true));
 			if (eventMessageAnswer != null) {
 				answer.setEventAnswer(eventMessageAnswer);
 			}
 		}
 		Thread.sleep(100);
 		if (location != null) {
-			location.setReplyMarkup(telegramKeyboardService.getSettingsKeyboard(true));
+			if (!isGroupMessage) {
+				location.setReplyMarkup(telegramKeyboardService.getSettingsKeyboard(true));
+			}
 			Message locationAnswer = sendMessage(location);
 			if (locationAnswer != null) {
 				answer.setLocationAnswer(locationAnswer);
@@ -252,7 +256,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				pokemonText = telegramTextService.createPokemonMessageNonIVText(formattedEndTime, pokemonName,
 						pokemonId.toString(), form, costume, gender, weatherBoosted, latitude, longitude);
 			}
-			logger.info("Sent to: " + chatId + ": Mon " + pokemonName);
+			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
 		String gymId = fullGym == null ? null : fullGym.getGymId();
 		return sendMessages(chatId, stUrl, latitude, longitude, pokemonText, participantsText, eventWithSubscribers,
@@ -298,19 +302,25 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			if (messageForChat instanceof EditMessageText) {
 				// means we have a new Raid and so we need a signup-keyboard
 				((EditMessageText) messageForChat).setReplyMarkup(replyMarkup);
+				((EditMessageText) messageForChat).enableMarkdown(true);
 			} else if (messageForChat instanceof SendMessage) {
 				// means we have a new Raid and so we need a signup-keyboard
 				((SendMessage) messageForChat).setReplyMarkup(replyMarkup);
+				((SendMessage) messageForChat).enableMarkdown(true);
 			}
+
 			message = messageForChat;
 		}
 
 		if (!webPreview) {
 			disableWebPagePreview(message);
 		}
-		// SendLocation location = createLocationMessage(chatId, latitude, longitude);
+		SendLocation location = createLocationMessage(chatId, latitude, longitude);
 
-		return sendAllMessagesForEventInternally(null, message, null);
+		boolean isGroupMonsterMessage = gymId == null && possibleMessageIdToUpdate == null
+				&& eventWithSubscribers == null;
+
+		return sendAllMessagesForEventInternally(null, message, location, isGroupMonsterMessage);
 	}
 
 	private void disableWebPagePreview(BotApiMethod<? extends Serializable> message) {
@@ -327,10 +337,12 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			Integer possibleMessageIdToUpdate) {
 		if (possibleMessageIdToUpdate != null && possibleMessageIdToUpdate != 0) {
 			EditMessageText messageForChat = updateMessageForChat(pokemonFound, chatId, possibleMessageIdToUpdate);
+			messageForChat.enableMarkdown(true);
 			return messageForChat;
 		} else {
 			SendMessage message = new SendMessage(chatId, pokemonFound);
-			message.enableHtml(true);
+			message.enableMarkdown(true);
+			logger.debug("Created raid-message for " + chatId);
 			return message;
 		}
 	}
@@ -339,9 +351,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			Integer possibleMessageIdToUpdate) {
 		EditMessageText editMessage = new EditMessageText();
 		editMessage.setChatId(chatId);
-		editMessage.enableHtml(true);
 		editMessage.setMessageId(possibleMessageIdToUpdate);
 		editMessage.disableWebPagePreview();
+		editMessage.enableMarkdown(true);
 		editMessage.setText(newMessageText);
 		return editMessage;
 	}

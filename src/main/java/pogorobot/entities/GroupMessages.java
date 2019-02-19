@@ -18,10 +18,12 @@ package pogorobot.entities;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"GroupMessages\"")
 public class GroupMessages extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = 2140983079194139692L;

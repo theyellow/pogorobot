@@ -17,6 +17,11 @@
 package pogorobot.service;
 
 import java.io.IOException;
+import java.util.Map;
+
+import org.json.JSONObject;
+
+import pogorobot.entities.MessageConfigElement;
 
 public interface ConfigReader {
 
@@ -31,5 +36,7 @@ public interface ConfigReader {
 	void updateGroupsWithIds() throws IOException;
 
 	void updateGroupFiltersWithGeofences() throws IOException;
+
+	Map<MessageConfigElement, JSONObject> getMessageTemplate() throws IOException;
 
 }

@@ -113,6 +113,9 @@ public class PokemonServiceImpl implements PokemonService {
 		List<PokemonWithSpawnpoint> resultList = entityManager.createQuery(realQuery).getResultList();
 		if (resultList.isEmpty()) {
 			entityManager.persist(pokemon);
+		} else if ("None".equalsIgnoreCase(resultList.get(0).getSpawnpointId())) {
+			pokemon.setSpawnpointId(String.valueOf(System.nanoTime()));
+			entityManager.persist(pokemon);
 		} else {
 			PokemonWithSpawnpoint dbPokemon = resultList.get(0);
 			if (pokemon.getVerified() != null) {

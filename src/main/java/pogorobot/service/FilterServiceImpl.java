@@ -34,6 +34,8 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +63,8 @@ import pogorobot.telegram.util.Type;
 
 @Service("filterService")
 public class FilterServiceImpl implements FilterService {
+
+	private Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -438,9 +442,11 @@ public class FilterServiceImpl implements FilterService {
 			break;
 
 		default:
+			logger.debug("Can't find geofence " + pokemonFence);
 			break;
 		}
 		if (geofences == null || geofences.size() == 0) {
+			logger.debug("There are no geofences");
 			return false;
 		}
 		Geo geo = new Geo(latitude, longitude);
@@ -451,7 +457,10 @@ public class FilterServiceImpl implements FilterService {
 				a[i] = polygon.get(i);
 			}
 			if (Intersection.isPointInPolygon(geo, GeoArray.Double.createFromLatLonDegrees(a))) {
+				logger.debug(pokemonFence + "-filter matched for type ");
 				return true;
+			} else {
+				logger.debug(pokemonFence + "-filter didn't match for type " + pokemonFence);
 			}
 		}
 		return false;

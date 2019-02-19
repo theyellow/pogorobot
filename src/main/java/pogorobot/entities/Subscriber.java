@@ -19,10 +19,12 @@ package pogorobot.entities;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"Subscriber\"")
 public class Subscriber extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = 7708283021538734650L;

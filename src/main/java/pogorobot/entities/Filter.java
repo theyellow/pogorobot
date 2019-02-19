@@ -25,10 +25,12 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"Filter\"")
 public class Filter extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = -1842789670931226752L;
