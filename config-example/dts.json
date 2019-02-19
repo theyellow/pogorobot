@@ -1,0 +1,71 @@
+{
+	"monster": {
+		"text": "#{{id}} {{name}} L{{level}} {{atk}} / {{def}} / {{sta}}, {{iv}}%. Ende: {{time}}, Übrige Zeit: {{tthm}}m {{tths}}s {{flagemoji}} {{lat}}, {{lon}} {{addr}}",
+		"color": "{{ivcolor}}",
+		"icon_url": "{{{imgurl}}}",
+		"description": "\n  [Google Maps]({{{mapurl}}}) [Apple Maps]({{{applemap}}})"
+	},
+	"monsterNoIv": {
+		"color": "{{color}}",
+		"text": "#{{id}} {{name}} Ende: {{time}}, Übrige Zeit: {{tthm}}m {{tths}}s {{flagemoji}} {{lat}}, {{lon}} {{addr}}",
+		"icon_url": "{{{imgurl}}}",
+		"description": "\n{{{emojistring}}}  [Google Maps]({{{mapurl}}}) [Apple Maps]({{{applemap}}})"
+	},
+	"raid": {
+		"text": "R{{level}} {{name}} {{flagemoji}} {{lat}}, {{lon}} end: {{time}}, {{tthm}}m {{tths}}s",
+		"color": "{{color}}",
+		"url": "{{{mapurl}}}",
+		"icon_url": "{{{imgurl}}}"
+	},
+	"egg": {
+		"text": "R{{level}} {{flagemoji}} {{lat}}, {{lon}} hatch: {{time}}, {{tthm}}m {{tths}}s",
+		"color": "{{color}}",
+		"url": "{{{mapurl}}}",
+		"icon_url": "{{{imgurl}}}"
+	},
+	"quest": {
+		"simple": {
+			"text": " {{questType}}, {{conditions}}, {{reward}} {{flagemoji}} {{lat}}, {{lon}} {{addr}",
+			"description": "[Google Maps]({{{mapurl}}}) | [Apple Maps]({{{applemap}}})",
+			"url": "{{{mapurl}}",
+			"icon_url": "{{{imgurl}}}"
+		},
+		"short": {
+			"text": "Conditions: {{conditions}} \nReward:  {{reward}}",
+			"description": "[Google Maps]({{{mapurl}}}) | [Apple Maps]({{{applemap}}})",
+			"name": " {{questType}}, {{lat}}, {{lon}} {{addr}",
+			"url": "{{{mapurl}}",
+			"icon_url": "{{{imgurl}}}"
+		},
+		"pokestop_google_monster": {
+			"text": "{{questType}}, {{flagemoji}} {{lat}}, {{lon}} {{addr}} \n Pokestop Name: {{name}}",
+			"url": "{{{mapurl}}}",
+			"description": "Conditions: {{conditions}} \nReward:  {{reward}} {{monsterNames}} \n[Google Maps]({{{mapurl}}}) | [Apple Maps]({{{applemap}}})",
+			"thumbnail": {
+				"url": "{{{imgurl}}}"
+			}
+		},
+		"pokestop_apple_monster": {
+			"text": "{{questType}}, {{flagemoji}} {{lat}}, {{lon}} {{addr}} \n Pokestop Name: {{name}}",
+			"url": "{{{applemap}}}",
+			"description": "Conditions: {{conditions}} \nReward:  {{reward}} {{monsterNames}} \n[Google Maps]({{{mapurl}}}) | [Apple Maps]({{{applemap}}})",
+			"thumbnail": {
+				"url": "{{{imgurl}}}"
+			},
+			"image": {
+				"url": "{{{url}}}"
+			}
+		},
+		"pokestop_candy": {
+			"text": "{{questType}}, {{flagemoji}} {{lat}}, {{lon}} {{addr}} \n Pokestop Name: {{name}}",
+			"url": "{{{mapurl}}}",
+			"description": "Conditions: {{conditions}} \nReward:  {{reward}} {{candyAmount}} {{candyEmoji}} \n[Google Maps]({{{mapurl}}}) | [Apple Maps]({{{applemap}}})",
+			"thumbnail": {
+				"url": "{{{url}}}"
+			},
+			"image": {
+				"url": "{{{imgurl}}}"
+			}
+		}
+	}
+}
