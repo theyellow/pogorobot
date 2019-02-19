@@ -23,11 +23,13 @@ import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"EventWithSubscribers\"")
 public class EventWithSubscribers extends AbstractPersistable<Long> implements Comparable<EventWithSubscribers> {
 
 	private static final long serialVersionUID = 325243376183407598L;

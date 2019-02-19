@@ -35,6 +35,8 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Service;
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
 import pogorobot.entities.Geofence;
+import pogorobot.entities.MessageConfigElement;
 import pogorobot.entities.UserGroup;
 import pogorobot.repositories.FilterRepository;
 import pogorobot.repositories.GeofenceRepository;
@@ -64,6 +67,52 @@ public class ConfigReaderImpl implements ConfigReader {
 
 	@Autowired
 	private GeofenceRepository geofenceDAO;
+
+	@Override
+	public Map<MessageConfigElement, JSONObject> getMessageTemplate() throws IOException {
+		return parseMessageTemplate("dts.json");
+	}
+
+	private Map<MessageConfigElement, JSONObject> parseMessageTemplate(String fileName) {
+		// get dts.json
+		BufferedReader bufferedFileReader = getBufferedFileReader(fileName);
+		if (bufferedFileReader == null) {
+			return new HashMap<>();
+		}
+		JSONObject jsonObject = getJson(bufferedFileReader);
+		Map<MessageConfigElement, JSONObject> configMap = parseConfigFile(jsonObject);
+		// parse for easy usage
+		return configMap;
+	}
+
+	private Map<MessageConfigElement, JSONObject> parseConfigFile(JSONObject jsonObject) {
+		Map<MessageConfigElement, JSONObject> result = new HashMap<>();
+		addMessageConfigElement(result, MessageConfigElement.CONFIG_ELEMENT_MONSTER, jsonObject);
+		addMessageConfigElement(result, MessageConfigElement.CONFIG_ELEMENT_MONSTER_NOIV, jsonObject);
+		addMessageConfigElement(result, MessageConfigElement.CONFIG_ELEMENT_RAID, jsonObject);
+		addMessageConfigElement(result, MessageConfigElement.CONFIG_ELEMENT_EGG, jsonObject);
+		// addMessageConfigElement(result,
+		// MessageConfigElement.CONFIG_ELEMENT_QUEST_SIMPLE, jsonObject);
+		// addMessageConfigElement(result,
+		// MessageConfigElement.CONFIG_ELEMENT_QUEST_APPLE_MONSTER, jsonObject);
+		// addMessageConfigElement(result,
+		// MessageConfigElement.CONFIG_ELEMENT_QUEST_GOOGLE_MONSTER, jsonObject);
+		return result;
+	}
+
+	private void addMessageConfigElement(Map<MessageConfigElement, JSONObject> result,
+			MessageConfigElement configElement, JSONObject jsonObject) {
+		Object value = jsonObject.get(configElement.getPath());
+		if (value != null) {
+			result.put(configElement, new JSONObject(value.toString()));
+		}
+	}
+
+	private JSONObject getJson(BufferedReader jsonFileReader) {
+		JSONTokener tokener = new JSONTokener(jsonFileReader);
+		JSONObject json = new JSONObject(tokener);
+		return json;
+	}
 
 	@Override
 	public void updateGeofences() throws IOException {
@@ -430,8 +479,11 @@ public class ConfigReaderImpl implements ConfigReader {
 
 	private BufferedReader getBufferedFileReader(String fileName) {
 		BufferedReader bufferedReader = null;
+
 		// ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		InputStream fileInputStream = null;
+
+		// Remove prefix "file:" from property
 		fileName = System.getProperty("ext.properties.dir").substring(5) + File.separator + fileName;
 		try {
 			fileInputStream = new FileInputStream(fileName);

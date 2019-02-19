@@ -27,6 +27,7 @@ import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.RaidWithGym;
 import pogorobot.events.EventMessage;
+import pogorobot.events.rocketmap.RdmQuest;
 import pogorobot.events.rocketmap.RocketmapEgg;
 import pogorobot.events.rocketmap.RocketmapGym;
 import pogorobot.events.rocketmap.RocketmapRaid;
@@ -101,6 +102,10 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 		} else if (entity instanceof PokemonWithSpawnpoint) {
 			pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
 			telegramService.triggerPokemonMessages((PokemonWithSpawnpoint) entity);
+		}
+
+		if (message instanceof RdmQuest) {
+			logger.debug("Quest found " + ((RdmQuest) message).toString());
 		}
 		return message;
 	}

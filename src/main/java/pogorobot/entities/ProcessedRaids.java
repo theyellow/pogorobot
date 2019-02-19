@@ -23,10 +23,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"ProcessedRaids\"")
 public class ProcessedRaids extends AbstractPersistable<Long> {
 
 	public ProcessedRaids() {

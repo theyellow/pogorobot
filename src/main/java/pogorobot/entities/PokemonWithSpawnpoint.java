@@ -18,10 +18,12 @@ package pogorobot.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"PokemonWithSpawnpoint\"")
 public class PokemonWithSpawnpoint extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = -4272840495799677635L;

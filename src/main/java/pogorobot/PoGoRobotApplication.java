@@ -171,24 +171,26 @@ public class PoGoRobotApplication implements ApplicationRunner {
 				.qualifiedBeanOfType(ctx.getAutowireCapableBeanFactory(), StandardConfiguration.class, "standard");
 		// StandardConfiguration standardConfiguration =
 		// ctx.getBean(StandardConfiguration.class);
-		LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
-		factoryBean.setDataSource(dataSource(ctx, aArgs));
-		factoryBean.setPackagesToScan(new String[] { "pogorobot.entities" });
+		LocalContainerEntityManagerFactoryBean entityManagerFactory = new LocalContainerEntityManagerFactoryBean();
+
+		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+		vendorAdapter.setGenerateDdl(standardConfiguration.isGenerateDdl());
+		vendorAdapter.setShowSql(false);
+
+		entityManagerFactory.setJpaVendorAdapter(vendorAdapter);
+
+		entityManagerFactory.setDataSource(dataSource(ctx, aArgs));
+		entityManagerFactory.setPackagesToScan(new String[] { "pogorobot.entities" });
 
 		Properties additionalProperties = new Properties();
-		additionalProperties.put("hibernate.hbm2ddl.auto", "update");
+		additionalProperties.put("hibernate.hbm2ddl.auto", "validate");
 		additionalProperties.put("hibernate.dialect", standardConfiguration.getHibernateDialect());
 		additionalProperties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
 		additionalProperties.put("hibernate.jdbc.lob.non_contextual_creation", "true");
-		factoryBean.setJpaProperties(additionalProperties);
+		entityManagerFactory.setJpaProperties(additionalProperties);
 
-		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-		vendorAdapter.setShowSql(false);
-		vendorAdapter.setGenerateDdl(standardConfiguration.isGenerateDdl());
 
-		factoryBean.setJpaVendorAdapter(vendorAdapter);
-
-		return factoryBean;
+		return entityManagerFactory;
 	}
 
 	@Bean
@@ -290,13 +292,14 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		try {
 			dataSource.setDriverClass(standardConfiguration.getControllerdb());
 		} catch (PropertyVetoException e) {
+			logger.error("db-driver in configuration file wrong?");
 			throw new RuntimeException(e);
 		}
 		dataSource.setJdbcUrl(standardConfiguration.getJdbcUrl());
 		dataSource.setUser(standardConfiguration.getUserdb());
 		dataSource.setPassword(standardConfiguration.getPassword());
 		dataSource.setMinPoolSize(3);
-		dataSource.setMaxPoolSize(15);
+		dataSource.setMaxPoolSize(25);
 		dataSource.setDebugUnreturnedConnectionStackTraces(true);
 
 		return dataSource;

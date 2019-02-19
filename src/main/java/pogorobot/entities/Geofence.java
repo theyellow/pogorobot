@@ -21,10 +21,12 @@ import java.util.List;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.OrderColumn;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"Geofence\"")
 public class Geofence extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = -3743355376417698226L;

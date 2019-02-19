@@ -19,11 +19,13 @@ package pogorobot.entities;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.springframework.data.domain.Persistable;
 
 @Entity
+@Table(name = "\"ProcessedPokemon\"")
 public class ProcessedPokemon implements Persistable<String> {
 
 	public ProcessedPokemon() {

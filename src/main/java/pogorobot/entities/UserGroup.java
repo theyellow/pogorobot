@@ -20,10 +20,12 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"UserGroup\"")
 public class UserGroup extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = -3163891384170628265L;

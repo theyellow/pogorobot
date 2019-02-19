@@ -37,9 +37,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
+@Table(name = "\"RaidAtGymEvent\"")
 public class RaidAtGymEvent {
 
 	// private String gymId;

@@ -16,6 +16,7 @@
 
 package pogorobot.service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -24,8 +25,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.DecoderException;
@@ -42,6 +46,7 @@ import POGOProtos.Enums.PokemonIdOuterClass.PokemonId;
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.Gym;
+import pogorobot.entities.MessageConfigElement;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.Raid;
 import pogorobot.entities.Subscriber;
@@ -49,11 +54,9 @@ import pogorobot.entities.User;
 import pogorobot.telegram.util.Emoji;
 
 @Service("telegramTextService")
-public class TelegramTextServiceImpl implements TelegramTextService {
+public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
-
-
 
 	private static final String MESSAGE_SPACE = " ";
 
@@ -67,9 +70,9 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 
 	private static final String MESSAGE_SLASH = "/";
 
-	private static final String MESSAGE_BOLD_ON = "<b>";
+	private static final String MESSAGE_BOLD_ON = "*"; // "<b>";
 
-	private static final String MESSAGE_BOLD_OFF = "</b>";
+	private static final String MESSAGE_BOLD_OFF = "*";// "</b>";
 
 	private static final String LOGTAG = "TELEGRAM TEXT SERVICE";
 
@@ -81,6 +84,9 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private ConfigReader configReader;
 
 	private JSONObject jsonBaseStats;
 
@@ -144,7 +150,7 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 		JSONObject pokemonForms = null;
 		try {
 			pokemonForms = jsonForms.getJSONObject(pokemonId);
-		} catch (JSONException ex){
+		} catch (JSONException ex) {
 			logger.error("Form \"" + form + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
 					+ " -> send message to developer to update internal configuration.");
 		}
@@ -296,13 +302,15 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 		stringBuilder.append(MESSAGE_SPACE);
 		stringBuilder.append("Ein ");
 		stringBuilder.append(MESSAGE_BOLD_ON);
+		String ivString = "";
+		Emoji genderEmoji = null;
 		stringBuilder.append(pokemonName);
+		stringBuilder.append(MESSAGE_SPACE);
 		if (gender != null) {
-			Emoji genderEmoji = getGenderEmoji(pokemonId, gender.intValue());
-			if (!Emoji.NONE.equals(genderEmoji)) {
-				stringBuilder.append(MESSAGE_SPACE);
-				stringBuilder.append(genderEmoji);
-			}
+			genderEmoji = getGenderEmoji(pokemonId, gender.intValue());
+		}
+		if (null != genderEmoji || !Emoji.NONE.equals(genderEmoji)) {
+			stringBuilder.append(genderEmoji);
 		}
 		if (form != null && !form.isEmpty() && !form.equals("0")) {
 			stringBuilder.append(MESSAGE_SPACE);
@@ -321,7 +329,7 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 			// String wpString = wp.toString();
 			// wpString = wpString.substring(0, wpString.indexOf("."));
 			// wpString = pokemon.getCp();
-			String ivString = Double.toString(ivs);
+			ivString = Double.toString(ivs);
 			ivString = ivString.substring(0, ivString.indexOf(".") + 2);
 			stringBuilder.append(" mit ");
 			stringBuilder.append(ivString);
@@ -353,8 +361,242 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 			stringBuilder.append(createDetailedIvString(ivAttack, ivDefense, ivStamina));
 		}
 		stringBuilder.append(MESSAGE_NEWLINE);
-		stringBuilder.append(getGoogleLink(latitude, longitude));
+		String googleLink = getGoogleLink(latitude, longitude);
+		String appleLink = getAppleLink(latitude, longitude);
+		stringBuilder.append("[Google Maps](" + googleLink + ") [AppleLink](" + appleLink + ")");
+		// stringBuilder.append(googleLink);
+		try {
+			JSONObject monsterTemplateFromFile = null;
+			if (ivString != null && !ivString.trim().isEmpty()) {
+				monsterTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_MONSTER);
+			} else {
+				monsterTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_MONSTER_NOIV);
+			}
+			String templateText = monsterTemplateFromFile.getString("text");
+			String templateDescription = monsterTemplateFromFile.getString("description");
+			logger.debug("text-template would be:\n " + templateText);
+			logger.debug("description-template would be:\n " + templateDescription);
+			if (templateText != null) {
+
+				String message = generateMonsterMessageFromTemplate(templateText, templateDescription, pokemon,
+						pokemonId, pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji, costume,
+						ivString, ivAttack, ivDefense, ivStamina, googleLink, appleLink);
+				logger.info("Generated message from template: " + message);
+				if (message != null && !message.trim().isEmpty()) {
+					logger.debug("return generated message");
+					return message;
+				}
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return stringBuilder.toString();
+	}
+
+	private <T> String generateMonsterMessageFromTemplate(String templateText, String templateDescription,
+			PokemonWithSpawnpoint pokemon, String pokemonId, String pokemonName, String formattedTime,
+			Integer weatherBoosted, String form, Long gender, Emoji genderEmoji, String costume, String ivString,
+			String ivAttack, String ivDefense, String ivStamina, String googleLink, String appleLink) {
+
+		// Clean triple {{{
+		String generatedText = templateText.replaceAll("\\{\\{\\{", "\\{\\{").replaceAll("\\}\\}\\}", "\\}\\}");
+		String generatedDescription = templateDescription.replaceAll("\\{\\{\\{", "\\{\\{").replaceAll("\\}\\}\\}",
+				"\\}\\}");
+
+		// (String input) -> {
+		String result = parseMonsterTemplate(pokemon, pokemonId, pokemonName, formattedTime, weatherBoosted, form,
+				gender, genderEmoji, costume, ivString, ivAttack, ivDefense, ivStamina, googleLink, appleLink,
+				generatedText + generatedDescription);
+		// return result;
+		// }
+		return result;
+	}
+
+	private String generateRaidMessageFromTemplate(String templateText, String templateDescription, Gym gym, Long end,
+			String level, Double latitude, Double longitude) {
+
+		// Clean triple {{{
+		String generatedText = templateText.replaceAll("\\{\\{\\{", "\\{\\{").replaceAll("\\}\\}\\}", "\\}\\}");
+		String generatedDescription = templateDescription.replaceAll("\\{\\{\\{", "\\{\\{").replaceAll("\\}\\}\\}",
+				"\\}\\}");
+
+		// (String input) -> {
+		String result = parseRaidTemplate(String.valueOf(gym.getRaid().getRaidLevel()),
+				getPokemonName(gym.getRaid().getPokemonId().toString()), gym.getName(),
+				formatTimeFromSeconds(gym.getRaid().getStart()),
+				formatTimeFromSeconds(gym.getRaid().getEnd()), Double.toString(latitude), Double.toString(longitude),
+				null, null, gym.getUrl(), getGoogleLink(latitude, longitude), getAppleLink(latitude, longitude),
+				generatedText + generatedDescription);
+		// return result;
+		// }
+		return result;
+	}
+
+	private String parseMonsterTemplate(PokemonWithSpawnpoint pokemon, String pokemonId, String pokemonName,
+			String formattedTime, Integer weatherBoosted, String form, Long gender, Emoji genderEmoji, String costume,
+			String ivString, String ivAttack, String ivDefense, String ivStamina, String googleLink, String appleLink,
+			String generated) {
+		// String regex = "\\{\\{(?<word>.*?)\\}\\}";
+		String regex = "\\{\\{(?<word>[A-Za-z]+)\\}\\}";
+
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(generated);
+
+		String result = "<<default>>";
+		while (matcher.find()) {
+			result = matcher.replaceFirst(getMonsterValueOf(matcher.group("word"), pokemon, pokemonId, pokemonName,
+					formattedTime, weatherBoosted, form, gender, genderEmoji, costume, ivString, ivAttack, ivDefense,
+					ivStamina, googleLink, appleLink));
+			matcher = pattern.matcher(result);
+		}
+		return result;
+	}
+
+	private String parseRaidTemplate(String level, String monsterName, String name, String begin, String end,
+			String lat, String lon,
+			Integer weatherBoosted,
+			String color, String imageUrl, String googleLink, String appleLink, String generated) {
+		// String regex = "\\{\\{(?<word>.*?)\\}\\}";
+		String regex = "\\{\\{(?<word>[A-Za-z]+)\\}\\}";
+
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(generated);
+
+		String result = "<<default>>";
+		while (matcher.find()) {
+			result = matcher.replaceFirst(
+					getRaidValueOf(matcher.group("word"), level, monsterName, name, begin, end, lat, lon,
+							weatherBoosted,
+					color, imageUrl, googleLink, appleLink));
+			matcher = pattern.matcher(result);
+		}
+		return result;
+	}
+
+	// if (matcher.find()) {
+
+	// matcher = pattern.matcher(
+	// }
+	// return result;
+
+	private String getMonsterValueOf(String string, PokemonWithSpawnpoint pokemon, String pokemonId, String pokemonName,
+			String formattedTime, Integer weatherBoosted, String form, Long gender, Emoji genderEmoji, String costume,
+			String ivString, String ivAttack, String ivDefense, String ivStamina, String googleLink, String appleLink) {
+		if (string != null) {
+			String result = "default: " + string;
+			logger.debug("Searching for " + string);
+
+			if (string.equals("name")) {
+				result = pokemonName;
+			} else if (string.equals("id")) {
+				result = pokemonId;
+			} else if (string.equals("iv")) {
+				result = ivString;
+
+			} else if (string.equals("ivAttack") || string.equals("atk")) {
+				result = ivAttack;
+
+			} else if (string.equals("ivStamina") || string.equals("sta")) {
+				result = ivStamina;
+			} else if (string.equals("appleLink") || string.equals("applemap")) {
+				result = appleLink;
+			} else if (string.equals("googleLink") || string.equals("mapurl")) {
+				result = googleLink;
+			} else if (string.equals("googleLink")) {
+				result = googleLink;
+			} else if (string.equals("costume")) {
+				result = costume != null ? costume : "";
+			} else if (string.equals("weatherEmoji")) {
+				result = weatherBoosted != null ? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
+						: "";
+			} else if (string.equals("form")) {
+				result = form != null && !form.equals("0") ? form : "";
+			} else if (string.equals("ivDefense") || string.equals("def")) {
+				result = ivDefense;
+
+			} else if (string.equals("gender")) {
+				if (gender != null)
+					switch (gender.intValue()) {
+					case 1:
+						logger.debug("male");
+						result = new StringBuffer().append(Emoji.MALE.toString()).toString();
+						break;
+					case 2:
+						logger.debug("female");
+						result = new StringBuffer().append(Emoji.FEMALE.toString()).toString();
+						break;
+					default:
+						logger.debug("No gender found");
+						result = Emoji.NONE.toString();
+						break;
+					}
+			} else if (string.equals("time")) {
+				result = formattedTime;
+			} else if (string.equals("id")) {
+				result = pokemonId;
+			} else if (string.equals("cp")) {
+				result = pokemon.getCp();
+			} else {
+				logger.debug("Unknown configToken: " + string);
+				result = "";
+			}
+
+			return result;
+		}
+		return string;
+	}
+
+	private String getRaidValueOf(String string, String level, String monsterName, String gymName, String begin,
+			String end, String lat,
+			String lon,
+			Integer weatherBoosted, String color, String imageUrl, String googleLink, String appleLink) {
+		if (string != null) {
+			String result = "default: " + string;
+			logger.debug("Searching for " + string);
+
+			if (string.equals("name")) {
+				result = monsterName;
+			} else if (string.equals("gymname")) {
+				result = gymName;
+			} else if (string.equals("imgurl")) {
+				result = imageUrl;
+			} else if (string.equals("level")) {
+				result = level;
+			} else if (string.equals("begin") || string.equals("start")) {
+				result = begin;
+			} else if (string.equals("end")) {
+				result = end;
+			} else if (string.equals("lat")) {
+				result = lat;
+			} else if (string.equals("lon")) {
+				result = lon;
+			} else if (string.equals("appleLink") || string.equals("applemap")) {
+				result = appleLink;
+			} else if (string.equals("googleLink") || string.equals("mapurl")) {
+				result = googleLink;
+			} else if (string.equals("googleLink")) {
+				result = googleLink;
+			} else if (string.equals("color")) {
+				result = color != null ? color : "";
+			} else if (string.equals("weatherEmoji")) {
+				result = weatherBoosted != null ? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
+						: "";
+			} else {
+				logger.debug("Unknown configToken: " + string);
+				result = "";
+			}
+
+			return result;
+		}
+		return string;
+	}
+
+	private JSONObject getTemplateFromFile(MessageConfigElement element) throws IOException {
+		Map<MessageConfigElement, JSONObject> messageTemplate = configReader.getMessageTemplate();
+		JSONObject object = messageTemplate.get(element);
+		return object;
 	}
 
 	@Override
@@ -423,7 +665,7 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 		stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(Emoji.EARTH_GLOBE_EUROPE_AFRICA);
 		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(getGoogleLink(latitude, longitude));
+		stringBuilder.append(getGoogleHtmlLink(latitude, longitude));
 		stringBuilder.append(MESSAGE_NEWLINE);
 		if (quickMove != null && chargeMove != null && !quickMove.isEmpty() && !chargeMove.isEmpty()) {
 			stringBuilder.append(getMovesString(quickMove, chargeMove));
@@ -467,7 +709,7 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 		stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(Emoji.EARTH_GLOBE_EUROPE_AFRICA);
 		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(getGoogleLink(latitude, longitude));
+		stringBuilder.append(getGoogleHtmlLink(latitude, longitude));
 		stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(address);
 		stringBuilder.append(MESSAGE_NEWLINE);
@@ -501,9 +743,19 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 		return MESSAGE_BEGIN_A_HREF + url + MESSAGE_END_OF_A_TAG_WITH_COMMENT + name + MESSAGE_END_A_HREF;
 	}
 
+	private String getGoogleHtmlLink(Double latitude, Double longitude) {
+		String gUrl = getGoogleLink(latitude, longitude);
+		return getLink(gUrl, gUrl);
+	}
+
 	private String getGoogleLink(Double latitude, Double longitude) {
 		String gUrl = "https://www.google.com/maps/?q=" + latitude + "," + longitude;
-		return getLink(gUrl, gUrl);
+		return gUrl;
+	}
+
+	private String getAppleLink(Double latitude, Double longitude) {
+		String aUrl = "http://maps.apple.com/?daddr=" + latitude + "," + longitude;
+		return aUrl;
 	}
 
 	@Override
@@ -625,12 +877,70 @@ public class TelegramTextServiceImpl implements TelegramTextService {
 			int pokemonIntValue = pokemonIdLong == null ? -1 : pokemonIdLong.intValue();
 			String pokemonId = Integer.valueOf(pokemonIntValue).toString();
 			if (pokemonIntValue == -1) {
+
+				try {
+					JSONObject eggTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_EGG);
+					String templateText = eggTemplateFromFile.getString("text");
+					String templateDescription = eggTemplateFromFile.getString("description");
+					logger.debug("text-template would be:\n " + templateText);
+					logger.debug("description-template would be:\n " + templateDescription);
+					if (templateText != null) {
+
+						String message = generateRaidMessageFromTemplate(templateText, templateDescription, fullGym,
+								end, level, latitude, longitude);
+						// generateMessageFromTemplate(templateText,
+						// templateDescription, pokemon, pokemonId,
+						// pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji,
+						// costume, ivString,
+						// ivAttack, ivDefense, ivStamina, googleLink, appleLink);
+						logger.info("Generated message from template: " + message);
+						if (message != null && !message.trim().isEmpty()) {
+							logger.debug("return generated message");
+							return message;
+						}
+
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
 				return createEggMessageText(fullGym, end, level, latitude, longitude);
 			}
 			pokemonName = getPokemonName(pokemonId);
 		}
 		pokemonText = createRaidMessageText(pokemonName, end, level, move1, move2, latitude, longitude, url, address,
 				gymName);
+		try {
+			JSONObject raidTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_RAID);
+			String templateText = raidTemplateFromFile.getString("text");
+			String templateDescription = raidTemplateFromFile.getString("description");
+			logger.debug("text-template would be:\n " + templateText);
+			logger.debug("description-template would be:\n " + templateDescription);
+			if (templateText != null) {
+
+				// TODO: IMPLEMENT!
+
+				// String message = null;
+				String message = generateRaidMessageFromTemplate(templateText, templateDescription, fullGym, end, level,
+						latitude, longitude);
+
+				// generateMessageFromTemplate(templateText,
+				// templateDescription, pokemon, pokemonId,
+				// pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji,
+				// costume, ivString,
+				// ivAttack, ivDefense, ivStamina, googleLink, appleLink);
+				logger.info("Generated message from template: " + message);
+				if (message != null && !message.trim().isEmpty()) {
+					logger.debug("return generated message");
+					return message;
+				}
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return pokemonText;
 	}
 
