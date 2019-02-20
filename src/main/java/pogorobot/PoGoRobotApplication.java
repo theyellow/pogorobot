@@ -183,7 +183,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		entityManagerFactory.setPackagesToScan(new String[] { "pogorobot.entities" });
 
 		Properties additionalProperties = new Properties();
-		additionalProperties.put("hibernate.hbm2ddl.auto", "update");
+		additionalProperties.put("hibernate.hbm2ddl.auto", "create");
 		additionalProperties.put("hibernate.dialect", standardConfiguration.getHibernateDialect());
 		additionalProperties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
 		additionalProperties.put("hibernate.jdbc.lob.non_contextual_creation", "true");
