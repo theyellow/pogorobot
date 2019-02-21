@@ -6,7 +6,7 @@ then
 VERSION=$1
 else
 : # $1 was not given
-VERSION='1.0.4'
+VERSION='1.0.7-SNAPSHOT'
 fi
 
-screen -S telegram-bot -d -m java -Dext.properties.dir=file:$PWD/config -XX:CompressedClassSpaceSize=190m -XX:MetaspaceSize=256M -Xmx600m -jar pogorobot-$VERSION.jar
+screen -S telegram-bot -d -m java -Dext.properties.dir=file:$PWD/config -XX:CompressedClassSpaceSize=190m -XX:MetaspaceSize=256M -Xmx600m -jar pogorobot-$VERSION-exec.jar
