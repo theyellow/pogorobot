@@ -494,62 +494,65 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				result = pokemonId;
 			} else if (string.equals("iv")) {
 				result = ivString;
-			} else if (string.equals("tthm")) {
-				result = String
-						.valueOf(pokemon.getSecondsUntilDespawn() != null ? pokemon.getSecondsUntilDespawn() / 60 : "");
-			} else if (string.equals("tths")) {
-				result = String
-						.valueOf(pokemon.getSecondsUntilDespawn() != null ? pokemon.getSecondsUntilDespawn() % 60 : "");
-			} else if (string.equals("level")) {
-				// Hack, should be pokemon level but i don't want to change database atm
-				// -> see transformToEntity in RocketmapPokemon
-				result = String.valueOf(pokemon.getPlayerLevel() != null ? pokemon.getPlayerLevel() : "");
-			} else if (string.equals("ivAttack") || string.equals("atk")) {
-				result = ivAttack;
-
-			} else if (string.equals("ivStamina") || string.equals("sta")) {
-				result = ivStamina;
-			} else if (string.equals("appleLink") || string.equals("applemap")) {
-				result = appleLink;
-			} else if (string.equals("googleLink") || string.equals("mapurl")) {
-				result = googleLink;
-			} else if (string.equals("googleLink")) {
-				result = googleLink;
-			} else if (string.equals("costume")) {
-				result = costume != null ? costume : "";
-			} else if (string.equals("weatherEmoji")) {
-				result = weatherBoosted != null ? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
-						: "";
-			} else if (string.equals("form")) {
-				result = form != null && !form.equals("0") ? form : "";
-			} else if (string.equals("ivDefense") || string.equals("def")) {
-				result = ivDefense;
-
-			} else if (string.equals("gender")) {
-				if (gender != null)
-					switch (gender.intValue()) {
-					case 1:
-						logger.debug("male");
-						result = new StringBuffer().append(Emoji.MALE.toString()).toString();
-						break;
-					case 2:
-						logger.debug("female");
-						result = new StringBuffer().append(Emoji.FEMALE.toString()).toString();
-						break;
-					default:
-						logger.debug("No gender found");
-						result = Emoji.NONE.toString();
-						break;
-					}
-			} else if (string.equals("time")) {
-				result = formattedTime;
-			} else if (string.equals("id")) {
-				result = pokemonId;
-			} else if (string.equals("cp")) {
-				result = pokemon.getCp();
 			} else {
-				logger.debug("Unknown configToken: " + string);
-				result = "";
+				boolean pokemonEndAvailable = pokemon != null && pokemon.getSecondsUntilDespawn() != null;
+				if (string.equals("tthm")) {
+					result = String
+							.valueOf(pokemonEndAvailable ? pokemon.getSecondsUntilDespawn() / 60 : "");
+				} else if (string.equals("tths")) {
+					result = String
+							.valueOf(pokemonEndAvailable ? pokemon.getSecondsUntilDespawn() % 60 : "");
+				} else if (string.equals("level")) {
+					// Hack, should be pokemon level but i don't want to change database atm
+					// -> see transformToEntity in RocketmapPokemon
+					result = String.valueOf(pokemon.getPlayerLevel() != null ? pokemon.getPlayerLevel() : "");
+				} else if (string.equals("ivAttack") || string.equals("atk")) {
+					result = ivAttack;
+
+				} else if (string.equals("ivStamina") || string.equals("sta")) {
+					result = ivStamina;
+				} else if (string.equals("appleLink") || string.equals("applemap")) {
+					result = appleLink;
+				} else if (string.equals("googleLink") || string.equals("mapurl")) {
+					result = googleLink;
+				} else if (string.equals("googleLink")) {
+					result = googleLink;
+				} else if (string.equals("costume")) {
+					result = costume != null ? costume : "";
+				} else if (string.equals("weatherEmoji")) {
+					result = weatherBoosted != null ? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
+							: "";
+				} else if (string.equals("form")) {
+					result = form != null && !form.equals("0") ? form : "";
+				} else if (string.equals("ivDefense") || string.equals("def")) {
+					result = ivDefense;
+
+				} else if (string.equals("gender")) {
+					if (gender != null)
+						switch (gender.intValue()) {
+						case 1:
+							logger.debug("male");
+							result = new StringBuffer().append(Emoji.MALE.toString()).toString();
+							break;
+						case 2:
+							logger.debug("female");
+							result = new StringBuffer().append(Emoji.FEMALE.toString()).toString();
+							break;
+						default:
+							logger.debug("No gender found");
+							result = Emoji.NONE.toString();
+							break;
+						}
+				} else if (string.equals("time")) {
+					result = formattedTime;
+				} else if (string.equals("id")) {
+					result = pokemonId;
+				} else if (string.equals("cp")) {
+					result = pokemon.getCp();
+				} else {
+					logger.debug("Unknown configToken: " + string);
+					result = "";
+				}
 			}
 
 			return result;
