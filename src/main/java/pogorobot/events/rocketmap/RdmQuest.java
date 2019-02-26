@@ -49,12 +49,14 @@ public class RdmQuest implements EventMessage<Quest> {
 		quest.setPokestopName(pokestop_name);
 		quest.setTemplate(template);
 		quest.setPokestopUrl(pokestop_url);
-		quest.setConditions(conditions.toString()); // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
+		quest.setConditions(conditions != null ? conditions.toString() : ""); // ": [
+																				// {"type":7,"info":{"raid_levels":[1,2,3,4,5]}
+																				// },{"type":6}],
 		quest.setLatitude(latitude);
 		quest.setLongitude(longitude);
 		quest.setType(type);
 		quest.setTarget(target);
-		quest.setRewards(rewards.toString()); // ":
+		quest.setRewards(rewards != null ? rewards.toString() : ""); // ":
 						// [{"type":7,"info":{"shiny":false,"costume_id":0,"pokemon_id":25,"form_id":0,"gender_id":0}
 						// }],
 		quest.setUpdated(updated);
