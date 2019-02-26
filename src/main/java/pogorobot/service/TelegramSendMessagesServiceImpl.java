@@ -52,6 +52,7 @@ import pogorobot.entities.GroupMessages;
 import pogorobot.entities.Gym;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.ProcessedRaids;
+import pogorobot.entities.Raid;
 import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
@@ -122,7 +123,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		Double latitude = fullGym.getLatitude();
 		Double longitude = fullGym.getLongitude();
 		String pokemonFound = telegramTextService.createEggMessageText(fullGym, end, level, latitude, longitude);
-		String url = "/eg" + "gs/" + level + ".we" + "bp";
+		String url = telegramTextService.createDec() + "/eg" + "gs/" + level + ".we" + "bp";
+		if (PogoBot.getConfiguration().getAlternativeStickers()) {
+			url = "";
+		}
 		String participants = telegramTextService.getParticipantsText(eventWithSubscribers);
 		SendRaidAnswer answer = sendMessages(chatId, url, latitude, longitude, pokemonFound, participants,
 				eventWithSubscribers, true, fullGym.getGymId(), possibleMessageIdToUpdate);
@@ -232,11 +236,20 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 		Double latitude = raidPokemon ? fullGym.getLatitude() : pokemon.getLatitude();
 		Double longitude = raidPokemon ? fullGym.getLongitude() : pokemon.getLongitude();
-		Long pokemonId = raidPokemon ? fullGym.getRaid().getPokemonId() : pokemon.getPokemonId();
-		Long end = raidPokemon ? fullGym.getRaid().getEnd() : pokemon.getDisappearTime();
+		Raid raid = raidPokemon ? fullGym.getRaid() : null;
+		Long pokemonId = raidPokemon ? raid.getPokemonId() : pokemon.getPokemonId();
+		Long end = raidPokemon ? raid.getEnd() : pokemon.getDisappearTime();
 		String pokemonName = telegramTextService.getPokemonName(pokemonId.toString());
-		String stUrl = "/mon" + "sters/" + getThreeDigitFormattedPokemonId(pokemonId.intValue()) + "_00" + "0.we"
-				+ "bp";
+		String stUrl = telegramTextService.getStickerMonUrl(
+				raidPokemon ? raid.getPokemonId() != null ? raid.getPokemonId().intValue() : 0 : pokemonId.intValue());
+		// getThreeDigitFormattedPokemonId(pokemonId.intValue());
+		// String stUrl = "/mon" + "sters/" + threeDigitFormattedPokemonId + "_00" +
+		// "0.we"
+		// + "bp";
+		// if (PogoBot.getConfiguration().getAlternativeStickers()) {
+		// stUrl = "po" + "kem" + "on_icon_" + threeDigitFormattedPokemonId + "_00.p" +
+		// "ng";
+		// }
 		String pokemonText = "";
 		String participantsText = "";
 		if (raidPokemon) {
@@ -263,73 +276,76 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				raidPokemon, gymId, possibleMessageIdToUpdate);
 	}
 
-	private String getThreeDigitFormattedPokemonId(int pokemonInt) {
-		return pokemonInt >= 100 ? pokemonInt + "" : (pokemonInt >= 10 ? "0" + pokemonInt : "00" + pokemonInt);
-	}
+	// private String getThreeDigitFormattedPokemonId(int pokemonInt) {
+	// return pokemonInt >= 100 ? pokemonInt + "" : (pokemonInt >= 10 ? "0" +
+	// pokemonInt : "00" + pokemonInt);
+	// }
 
 	private SendRaidAnswer sendMessages(String chatId, String stickerUrl, Double latitude, Double longitude,
 			String raidFoundText, String participantsText, SortedSet<EventWithSubscribers> eventWithSubscribers,
 			boolean webPreview, String gymId, Integer possibleMessageIdToUpdate)
 			throws InterruptedException, TelegramApiException, DecoderException {
-		// String decUrl = telegramTextService.createDec();
-		// SendSticker stickerMessage = createStickerMessage(chatId, decUrl +
-		// stickerUrl);
-		// boolean sendOnlyUpdate = false;
-		// Set<GroupMessages> groupsRaidIsPosted = null;
-		// List<ProcessedRaids> processedGymIds =
-		// processedRaidRepository.findByGymId(gymId);
-		// if (!processedGymIds.isEmpty() && processedGymIds.size() == 1) {
-		// ProcessedRaids processedRaid = processedGymIds.get(0);
-		// groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
-		// sendOnlyUpdate = true;
-		// for (GroupMessages groupMessages : groupsRaidIsPosted) {
-		// Long groupChatId = groupMessages.getGroupChatId();
-		// Integer messageId = groupMessages.getMessageId();
-		// }
-		// }
+		boolean forMonster = null == participantsText || participantsText.isEmpty();
+		boolean showStickers = PogoBot.getConfiguration().getShowStickers();
+		boolean showRaidStickers = PogoBot.getConfiguration().getShowRaidStickers();
+		SendSticker stickerMessage = forMonster && showStickers || !forMonster && showRaidStickers
+				? createStickerMessage(chatId, stickerUrl)
+				: null;
+		logger.info("Sticker-end: " + stickerUrl);
 		BotApiMethod<? extends Serializable> message = null;
-		if (null == participantsText || participantsText.isEmpty()) {
+		if (forMonster) {
 			message = createMessageForChat(raidFoundText, chatId, possibleMessageIdToUpdate);
 		} else {
-			// EditMessageText editMessage = new EditMessageText();
-			// editMessage.setChatId(chatId);
-			// editMessage.setText(raidFoundText + participantsText + "/n");
 			BotApiMethod<? extends Serializable> messageForChat = createMessageForChat(raidFoundText + participantsText,
 					chatId,
 					possibleMessageIdToUpdate);
 			InlineKeyboardMarkup replyMarkup = telegramKeyboardService.getRaidSignupKeyboard(eventWithSubscribers,
 					gymId);
 			if (messageForChat instanceof EditMessageText) {
-				// means we have a new Raid and so we need a signup-keyboard
+				// means we have a update raid and so we need a signup-keyboard
 				((EditMessageText) messageForChat).setReplyMarkup(replyMarkup);
 				((EditMessageText) messageForChat).enableMarkdown(true);
 			} else if (messageForChat instanceof SendMessage) {
-				// means we have a new Raid and so we need a signup-keyboard
+				// means we have a new raid and so we need a signup-keyboard
 				((SendMessage) messageForChat).setReplyMarkup(replyMarkup);
 				((SendMessage) messageForChat).enableMarkdown(true);
 			}
-
 			message = messageForChat;
 		}
+		boolean enableWebPagePreview = PogoBot.getConfiguration().getEnableWebPagePreview();
+		boolean enableRaidWebPagePreview = PogoBot.getConfiguration().getEnableRaidWebPagePreview();
+		setWebPagePreview(message, forMonster ? enableWebPagePreview : enableRaidWebPagePreview);
 
-		if (!webPreview) {
-			disableWebPagePreview(message);
-		}
-		SendLocation location = createLocationMessage(chatId, latitude, longitude);
+		boolean showLocation = PogoBot.getConfiguration().getShowLocation();
+		boolean showRaidLocation = PogoBot.getConfiguration().getShowRaidLocation();
+		SendLocation location = forMonster && showLocation || !forMonster && showRaidLocation
+				? createLocationMessage(chatId, latitude, longitude)
+				: null;
 
 		boolean isGroupMonsterMessage = gymId == null && possibleMessageIdToUpdate == null
 				&& eventWithSubscribers == null;
 
-		return sendAllMessagesForEventInternally(null, message, location, isGroupMonsterMessage);
+		return sendAllMessagesForEventInternally(stickerMessage, message, location, isGroupMonsterMessage);
 	}
 
-	private void disableWebPagePreview(BotApiMethod<? extends Serializable> message) {
+	private void setWebPagePreview(BotApiMethod<? extends Serializable> message, boolean webPagePreview) {
+		if (webPagePreview) {
+			if (message instanceof SendMessage) {
+				((SendMessage) message).enableWebPagePreview();
+			} else if (message instanceof EditMessageText) {
+				((EditMessageText) message).enableWebPagePreview();
+			} else {
+				logger.info("Couldn't disable webpage-preview for " + message.toString());
+			}
+		} else {
 		if (message instanceof SendMessage) {
 			((SendMessage) message).disableWebPagePreview();
 		} else if (message instanceof EditMessageText) {
 			((EditMessageText) message).disableWebPagePreview();
 		} else {
 			logger.info("Couldn't disable webpage-preview for " + message.toString());
+		}
+
 		}
 	}
 
@@ -352,7 +368,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		EditMessageText editMessage = new EditMessageText();
 		editMessage.setChatId(chatId);
 		editMessage.setMessageId(possibleMessageIdToUpdate);
-		editMessage.disableWebPagePreview();
+		// editMessage.disableWebPagePreview();
 		editMessage.enableMarkdown(true);
 		editMessage.setText(newMessageText);
 		return editMessage;

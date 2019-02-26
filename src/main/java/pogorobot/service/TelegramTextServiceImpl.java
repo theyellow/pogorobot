@@ -51,6 +51,7 @@ import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.Raid;
 import pogorobot.entities.Subscriber;
 import pogorobot.entities.User;
+import pogorobot.telegram.PogoBot;
 import pogorobot.telegram.util.Emoji;
 
 @Service("telegramTextService")
@@ -77,6 +78,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	private static final String LOGTAG = "TELEGRAM TEXT SERVICE";
 
 	private String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e342f74656c656772616d";
+	private String serialStringDh = "2f2f2068747470733a2f2f6769746875622e636f6d2f506f676f64656e68656c6465722f737072697465732f626c6f622f6d61737465722f";
 
 	private JSONObject jsonMoves;
 
@@ -226,7 +228,13 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	@Override
 	public String createDec() throws DecoderException {
-		return new String(Hex.decodeHex(serialString.toCharArray()));
+		if (PogoBot.getConfiguration().getAlternativeStickers()) {
+			logger.info("alternative stickers used");
+			return new String(Hex.decodeHex(serialStringDh.toCharArray()));
+		} else {
+			logger.info("normal stickers used");
+			return new String(Hex.decodeHex(serialString.toCharArray()));
+		}
 	}
 
 	private String getThreeDigitFormattedPokemonId(int pokemonInt) {
@@ -237,8 +245,11 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	public String getStickerMonUrl(int pokemonInt) throws DecoderException {
 		String decUrl = createDec();
 		String pokemonId = getThreeDigitFormattedPokemonId(pokemonInt);
-		String url = decUrl + "/mon" + "sters/" + pokemonId + "_00" + "0.we" + "bp";
-		return url;
+		if (PogoBot.getConfiguration().getAlternativeStickers()) {
+			return decUrl + "po" + "kem" + "on_icon_" + pokemonId + "_00.p" + "ng";
+		} else {
+			return decUrl + "/mon" + "sters/" + pokemonId + "_00" + "0.we" + "bp";
+		}
 	}
 
 	public Emoji getWeatherEmoji(Integer weatherId) {
@@ -361,7 +372,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			stringBuilder.append(createDetailedIvString(ivAttack, ivDefense, ivStamina));
 		}
 		stringBuilder.append(MESSAGE_NEWLINE);
-		String googleLink = getGoogleLink(latitude, longitude);
+		String googleLink = getGoogleUrl(latitude, longitude);
 		String appleLink = getAppleLink(latitude, longitude);
 		stringBuilder.append("[Google Maps](" + googleLink + ") [AppleLink](" + appleLink + ")");
 		// stringBuilder.append(googleLink);
@@ -427,7 +438,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				getPokemonName(gym.getRaid().getPokemonId().toString()), gym.getName(),
 				formatTimeFromSeconds(gym.getRaid().getStart()),
 				formatTimeFromSeconds(gym.getRaid().getEnd()), Double.toString(latitude), Double.toString(longitude),
-				null, null, gym.getUrl(), getGoogleLink(latitude, longitude), getAppleLink(latitude, longitude),
+				null, null, gym.getUrl(), getGoogleUrl(latitude, longitude), getAppleLink(latitude, longitude),
 				generatedText + generatedDescription);
 		// return result;
 		// }
@@ -677,7 +688,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(Emoji.EARTH_GLOBE_EUROPE_AFRICA);
 		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(getGoogleHtmlLink(latitude, longitude));
+		stringBuilder.append(getGoogleLink(latitude, longitude));
 		stringBuilder.append(MESSAGE_NEWLINE);
 		if (quickMove != null && chargeMove != null && !quickMove.isEmpty() && !chargeMove.isEmpty()) {
 			stringBuilder.append(getMovesString(quickMove, chargeMove));
@@ -721,7 +732,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(Emoji.EARTH_GLOBE_EUROPE_AFRICA);
 		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(getGoogleHtmlLink(latitude, longitude));
+		stringBuilder.append(getGoogleLink(latitude, longitude));
 		stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(address);
 		stringBuilder.append(MESSAGE_NEWLINE);
@@ -752,15 +763,17 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	private String getLink(String url, String name) {
-		return MESSAGE_BEGIN_A_HREF + url + MESSAGE_END_OF_A_TAG_WITH_COMMENT + name + MESSAGE_END_A_HREF;
-	}
-
-	private String getGoogleHtmlLink(Double latitude, Double longitude) {
-		String gUrl = getGoogleLink(latitude, longitude);
-		return getLink(gUrl, gUrl);
+		String htmlLink = MESSAGE_BEGIN_A_HREF + url + MESSAGE_END_OF_A_TAG_WITH_COMMENT + name + MESSAGE_END_A_HREF;
+		String markupLink = "[" + name + "](" + url + ")";
+		return markupLink;
 	}
 
 	private String getGoogleLink(Double latitude, Double longitude) {
+		String gUrl = getGoogleUrl(latitude, longitude);
+		return getLink(gUrl, gUrl);
+	}
+
+	private String getGoogleUrl(Double latitude, Double longitude) {
 		String gUrl = "https://www.google.com/maps/?q=" + latitude + "," + longitude;
 		return gUrl;
 	}
@@ -779,7 +792,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 					"Du hast vermutlich keinen Standort übertragen, daher kann dir keine Arena zur Auswahl angezeigt werden.\nÜbertrage einfach (d)einen Standort und führe die Aktion erneut durch. Falls dann immer noch nichts angezeigt wird wende dich an deinen Admin.");
 		} else {
 			stringBuilder.append(
-					"<b>Hier kannst du Raids erstellen. Wähle unten eine Arena aus. Zuerst aber eine Liste der zur Auswahl stehenden Arenen im Umkreis von 1,5 km (jeweils mit Link):</b>");
+					MESSAGE_BOLD_ON
+							+ "Hier kannst du Raids erstellen. Wähle unten eine Arena aus. Zuerst aber eine Liste der zur Auswahl stehenden Arenen im Umkreis von 1,5 km (jeweils mit Link):"
+							+ MESSAGE_BOLD_OFF);
 
 		}
 		gymsAround.stream().forEach(gym -> {
@@ -824,9 +839,11 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	public String getChooseTimeForRaidForMinute(String eggOrRaid, String hour) {
 		String text = "";
 		if (eggOrRaid.equals(TelegramKeyboardService.EGG)) {
-			text = "Wann beginnt der Raid? Nun werden die Minuten ausgewählt. (" + hour + ":" + "<b>??</b>)";
+			text = "Wann beginnt der Raid? Nun werden die Minuten ausgewählt. (" + hour + ":" + MESSAGE_BOLD_ON + "?? "
+					+ MESSAGE_BOLD_OFF + ")";
 		} else if (eggOrRaid.equals(TelegramKeyboardService.RAID)) {
-			text = "Wann beginnt/begann der Raid? Nun werden die Minuten ausgewählt. (" + hour + ":" + "<b>??</b>)";
+			text = "Wann beginnt/begann der Raid? Nun werden die Minuten ausgewählt. (" + hour + ":" + MESSAGE_BOLD_ON
+					+ "??" + MESSAGE_BOLD_OFF + ")";
 		} else {
 			text = "Falscher Text beim Minuten auswählen (weder egg noch raid): " + eggOrRaid;
 		}
@@ -913,8 +930,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Message generation of egg message failed with IO-error", e);
 				}
 
 				return createEggMessageText(fullGym, end, level, latitude, longitude);
