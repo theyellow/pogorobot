@@ -54,12 +54,21 @@ public class Configuration {
 	private String botname;
 	private String bottoken;
 	private boolean generateDdl;
+	private boolean alternativeStickers;
+	private boolean showStickers;
+	private boolean showLocation;
+	private boolean enableWebPagePreview;
+	private boolean showRaidStickers;
+	private boolean showRaidLocation;
+	private boolean enableRaidWebPagePreview;
 
 	public Configuration(Boolean debug, Boolean useWebHook, int port, String externalWebhookUrl,
 			String internalWebhookUrl, String pathToCertificatePublicKey, String pathToCertificateStore,
 			String certificateStorePassword, String pathToLogs, String linkDB, String controllerDB, String user,
 			String password, boolean generateDdl, String gmapsKey, String botname, String bottoken, int raidtime,
-			String hibernateDialect) {
+			String hibernateDialect, boolean alternativeStickers, boolean showStickers, boolean showLocation,
+			boolean enableWebPagePreview, boolean showRaidStickers, boolean showRaidLocation,
+			boolean enableRaidWebPagePreview) {
 		this.debug = debug;
 		this.useWebHook = useWebHook;
 		this.port = port;
@@ -79,6 +88,13 @@ public class Configuration {
 		this.bottoken = bottoken;
 		this.raidtime = raidtime;
 		this.hibernateDialect = hibernateDialect;
+		this.alternativeStickers = alternativeStickers;
+		this.showLocation = showLocation;
+		this.showStickers = showStickers;
+		this.enableWebPagePreview = enableWebPagePreview;
+		this.showRaidLocation = showLocation;
+		this.showRaidStickers = showStickers;
+		this.enableRaidWebPagePreview = enableWebPagePreview;
 	}
 
 	public Boolean getDebug() {
@@ -159,5 +175,33 @@ public class Configuration {
 
 	public void setHibernateDialect(String hibernateDialect) {
 		this.hibernateDialect = hibernateDialect;
+	}
+
+	public Boolean getAlternativeStickers() {
+		return alternativeStickers;
+	}
+
+	public boolean getShowStickers() {
+		return showStickers;
+	}
+
+	public boolean getShowLocation() {
+		return showLocation;
+	}
+
+	public boolean getShowRaidStickers() {
+		return showRaidStickers;
+	}
+
+	public boolean getShowRaidLocation() {
+		return showRaidLocation;
+	}
+
+	public boolean getEnableRaidWebPagePreview() {
+		return enableRaidWebPagePreview;
+	}
+
+	public boolean getEnableWebPagePreview() {
+		return enableWebPagePreview;
 	}
 }

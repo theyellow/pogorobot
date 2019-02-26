@@ -86,11 +86,34 @@ public class PokemonSenderConfiguration {
 	@Value("${standard.generateDdl}")
 	private boolean generateDdl;
 
+	@Value("${standard.alternativeStickers}")
+	private boolean alternativeStickers;
+
+	@Value("${standard.showStickers}")
+	private boolean showStickers;
+
+	@Value("${standard.showLocation}")
+	private boolean showLocation;
+
+	@Value("${standard.enableWebPagePreview}")
+	private boolean enableWebPagePreview;
+
+	@Value("${standard.showRaidStickers}")
+	private boolean showRaidStickers;
+
+	@Value("${standard.showRaidLocation}")
+	private boolean showRaidLocation;
+
+	@Value("${standard.enableRaidWebPagePreview}")
+	private boolean enableRaidWebPagePreview;
+
 	@Bean
 	public StandardConfiguration getStandardConfiguration() {
 		StandardConfiguration vars = new StandardConfiguration(debug, useWebHook, port, externalwebhookurl, internalwebhookurl,
 				pathToCertificatePublicKey, pathToCertificateStore, certificateStorePassword, pathToLogs, jdbcUrl,
-				controllerDB, user, password, generateDdl, gmapskey, botname, bottoken, raidtime, hibernateDialect);
+				controllerDB, user, password, generateDdl, gmapskey, botname, bottoken, raidtime, hibernateDialect,
+				alternativeStickers, showStickers, showLocation, enableWebPagePreview, showRaidStickers,
+				showRaidLocation, enableRaidWebPagePreview);
 		return vars;
 	}
 }

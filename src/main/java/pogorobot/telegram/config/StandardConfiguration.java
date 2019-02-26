@@ -25,10 +25,13 @@ public class StandardConfiguration extends Configuration {
 			String pathToCertificatePublicKey, String pathToCertificateStore, String certificateStorePassword,
 			String pathToLogs, String linkDB, String controllerDB, String user, String password,
 			boolean generateDdl, String gmapsKey, String botname, String bottoken, int raidtime,
-			String hibernateDialect) {
+			String hibernateDialect, boolean alternativeStickers, boolean showStickers, boolean showLocation,
+			boolean enableWebPagePreview, boolean showRaidStickers, boolean showRaidLocation,
+			boolean enableRaidWebPagePreview) {
 		super(debug, useWebHook, port, externalWebhookUrl, internalWebhookUrl, pathToCertificatePublicKey,
 				pathToCertificateStore, certificateStorePassword, pathToLogs, linkDB, controllerDB, user, password,
-				generateDdl, gmapsKey, botname, bottoken, raidtime, hibernateDialect);
+				generateDdl, gmapsKey, botname, bottoken, raidtime, hibernateDialect, alternativeStickers, showStickers,
+				showLocation, enableWebPagePreview, showRaidStickers, showRaidLocation, enableRaidWebPagePreview);
 	}
 
 }
