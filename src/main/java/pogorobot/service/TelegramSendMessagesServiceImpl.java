@@ -240,16 +240,15 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		Long pokemonId = raidPokemon ? raid.getPokemonId() : pokemon.getPokemonId();
 		Long end = raidPokemon ? raid.getEnd() : pokemon.getDisappearTime();
 		String pokemonName = telegramTextService.getPokemonName(pokemonId.toString());
-		String stUrl = telegramTextService.getStickerMonUrl(
-				raidPokemon ? raid.getPokemonId() != null ? raid.getPokemonId().intValue() : 0 : pokemonId.intValue());
-		// getThreeDigitFormattedPokemonId(pokemonId.intValue());
-		// String stUrl = "/mon" + "sters/" + threeDigitFormattedPokemonId + "_00" +
-		// "0.we"
-		// + "bp";
-		// if (PogoBot.getConfiguration().getAlternativeStickers()) {
-		// stUrl = "po" + "kem" + "on_icon_" + threeDigitFormattedPokemonId + "_00.p" +
-		// "ng";
-		// }
+
+		// Meanings:
+		// idForSticker > 0 -> monster-sticker
+		// idForSticker < 0 -> egg-sticker
+		// idForSticker = 0 -> shouldn't happen
+		int idForSticker = raidPokemon
+				? raid.getPokemonId() != null ? raid.getPokemonId().intValue() : (int) (-1 * raid.getRaidLevel())
+				: pokemonId.intValue();
+		String stUrl = telegramTextService.getStickerUrl(idForSticker);
 		String pokemonText = "";
 		String participantsText = "";
 		if (raidPokemon) {

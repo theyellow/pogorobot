@@ -45,7 +45,7 @@ public interface TelegramTextService {
 	String createEggMessageText(Gym fullGym, Long end, String level,
 			Double latitude, Double longitude);
 
-	String getStickerMonUrl(int intValue) throws DecoderException;
+	String getStickerUrl(int intValue) throws DecoderException;
 
 	String createRaidMessageText(String pokemonName, Long end, String level,
 			String move1, String move2, Double latitude, Double longitude, String url, String address, String gymName);
