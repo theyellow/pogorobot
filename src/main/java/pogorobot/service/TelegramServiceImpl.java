@@ -17,6 +17,8 @@
 package pogorobot.service;
 
 import java.io.FileNotFoundException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -321,7 +323,7 @@ public class TelegramServiceImpl implements TelegramService {
 			}
 			ProcessedRaids processedRaid = new ProcessedRaids(gymId, end);
 			logger.info("New level-" + event.getLevel() + " raid at gym: " + gymId + " , mon: " + event.getPokemonId()
-					+ ", end" + end);
+					+ ", end " + telegramTextService.formatTimeFromSeconds(end));
 			processedRaid = processedRaidRepository.save(processedRaid);
 
 			// 1st we look if it was already posted, so we need to update instead of
@@ -501,6 +503,23 @@ public class TelegramServiceImpl implements TelegramService {
 			}
 		});
 		return future;
+	}
+
+	/**
+	 * Returns time in format 'hh:mm' with regards to local timezone
+	 */
+	@Override
+	public String getLocaleTime(long timeInMillis) {
+		// get default calendar instance (to get default timezone and daylight savings
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(timeInMillis);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		// First set minute of result:
+		String minuteWithTwoDigits = minute <= 9 ? "0" + minute : String.valueOf(minute);
+		String result = hour + ":" + minuteWithTwoDigits;
+		logger.info(calendar.toString());
+		return result;
 	}
 
 }

@@ -440,7 +440,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	@Override
 	@Transactional
 	public void removeGroupRaidMessage() throws TelegramApiException {
-		long now = new Date().getTime() / 1000;
+		long nowInSecons = new Date().getTime() / 1000;
 		Iterable<GroupMessages> all = groupMessagesRepository.findAll();
 		ProcessedRaids owningRaid = null;
 		String errorsWhileDeleting = "";
@@ -456,8 +456,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				logger.warn("There is no owning Raid for the message " + groupMessages.toString());
 				return;
 			}
-			if (now > endTime) {
-				logger.info("Delete message - time difference in minutes is " + (now - endTime) / 60);
+			if (nowInSecons > endTime) {
+				logger.info("Delete message - time difference in minutes is " + (nowInSecons - endTime) / 60);
 				owningRaid = processedRaidRepository.findById(owningRaid.getId()).orElse(null);
 				owningRaid.removeFromGroupsRaidIsPosted(groupMessages);
 				processedRaidRepository.save(owningRaid);
@@ -511,7 +511,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 		Iterable<RaidAtGymEvent> allEvents = raidAtGymEventRepository.findAll();
 		allEvents.forEach(raidEvent -> {
-			if (raidEvent.getEnd() < now) {
+			if (raidEvent.getEnd() < nowInSecons) {
 				eventWithSubscribersService.deleteEvent(raidEvent.getGymId());
 			}
 		});

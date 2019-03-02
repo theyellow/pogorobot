@@ -149,7 +149,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 					String pokemonWithType = levelAndPokemon.substring(2);
 					int pokemonStringLength = pokemonWithType.length();
 					int endIndex = pokemonStringLength < 3 ? pokemonStringLength : 3;
-					String pokemon = pokemonWithType.substring(0, endIndex);
+					String pokemon = pokemonWithType.substring(0, endIndex).replaceAll("-", "");
 					String type = "";
 					if (endIndex <= pokemonStringLength) {
 						type = pokemonWithType.substring(endIndex, pokemonStringLength).replaceAll("-", "");

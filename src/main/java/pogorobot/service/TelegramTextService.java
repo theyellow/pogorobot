@@ -81,4 +81,8 @@ public interface TelegramTextService {
 
 	String getRaidMessagePokemonText(Gym fullGym);
 
+	String formatLocaleTimeFromMillisSeconds(long l);
+
+	String formatLocaleDateFromMillis(long l);
+
 }

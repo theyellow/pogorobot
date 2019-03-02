@@ -247,12 +247,16 @@ public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
 		pokemon.setPlayerLevel(pokemon_level != null ? Long.valueOf(pokemon_level) : -1);
 		pokemon.setLatitude(latitude);
 		pokemon.setLongitude(longitude);
+
+		// Help a little bit to fill more fields...
 		pokemon.setSecondsUntilDespawn(seconds_until_despawn != null ? seconds_until_despawn
 				: disappear_time != null ? (disappear_time - new Date().getTime() / 1000) : 0);
-		pokemon.setSpawnEnd(spawn_end);
-		pokemon.setSpawnStart(spawn_start);
-		pokemon.setTimeUntilHidden_ms(time_until_hidden_ms);
-		pokemon.setDisappearTime(disappear_time);
+		pokemon.setSpawnStart(spawn_start != null ? spawn_start : new Date().getTime() / 1000);
+		pokemon.setSpawnEnd(spawn_end != null ? spawn_end : pokemon.getSpawnStart() + pokemon.getSecondsUntilDespawn());
+		pokemon.setTimeUntilHidden_ms(
+				time_until_hidden_ms != null ? time_until_hidden_ms : pokemon.getSecondsUntilDespawn() * 1000);
+		pokemon.setDisappearTime(disappear_time != null ? disappear_time
+				: new Date().getTime() / 1000 + pokemon.getSecondsUntilDespawn());
 		pokemon.setVerified(verified);
 		pokemon.setCpMultiplier(cp_multiplier);
 		pokemon.setEncounterId(encounter_id);

@@ -18,13 +18,13 @@ package pogorobot.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -741,12 +741,41 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	private String formatDateFromSeconds(long l) {
-		return new SimpleDateFormat("dd.MM.", Locale.GERMAN).format(new Date(1000 * l));
+		return formatLocaleDateFromMillis(l * 1000);
 	}
 
 	@Override
 	public String formatTimeFromSeconds(long l) {
-		return new SimpleDateFormat("HH:mm", Locale.GERMAN).format(new Date(1000 * l));
+		return formatLocaleTimeFromMillisSeconds(l * 1000);
+
+	}
+
+	@Override
+	public String formatLocaleTimeFromMillisSeconds(long l) {
+		// get default calendar instance (to get default timezone and daylight savings
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(l);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		// First set minute of result:
+		String minuteWithTwoDigits = minute <= 9 ? "0" + minute : String.valueOf(minute);
+		String result = hour + ":" + minuteWithTwoDigits;
+		return result;
+	}
+
+	@Override
+	public String formatLocaleDateFromMillis(long l) {
+		// get default calendar instance (to get default timezone and daylight savings
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(l);
+		int day = calendar.get(Calendar.DAY_OF_MONTH);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		// First get day of result:
+		String dayOfMonthWithTwoDigits = day <= 9 ? "0" + day : String.valueOf(day);
+		// Get month of result
+		String monthWithTwoDigits = month <= 9 ? "0" + month : String.valueOf(month);
+		String result = dayOfMonthWithTwoDigits + "." + monthWithTwoDigits;
+		return result;
 	}
 
 	private String createDetailedIvString(String ivAttack, String ivDefense, String ivStamina) {
@@ -957,9 +986,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				// pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji,
 				// costume, ivString,
 				// ivAttack, ivDefense, ivStamina, googleLink, appleLink);
-				logger.info("Generated message from template: " + message);
+				logger.debug("Generated message from template: " + message);
 				if (message != null && !message.trim().isEmpty()) {
-					logger.debug("return generated message");
+					logger.info("return generated message with " + MessageConfigElement.CONFIG_ELEMENT_RAID.name() + " - template");
 					return message;
 				}
 
