@@ -47,16 +47,13 @@ public interface TelegramTextService {
 
 	String getStickerUrl(int intValue) throws DecoderException;
 
-	String createRaidMessageText(String pokemonName, Long end, String level,
-			String move1, String move2, Double latitude, Double longitude, String url, String address, String gymName);
+	// String createRaidMessageText(String pokemonName, Long end, String level,
+	// String move1, String move2, Double latitude, Double longitude, String url,
+	// String address, String gymName);
 
-	String createPokemonMessageNonIVText(String formattedTime, String pokemonName, String pokemonId, String form,
-			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
-			PokemonWithSpawnpoint pokemon);
+	String createPokemonMessageNonIVText(PokemonWithSpawnpoint pokemon);
 
-	String createPokemonMessageWithIVText(String formattedTime, String pokemonName, String pokemonId, String form,
-			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
-			PokemonWithSpawnpoint pokemon);
+	String createPokemonMessageWithIVText(PokemonWithSpawnpoint pokemon);
 
 	Double calculateWP(Long pokemonId, double cpMultiplier, int attack, int defense, int stamina);
 

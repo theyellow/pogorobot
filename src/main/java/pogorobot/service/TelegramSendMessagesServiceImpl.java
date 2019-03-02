@@ -126,9 +126,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (PogoBot.getConfiguration().getAlternativeStickers()) {
 			url = "";
 		}
-		String participants = telegramTextService.getParticipantsText(eventWithSubscribers);
-		SendRaidAnswer answer = sendMessages(chatId, url, latitude, longitude, pokemonFound, participants,
-				eventWithSubscribers, true, fullGym.getGymId(), possibleMessageIdToUpdate);
+		SendRaidAnswer answer = sendMessages(chatId, url, latitude, longitude,
+				pokemonFound + telegramTextService.getParticipantsText(eventWithSubscribers), false,
+				eventWithSubscribers,
+				fullGym.getGymId(), possibleMessageIdToUpdate);
 		logger.info("Sent to: " + chatId + ": Egg lvl. " + level);
 		logger.info("Answer: \nSticker:\n" + answer.getStickerAnswer() + "\nMainMessage: \n"
 				+ answer.getMainMessageAnswer() + "\nLocationMessage: \n" + answer.getLocationAnswer());
@@ -223,6 +224,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			SortedSet<EventWithSubscribers> eventWithSubscribers, String chatId, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException {
 
+		// TODO: Refactor with this raidPokemon and call to different methods for
+		// monsters and egg/raids
 		Boolean raidPokemon = null;
 		if (pokemon == null && fullGym != null) {
 			raidPokemon = true;
@@ -236,42 +239,27 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		Double latitude = raidPokemon ? fullGym.getLatitude() : pokemon.getLatitude();
 		Double longitude = raidPokemon ? fullGym.getLongitude() : pokemon.getLongitude();
 		Raid raid = raidPokemon ? fullGym.getRaid() : null;
-		Long pokemonId = raidPokemon ? raid.getPokemonId() : pokemon.getPokemonId();
-		Long end = raidPokemon ? raid.getEnd() : pokemon.getDisappearTime();
-		String pokemonName = telegramTextService.getPokemonName(pokemonId.toString());
 
-		// Meanings:
+		// Meanings (if it's a raid, for monsters it's always positive):
 		// idForSticker > 0 -> monster-sticker
 		// idForSticker < 0 -> egg-sticker
 		// idForSticker = 0 -> shouldn't happen
 		int idForSticker = raidPokemon
 				? raid.getPokemonId() != null ? raid.getPokemonId().intValue() : (int) (-1 * raid.getRaidLevel())
-				: pokemonId.intValue();
-		String stUrl = telegramTextService.getStickerUrl(idForSticker);
-		String pokemonText = "";
-		String participantsText = "";
+				: pokemon.getPokemonId().intValue();
+		String gymId = fullGym == null ? null : fullGym.getGymId();
+		String messageText = "";
 		if (raidPokemon) {
-			pokemonText = telegramTextService.getRaidMessagePokemonText(fullGym);
-			participantsText = telegramTextService.getParticipantsText(eventWithSubscribers);
+			messageText = telegramTextService.getRaidMessagePokemonText(fullGym)
+					+ telegramTextService.getParticipantsText(eventWithSubscribers);
 		} else {
-			String formattedEndTime = telegramTextService.formatTimeFromSeconds(end);
-			String costume = pokemon.getCostumeId();
-			String form = pokemon.getForm();
-			Integer weatherBoosted = pokemon.getWeatherBoosted();
-			Long gender = pokemon.getGender();
-			String ivAttack = pokemon.getIndividualAttack();
-			if (ivAttack != null && !ivAttack.isEmpty()) {
-				pokemonText = telegramTextService.createPokemonMessageWithIVText(formattedEndTime, pokemonName,
-						pokemonId.toString(), form, costume, gender, weatherBoosted, latitude, longitude, pokemon);
-			} else {
-				pokemonText = telegramTextService.createPokemonMessageNonIVText(formattedEndTime, pokemonName,
-						pokemonId.toString(), form, costume, gender, weatherBoosted, latitude, longitude, pokemon);
-			}
+			messageText = telegramTextService.createPokemonMessageWithIVText(pokemon);
+			String pokemonName = telegramTextService.getPokemonName(pokemon.getPokemonId().toString());
 			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
-		String gymId = fullGym == null ? null : fullGym.getGymId();
-		return sendMessages(chatId, stUrl, latitude, longitude, pokemonText, participantsText, eventWithSubscribers,
-				raidPokemon, gymId, possibleMessageIdToUpdate);
+		String stUrl = telegramTextService.getStickerUrl(idForSticker);
+		return sendMessages(chatId, stUrl, latitude, longitude, messageText, !raidPokemon, eventWithSubscribers, gymId,
+				possibleMessageIdToUpdate);
 	}
 
 	// private String getThreeDigitFormattedPokemonId(int pokemonInt) {
@@ -280,21 +268,20 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	// }
 
 	private SendRaidAnswer sendMessages(String chatId, String stickerUrl, Double latitude, Double longitude,
-			String raidFoundText, String participantsText, SortedSet<EventWithSubscribers> eventWithSubscribers,
-			boolean webPreview, String gymId, Integer possibleMessageIdToUpdate)
+			String messageText, boolean forMonsters, SortedSet<EventWithSubscribers> eventWithSubscribers, String gymId,
+			Integer possibleMessageIdToUpdate)
 			throws InterruptedException, TelegramApiException, DecoderException {
-		boolean forMonster = null == participantsText || participantsText.isEmpty();
 		boolean showStickers = PogoBot.getConfiguration().getShowStickers();
 		boolean showRaidStickers = PogoBot.getConfiguration().getShowRaidStickers();
-		SendSticker stickerMessage = forMonster && showStickers || !forMonster && showRaidStickers
+		SendSticker stickerMessage = forMonsters && showStickers || !forMonsters && showRaidStickers
 				? createStickerMessage(chatId, stickerUrl)
 				: null;
 		logger.info("Sticker-end: " + stickerUrl);
 		BotApiMethod<? extends Serializable> message = null;
-		if (forMonster) {
-			message = createMessageForChat(raidFoundText, chatId, possibleMessageIdToUpdate);
+		if (forMonsters) {
+			message = createMessageForChat(messageText, chatId, possibleMessageIdToUpdate);
 		} else {
-			BotApiMethod<? extends Serializable> messageForChat = createMessageForChat(raidFoundText + participantsText,
+			BotApiMethod<? extends Serializable> messageForChat = createMessageForChat(messageText,
 					chatId,
 					possibleMessageIdToUpdate);
 			InlineKeyboardMarkup replyMarkup = telegramKeyboardService.getRaidSignupKeyboard(eventWithSubscribers,
@@ -312,11 +299,11 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		}
 		boolean enableWebPagePreview = PogoBot.getConfiguration().getEnableWebPagePreview();
 		boolean enableRaidWebPagePreview = PogoBot.getConfiguration().getEnableRaidWebPagePreview();
-		setWebPagePreview(message, forMonster ? enableWebPagePreview : enableRaidWebPagePreview);
+		setWebPagePreview(message, forMonsters ? enableWebPagePreview : enableRaidWebPagePreview);
 
 		boolean showLocation = PogoBot.getConfiguration().getShowLocation();
 		boolean showRaidLocation = PogoBot.getConfiguration().getShowRaidLocation();
-		SendLocation location = forMonster && showLocation || !forMonster && showRaidLocation
+		SendLocation location = forMonsters && showLocation || !forMonsters && showRaidLocation
 				? createLocationMessage(chatId, latitude, longitude)
 				: null;
 

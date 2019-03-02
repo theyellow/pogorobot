@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import POGOProtos.Enums.PokemonIdOuterClass.PokemonId;
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.Gym;
@@ -63,11 +62,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	private static final String MESSAGE_NEWLINE = "\n";
 
-	private static final String MESSAGE_END_A_HREF = "</a>";
-
-	private static final String MESSAGE_END_OF_A_TAG_WITH_COMMENT = "\">";
-
-	private static final String MESSAGE_BEGIN_A_HREF = "<a href=\"";
+	// private static final String MESSAGE_END_A_HREF = "</a>";
+	// private static final String MESSAGE_END_OF_A_TAG_WITH_COMMENT = "\">";
+	// private static final String MESSAGE_BEGIN_A_HREF = "<a href=\"";
 
 	private static final String MESSAGE_SLASH = "/";
 
@@ -98,9 +95,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		if ("-1".equals(pokemon)) {
 			return "Ei";
 		}
-		int value = Integer.valueOf(pokemon);
-		PokemonId pokemonId = PokemonId.forNumber(value);
-		String normalizedPokemonName = pokemonId.name();
+		// int value = Integer.valueOf(pokemon);
+		// PokemonId pokemonId = PokemonId.forNumber(value);
+		// String normalizedPokemonName = pokemonId.name();
 		// PokemonDisplay.newBuilder().getForm().name()getClass();
 		// PokemonForm pf = PokemonForm.forNumber(pokemonId.getNumber());
 
@@ -297,61 +294,14 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	@Override
-	public String createPokemonMessageNonIVText(String formattedTime, String pokemonName, String pokemonId, String form,
-			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
-			PokemonWithSpawnpoint pokemon) {
-		return createPokemonMessageWithIVText(formattedTime, pokemonName, pokemonId, form, costume, gender,
-				weatherBoosted, latitude, longitude, pokemon);
+	public String createPokemonMessageNonIVText(PokemonWithSpawnpoint pokemon) {
+		return createPokemonMessageWithIVText(pokemon);
 	}
 
 	@Override
-	public String createPokemonMessageWithIVText(String formattedTime, String pokemonName, String pokemonId,
-			String form, String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
-			PokemonWithSpawnpoint pokemon) throws NumberFormatException {
-		String ivAttack = "0";
-		String ivDefense = "0";
-		String ivStamina = "0";
+	public String createPokemonMessageWithIVText(PokemonWithSpawnpoint pokemon) throws NumberFormatException {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(MESSAGE_BOLD_ON);
-		stringBuilder.append("[Pokémon]");
-		stringBuilder.append(MESSAGE_BOLD_OFF);
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append("Ein ");
-		stringBuilder.append(MESSAGE_BOLD_ON);
-		String ivString = "";
-		Emoji genderEmoji = null;
-		stringBuilder.append(pokemonName);
-		stringBuilder.append(MESSAGE_SPACE);
-		if (gender != null) {
-			genderEmoji = getGenderEmoji(pokemonId, gender.intValue());
-		}
-		if (null != genderEmoji || !Emoji.NONE.equals(genderEmoji)) {
-			stringBuilder.append(genderEmoji);
-		}
-		if (form != null && !form.isEmpty() && !form.equals("0")) {
-			stringBuilder.append(MESSAGE_SPACE);
-			stringBuilder.append(generateFormMessage(pokemonId, form));
-		}
 		if (pokemon != null && pokemon.getIndividualAttack() != null) {
-			ivAttack = pokemon.getIndividualAttack();
-			ivDefense = pokemon.getIndividualDefense();
-			ivStamina = pokemon.getIndividualStamina();
-			int attack = Integer.parseInt(ivAttack);
-			int defense = Integer.parseInt(ivDefense);
-			int stamina = Integer.parseInt(ivStamina);
-			double ivs = calculateIVs(attack, defense, stamina);
-			// Double wp = calculateWP(pokemon.getPokemonId(),
-			// pokemon.getCpMultiplier(), attack, defense, stamina);
-			// String wpString = wp.toString();
-			// wpString = wpString.substring(0, wpString.indexOf("."));
-			// wpString = pokemon.getCp();
-			ivString = Double.toString(ivs);
-			ivString = ivString.substring(0, ivString.indexOf(".") + 2);
-			stringBuilder.append(" mit ");
-			stringBuilder.append(ivString);
-			stringBuilder.append(" % und ");
-			stringBuilder.append(pokemon.getCp());
-			stringBuilder.append(" WP");
 			if (pokemon.getWeatherBoosted() != null && pokemon.getCpMultiplier() > 0.7317) {
 				stringBuilder.append("!");
 				stringBuilder.append(MESSAGE_SPACE);
@@ -359,31 +309,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				stringBuilder.append(MESSAGE_SPACE);
 			}
 		}
-		if (weatherBoosted != null) {
-			stringBuilder.append(MESSAGE_SPACE);
-			stringBuilder.append(getWeatherEmoji(weatherBoosted));
-		}
-		stringBuilder.append("!");
-		stringBuilder.append(MESSAGE_BOLD_OFF);
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(MESSAGE_BOLD_ON);
-		stringBuilder.append("Bis ");
-		stringBuilder.append(formattedTime);
-		stringBuilder.append(MESSAGE_BOLD_OFF);
-		stringBuilder.append(" kannst du es fangen!");
-		if (pokemon != null) {
-			stringBuilder.append(MESSAGE_SPACE);
-			stringBuilder.append("Die genauen Werte sind: ");
-			stringBuilder.append(createDetailedIvString(ivAttack, ivDefense, ivStamina));
-		}
-		stringBuilder.append(MESSAGE_NEWLINE);
-		String googleLink = getGoogleUrl(latitude, longitude);
-		String appleLink = getAppleLink(latitude, longitude);
-		stringBuilder.append("[Google Maps](" + googleLink + ") [AppleLink](" + appleLink + ")");
-		// stringBuilder.append(googleLink);
 		try {
 			JSONObject monsterTemplateFromFile = null;
-			if (ivString != null && !ivString.trim().isEmpty()) {
+			if (pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().trim().isEmpty()) {
 				monsterTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_MONSTER);
 			} else {
 				monsterTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_MONSTER_NOIV);
@@ -403,8 +331,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Problem with message-template while getting it for monster-message ", e);
 		}
 		return stringBuilder.toString();
 	}
@@ -424,8 +351,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	private String generateRaidMessageFromTemplate(String templateText, String templateDescription, Gym gym, Long end,
-			String level, Double latitude, Double longitude) {
+	private String generateRaidMessageFromTemplate(String templateText, String templateDescription, Gym gym) {
 
 		// Clean triple {{{
 		String generatedText = templateText.replaceAll("\\{\\{\\{", "\\{\\{").replaceAll("\\}\\}\\}", "\\}\\}");
@@ -433,12 +359,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				"\\}\\}");
 
 		// (String input) -> {
-		String result = parseRaidTemplate(String.valueOf(gym.getRaid().getRaidLevel()),
-				getPokemonName(gym.getRaid().getPokemonId().toString()), gym.getName(),
-				formatTimeFromSeconds(gym.getRaid().getStart()), formatTimeFromSeconds(gym.getRaid().getEnd()),
-				Double.toString(latitude), Double.toString(longitude), null, null, gym.getUrl(),
-				getGoogleUrl(latitude, longitude), getAppleLink(latitude, longitude),
-				generatedText + generatedDescription);
+		String result = parseRaidTemplate(gym, null, null, generatedText + generatedDescription);
 		// return result;
 		// }
 		return result;
@@ -459,19 +380,28 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	private String parseRaidTemplate(String level, String monsterName, String name, String begin, String end,
-			String lat, String lon, Integer weatherBoosted, String color, String imageUrl, String googleLink,
-			String appleLink, String generated) {
+	private String parseRaidTemplate(Gym gym, Integer weatherBoosted, String color,
+			String cleanedMessage) {
 		// String regex = "\\{\\{(?<word>.*?)\\}\\}";
+		// String level = String.valueOf( gym.getRaid().getRaidLevel());
+		// String monsterName = getPokemonName(gym.getRaid().getPokemonId().toString());
+		// String name = gym.getName();
+		// String begin = formatTimeFromSeconds(gym.getRaid().getStart());
+		// String end = formatTimeFromSeconds(gym.getRaid().getEnd());
+		// String lat = Double.toString(latitude);
+		// String lon = Double.toString(longitude);
+		// String imageUrl = gym.getUrl();
+		// String googleLink = getGoogleUrl(latitude, longitude);
+		// String appleLink = getAppleLink(latitude, longitude);
 		String regex = "\\{\\{(?<word>[A-Za-z]+)\\}\\}";
 
 		Pattern pattern = Pattern.compile(regex);
-		Matcher matcher = pattern.matcher(generated);
+		Matcher matcher = pattern.matcher(cleanedMessage);
 
 		String result = "<<default>>";
 		while (matcher.find()) {
-			result = matcher.replaceFirst(getRaidValueOf(matcher.group("word"), level, monsterName, name, begin, end,
-					lat, lon, weatherBoosted, color, imageUrl, googleLink, appleLink));
+			result = matcher.replaceFirst(
+					getRaidValueOf(matcher.group("word"), gym, weatherBoosted, color));
 			matcher = pattern.matcher(result);
 		}
 		return result;
@@ -505,11 +435,13 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				result = getPokemonName(pokemon.getPokemonId().toString());
 			} else if (placeholderString.equalsIgnoreCase("id")) {
 				result = pokemon.getPokemonId().toString();
-			} else if (placeholderString.equalsIgnoreCase("appleLink")
-					|| placeholderString.equalsIgnoreCase("applemap")) {
+			} else if (placeholderString.equalsIgnoreCase("applelink") || placeholderString.equalsIgnoreCase("applemap")
+					|| placeholderString.equalsIgnoreCase("applemaps")) {
 				String appleLink = getAppleLink(pokemon.getLatitude(), pokemon.getLongitude());
 				result = appleLink;
-			} else if (placeholderString.equalsIgnoreCase("googleLink")
+			} else if (placeholderString.equalsIgnoreCase("googlelink")
+					|| placeholderString.equalsIgnoreCase("googlemap")
+					|| placeholderString.equalsIgnoreCase("googlemaps")
 					|| placeholderString.equalsIgnoreCase("mapurl")) {
 				String googleLink = getGoogleUrl(pokemon.getLatitude(), pokemon.getLongitude());
 				result = googleLink;
@@ -597,19 +529,43 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return "<empty placeholder>";
 	}
 
-	private String getRaidValueOf(String string, String level, String monsterName, String gymName, String begin,
-			String end, String lat, String lon, Integer weatherBoosted, String color, String imageUrl,
-			String googleLink, String appleLink) {
+	private String getRaidValueOf(String string, Gym gym, Integer weatherBoosted,
+			String color) {
+		String level = String.valueOf(gym.getRaid().getRaidLevel());
+		String monsterName = getPokemonName(gym.getRaid().getPokemonId().toString());
+		String name = gym.getName();
+
+		String begin = formatTimeFromSeconds(gym.getRaid().getStart());
+		String end = formatTimeFromSeconds(gym.getRaid().getEnd());
+		String quickmove = gym.getRaid().getMove1();
+		String chargemove = gym.getRaid().getMove2();
+		String movesString = getMovesString(quickmove, chargemove);
+		String lat = Double.toString(gym.getLatitude());
+		String lon = Double.toString(gym.getLongitude());
+		String imageUrl = gym.getUrl();
+		String googleLink = getGoogleUrl(gym.getLatitude(), gym.getLongitude());
+		String appleLink = getAppleLink(gym.getLatitude(), gym.getLongitude());
 		if (string != null) {
 			String result = "default: " + string;
 			logger.debug("Searching for " + string);
 
+			// if (quickMove != null && chargeMove != null && !quickMove.isEmpty() &&
+			// !chargeMove.isEmpty()) {
+			// stringBuilder.append(getMovesString(quickMove, chargeMove));
+			// stringBuilder.append(MESSAGE_NEWLINE);
+			// }
 			if (string.equals("name")) {
 				result = monsterName;
 			} else if (string.equals("gymname")) {
-				result = gymName;
+				result = name;
 			} else if (string.equals("imgurl")) {
 				result = imageUrl;
+			} else if (string.equals("moves")) {
+				result = movesString;
+			} else if (string.equals("quickmove")) {
+				result = getJsonMoves().getString(quickmove);
+			} else if (string.equals("chargemove")) {
+				result = getJsonMoves().getString(chargemove);
 			} else if (string.equals("level")) {
 				result = level;
 			} else if (string.equals("begin") || string.equals("start")) {
@@ -672,67 +628,72 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	@Override
-	public String createRaidMessageText(String pokemonName, Long end, String level, String quickMove, String chargeMove,
-			Double latitude, Double longitude, String url, String address, String gymName) {
-
-		String formattedStartTime = "00:00";
-		String formattedEndTime = "00:01";
-		if (null != end) {
-			formattedStartTime = formatTimeFromSeconds(end - GymService.RAID_DURATION * 60);
-			formattedEndTime = formatTimeFromSeconds(end);
-		}
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(MESSAGE_BOLD_ON);
-		stringBuilder.append("[Raid]");
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(pokemonName);
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append("(");
-		stringBuilder.append(level);
-		stringBuilder.append("):");
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(MESSAGE_BOLD_OFF);
-		// stringBuilder.append(MESSAGE_NEWLINE);
-		stringBuilder.append(Emoji.ALARM_CLOCK);
-		if (null != end) {
-			if (System.currentTimeMillis() / 1000 + 8 * 60 * 60 < end) {
-				String date = formatDateFromSeconds(end);
-				stringBuilder.append(date);
-				stringBuilder.append(MESSAGE_SPACE);
-				stringBuilder.append(MESSAGE_SPACE);
-			}
-		}
-		stringBuilder.append(createTimeText(formattedStartTime));
-		stringBuilder.append("-");
-		stringBuilder.append(createTimeText(formattedEndTime));
-		// stringBuilder.append(":");
-
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(Emoji.ROUND_PUSHPIN);
-		stringBuilder.append(MESSAGE_SPACE);
-		// stringBuilder.append(MESSAGE_NEWLINE);
-
-		stringBuilder.append(getLink(url, gymName));
-		// stringBuilder.append(MESSAGE_NEWLINE);
-		// stringBuilder.append(address);
-		stringBuilder.append(MESSAGE_NEWLINE);
-		stringBuilder.append(Emoji.EARTH_GLOBE_EUROPE_AFRICA);
-		stringBuilder.append(MESSAGE_SPACE);
-		stringBuilder.append(getGoogleLink(latitude, longitude));
-		stringBuilder.append(MESSAGE_NEWLINE);
-		if (quickMove != null && chargeMove != null && !quickMove.isEmpty() && !chargeMove.isEmpty()) {
-			stringBuilder.append(getMovesString(quickMove, chargeMove));
-			stringBuilder.append(MESSAGE_NEWLINE);
-		}
-		String pokemonFound = stringBuilder.toString();
-		return pokemonFound;
-	}
+	// @Override
+	// public String createRaidMessageText(String pokemonName, Long end, String
+	// level, String quickMove, String chargeMove,
+	// Double latitude, Double longitude, String url, String address, String
+	// gymName) {
+	//
+	// String formattedStartTime = "00:00";
+	// String formattedEndTime = "00:01";
+	// if (null != end) {
+	// formattedStartTime = formatTimeFromSeconds(end - GymService.RAID_DURATION *
+	// 60);
+	// formattedEndTime = formatTimeFromSeconds(end);
+	// }
+	// StringBuilder stringBuilder = new StringBuilder();
+	// stringBuilder.append(MESSAGE_BOLD_ON);
+	// stringBuilder.append("[Raid]");
+	// stringBuilder.append(MESSAGE_SPACE);
+	// stringBuilder.append(pokemonName);
+	// stringBuilder.append(MESSAGE_SPACE);
+	// stringBuilder.append("(");
+	// stringBuilder.append(level);
+	// stringBuilder.append("):");
+	// stringBuilder.append(MESSAGE_SPACE);
+	// stringBuilder.append(MESSAGE_BOLD_OFF);
+	// // stringBuilder.append(MESSAGE_NEWLINE);
+	// stringBuilder.append(Emoji.ALARM_CLOCK);
+	// if (null != end) {
+	// if (System.currentTimeMillis() / 1000 + 8 * 60 * 60 < end) {
+	// String date = formatDateFromSeconds(end);
+	// stringBuilder.append(date);
+	// stringBuilder.append(MESSAGE_SPACE);
+	// stringBuilder.append(MESSAGE_SPACE);
+	// }
+	// }
+	// stringBuilder.append(createTimeText(formattedStartTime));
+	// stringBuilder.append("-");
+	// stringBuilder.append(createTimeText(formattedEndTime));
+	// // stringBuilder.append(":");
+	//
+	// stringBuilder.append(MESSAGE_SPACE);
+	// stringBuilder.append(Emoji.ROUND_PUSHPIN);
+	// stringBuilder.append(MESSAGE_SPACE);
+	// // stringBuilder.append(MESSAGE_NEWLINE);
+	//
+	// stringBuilder.append(getLink(url, gymName));
+	// // stringBuilder.append(MESSAGE_NEWLINE);
+	// // stringBuilder.append(address);
+	// stringBuilder.append(MESSAGE_NEWLINE);
+	// stringBuilder.append(Emoji.EARTH_GLOBE_EUROPE_AFRICA);
+	// stringBuilder.append(MESSAGE_SPACE);
+	// stringBuilder.append(getGoogleLink(latitude, longitude));
+	// stringBuilder.append(MESSAGE_NEWLINE);
+	// if (quickMove != null && chargeMove != null && !quickMove.isEmpty() &&
+	// !chargeMove.isEmpty()) {
+	// stringBuilder.append(getMovesString(quickMove, chargeMove));
+	// stringBuilder.append(MESSAGE_NEWLINE);
+	// }
+	// String pokemonFound = stringBuilder.toString();
+	// return pokemonFound;
+	// }
 
 	@Override
 	public String createEggMessageText(Gym fullGym, Long end, String level, Double latitude, Double longitude) {
 		String url = fullGym.getUrl();
 		String gymName = fullGym.getName();
+
 		String address = fullGym.getAddress();
 		address = address == null ? "" : address;
 		String formattedEndTime = formatTimeFromSeconds(end);
@@ -809,10 +770,12 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	private String createDetailedIvString(String ivAttack, String ivDefense, String ivStamina) {
-		return MESSAGE_BOLD_ON + ivAttack + MESSAGE_SPACE + MESSAGE_SLASH + MESSAGE_SPACE + ivDefense + MESSAGE_SPACE
-				+ MESSAGE_SLASH + MESSAGE_SPACE + ivStamina + MESSAGE_BOLD_OFF;
-	}
+	// private String createDetailedIvString(String ivAttack, String ivDefense,
+	// String ivStamina) {
+	// return MESSAGE_BOLD_ON + ivAttack + MESSAGE_SPACE + MESSAGE_SLASH +
+	// MESSAGE_SPACE + ivDefense + MESSAGE_SPACE
+	// + MESSAGE_SLASH + MESSAGE_SPACE + ivStamina + MESSAGE_BOLD_OFF;
+	// }
 
 	private String getMovesString(String quickMove, String chargeMove) {
 		return getMoveName(quickMove) + MESSAGE_SPACE + MESSAGE_SLASH + MESSAGE_SPACE + getMoveName(chargeMove);
@@ -823,7 +786,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	private String getLink(String url, String name) {
-		String htmlLink = MESSAGE_BEGIN_A_HREF + url + MESSAGE_END_OF_A_TAG_WITH_COMMENT + name + MESSAGE_END_A_HREF;
+		// String htmlLink = MESSAGE_BEGIN_A_HREF + url +
+		// MESSAGE_END_OF_A_TAG_WITH_COMMENT + name + MESSAGE_END_A_HREF;
 		String markupLink = "[" + name + "](" + url + ")";
 		return markupLink;
 	}
@@ -941,29 +905,14 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	@Override
 	public String getRaidMessagePokemonText(Gym fullGym) {
-		String pokemonText;
-		String url = fullGym.getUrl();
-		String address = fullGym.getAddress();
 		String gymName = fullGym.getName();
-		Double longitude = fullGym.getLongitude();
-		Double latitude = fullGym.getLatitude();
 		Raid raid = fullGym.getRaid();
-		String level = "Unbekannt";
-		String move1 = "";
-		String move2 = "";
-		Long end = null;
-		String pokemonName = "";
 		if (raid == null) {
 			logger.error("Lost the raid on gym " + gymName + " " + fullGym.getId());
 		} else {
-			Long raidLevel = raid.getRaidLevel();
-			level = raidLevel != null ? raidLevel.toString() : "Unbekannt";
-			move1 = raid.getMove1();
-			move2 = raid.getMove2();
-			end = raid.getEnd();
 			Long pokemonIdLong = raid.getPokemonId();
 			int pokemonIntValue = pokemonIdLong == null ? -1 : pokemonIdLong.intValue();
-			String pokemonId = Integer.valueOf(pokemonIntValue).toString();
+			// String pokemonId = Integer.valueOf(pokemonIntValue).toString();
 			if (pokemonIntValue == -1) {
 
 				try {
@@ -974,8 +923,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 					logger.debug("description-template would be:\n " + templateDescription);
 					if (templateText != null) {
 
-						String message = generateRaidMessageFromTemplate(templateText, templateDescription, fullGym,
-								end, level, latitude, longitude);
+						String message = generateRaidMessageFromTemplate(templateText, templateDescription, fullGym);
 						// generateMessageFromTemplate(templateText,
 						// templateDescription, pokemon, pokemonId,
 						// pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji,
@@ -992,12 +940,13 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 					logger.error("Message generation of egg message failed with IO-error", e);
 				}
 
-				return createEggMessageText(fullGym, end, level, latitude, longitude);
+				// return createEggMessageText(fullGym, end, level, latitude, longitude);
 			}
-			pokemonName = getPokemonName(pokemonId);
+			// pokemonName = getPokemonName(pokemonId);
 		}
-		pokemonText = createRaidMessageText(pokemonName, end, level, move1, move2, latitude, longitude, url, address,
-				gymName);
+		// pokemonText = createRaidMessageText(pokemonName, end, level, move1, move2,
+		// latitude, longitude, url, address,
+		// gymName);
 		try {
 			JSONObject raidTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_RAID);
 			String templateText = raidTemplateFromFile.getString("text");
@@ -1005,18 +954,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			logger.debug("text-template would be:\n " + templateText);
 			logger.debug("description-template would be:\n " + templateDescription);
 			if (templateText != null) {
-
-				// TODO: IMPLEMENT!
-
-				// String message = null;
-				String message = generateRaidMessageFromTemplate(templateText, templateDescription, fullGym, end, level,
-						latitude, longitude);
-
-				// generateMessageFromTemplate(templateText,
-				// templateDescription, pokemon, pokemonId,
-				// pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji,
-				// costume, ivString,
-				// ivAttack, ivDefense, ivStamina, googleLink, appleLink);
+				String message = generateRaidMessageFromTemplate(templateText, templateDescription, fullGym);
 				logger.debug("Generated message from template: " + message);
 				if (message != null && !message.trim().isEmpty()) {
 					logger.info("return generated message with " + MessageConfigElement.CONFIG_ELEMENT_RAID.name()
@@ -1026,10 +964,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error("Error while reading template-messages for raids", e);
 		}
-		return pokemonText;
+		return "No message generated, perhaps some problem with template";
 	}
 
 	@Override
