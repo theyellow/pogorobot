@@ -297,7 +297,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		}
 		dataSource.setJdbcUrl(standardConfiguration.getJdbcUrl());
 		dataSource.setUser(standardConfiguration.getUserdb());
-		dataSource.setPassword(standardConfiguration.getPassword());
+		String password = standardConfiguration.getPassword() != null
+				&& standardConfiguration.getPassword().trim().isEmpty() ? null : standardConfiguration.getPassword();
+		dataSource.setPassword(password);
 		dataSource.setMinPoolSize(3);
 		dataSource.setMaxPoolSize(25);
 		dataSource.setDebugUnreturnedConnectionStackTraces(true);
