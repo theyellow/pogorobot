@@ -19,7 +19,6 @@ package pogorobot.service;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -266,7 +265,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 						pokemonId.toString(), form, costume, gender, weatherBoosted, latitude, longitude, pokemon);
 			} else {
 				pokemonText = telegramTextService.createPokemonMessageNonIVText(formattedEndTime, pokemonName,
-						pokemonId.toString(), form, costume, gender, weatherBoosted, latitude, longitude);
+						pokemonId.toString(), form, costume, gender, weatherBoosted, latitude, longitude, pokemon);
 			}
 			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
@@ -440,7 +439,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	@Override
 	@Transactional
 	public void removeGroupRaidMessage() throws TelegramApiException {
-		long nowInSecons = new Date().getTime() / 1000;
+		long nowInSecons = System.currentTimeMillis() / 1000;
 		Iterable<GroupMessages> all = groupMessagesRepository.findAll();
 		ProcessedRaids owningRaid = null;
 		String errorsWhileDeleting = "";

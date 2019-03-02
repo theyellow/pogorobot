@@ -19,8 +19,8 @@ package pogorobot.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -32,6 +32,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -306,7 +307,7 @@ public class GymServiceImpl implements GymService {
 			allGymMonIds.removeAll(monsInGym);
 			numberOfSavedPokemon = numberOfSavedPokemon + monsInGym.size();
 		}
-		Date start = new Date();
+		StopWatch stopwatch = StopWatch.createStarted();
 		logger.info("Cleaning up old GymPokemon - to delete: " + allGymMonIds.size() + ", to save: "
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
@@ -314,9 +315,13 @@ public class GymServiceImpl implements GymService {
 			gymPokemonDao.deleteById(mon);
 			numberOfDeleted++;
 		}
-		long time = (new Date().getTime() - start.getTime()) / 1000;
+		stopwatch.stop();
+		long seconds = stopwatch.getTime(TimeUnit.SECONDS);
+		long ending = stopwatch.getTime(TimeUnit.MILLISECONDS) % 100;
+
 		logger.info(
-				"Cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
+				"Cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + seconds + "," + ending
+						+ " secs");
 	}
 
 	@Override

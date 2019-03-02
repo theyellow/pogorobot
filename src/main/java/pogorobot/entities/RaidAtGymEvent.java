@@ -25,7 +25,6 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -217,7 +216,7 @@ public class RaidAtGymEvent {
 		Integer slot = 10;
 
 		Long start = getStart();
-		long nowInSeconds = new Date().getTime() / 1000;
+		long nowInSeconds = System.currentTimeMillis() / 1000;
 		if (start == null || start < nowInSeconds) {
 			setStart(nowInSeconds);
 		}

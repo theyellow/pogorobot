@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -298,9 +298,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	@Override
 	public String createPokemonMessageNonIVText(String formattedTime, String pokemonName, String pokemonId, String form,
-			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude) {
+			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
+			PokemonWithSpawnpoint pokemon) {
 		return createPokemonMessageWithIVText(formattedTime, pokemonName, pokemonId, form, costume, gender,
-				weatherBoosted, latitude, longitude, null);
+				weatherBoosted, latitude, longitude, pokemon);
 	}
 
 	@Override
@@ -331,7 +332,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			stringBuilder.append(MESSAGE_SPACE);
 			stringBuilder.append(generateFormMessage(pokemonId, form));
 		}
-		if (pokemon != null) {
+		if (pokemon != null && pokemon.getIndividualAttack() != null) {
 			ivAttack = pokemon.getIndividualAttack();
 			ivDefense = pokemon.getIndividualDefense();
 			ivStamina = pokemon.getIndividualStamina();
@@ -393,9 +394,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			logger.debug("description-template would be:\n " + templateDescription);
 			if (templateText != null) {
 
-				String message = generateMonsterMessageFromTemplate(templateText, templateDescription, pokemon,
-						pokemonId, pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji, costume,
-						ivString, ivAttack, ivDefense, ivStamina, googleLink, appleLink);
+				String message = generateMonsterMessageFromTemplate(templateText, templateDescription, pokemon);
 				logger.info("Generated message from template: " + message);
 				if (message != null && !message.trim().isEmpty()) {
 					logger.debug("return generated message");
@@ -411,9 +410,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	private <T> String generateMonsterMessageFromTemplate(String templateText, String templateDescription,
-			PokemonWithSpawnpoint pokemon, String pokemonId, String pokemonName, String formattedTime,
-			Integer weatherBoosted, String form, Long gender, Emoji genderEmoji, String costume, String ivString,
-			String ivAttack, String ivDefense, String ivStamina, String googleLink, String appleLink) {
+			PokemonWithSpawnpoint pokemon) {
 
 		// Clean triple {{{
 		String generatedText = templateText.replaceAll("\\{\\{\\{", "\\{\\{").replaceAll("\\}\\}\\}", "\\}\\}");
@@ -421,9 +418,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				"\\}\\}");
 
 		// (String input) -> {
-		String result = parseMonsterTemplate(pokemon, pokemonId, pokemonName, formattedTime, weatherBoosted, form,
-				gender, genderEmoji, costume, ivString, ivAttack, ivDefense, ivStamina, googleLink, appleLink,
-				generatedText + generatedDescription);
+		String result = parseMonsterTemplate(pokemon, generatedText + generatedDescription);
 		// return result;
 		// }
 		return result;
@@ -449,10 +444,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	private String parseMonsterTemplate(PokemonWithSpawnpoint pokemon, String pokemonId, String pokemonName,
-			String formattedTime, Integer weatherBoosted, String form, Long gender, Emoji genderEmoji, String costume,
-			String ivString, String ivAttack, String ivDefense, String ivStamina, String googleLink, String appleLink,
-			String generated) {
+	private String parseMonsterTemplate(PokemonWithSpawnpoint pokemon, String generated) {
 		// String regex = "\\{\\{(?<word>.*?)\\}\\}";
 		String regex = "\\{\\{(?<word>[A-Za-z]+)\\}\\}";
 
@@ -461,9 +453,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 		String result = "<<default>>";
 		while (matcher.find()) {
-			result = matcher.replaceFirst(getMonsterValueOf(matcher.group("word"), pokemon, pokemonId, pokemonName,
-					formattedTime, weatherBoosted, form, gender, genderEmoji, costume, ivString, ivAttack, ivDefense,
-					ivStamina, googleLink, appleLink));
+			result = matcher.replaceFirst(getMonsterValueOf(matcher.group("word"), pokemon));
 			matcher = pattern.matcher(result);
 		}
 		return result;
@@ -493,83 +483,118 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	// }
 	// return result;
 
-	private String getMonsterValueOf(String placeholderString, PokemonWithSpawnpoint pokemon, String pokemonId,
-			String pokemonName, String formattedTime, Integer weatherBoosted, String form, Long gender,
-			Emoji genderEmoji, String costume, String ivString, String ivAttack, String ivDefense, String ivStamina,
-			String googleLink, String appleLink) {
+	private String getMonsterValueOf(String placeholderString, PokemonWithSpawnpoint pokemon) {
 		if (placeholderString != null) {
 			String result = "default: " + placeholderString;
 			logger.debug("Searching for " + placeholderString);
+			if (pokemon == null) {
+				logger.error("No pokemon found while generating message");
+				return placeholderString;
+			}
+			boolean pokemonEndAvailable = pokemon.getSecondsUntilDespawn() != null;
 
-			if (placeholderString.equals("name")) {
-				result = pokemonName;
-			} else if (placeholderString.equals("id")) {
-				result = pokemonId;
-			} else if (placeholderString.equals("iv")) {
-				result = ivString;
-			} else {
-				boolean pokemonEndAvailable = pokemon != null && pokemon.getSecondsUntilDespawn() != null;
-				if (placeholderString.equals("tthm")) {
-					result = String.valueOf(pokemonEndAvailable ? pokemon.getSecondsUntilDespawn() / 60 : "");
-				} else if (placeholderString.equals("tths")) {
-					result = String.valueOf(pokemonEndAvailable ? pokemon.getSecondsUntilDespawn() % 60 : "");
-				} else if (placeholderString.equals("level")) {
-					// Hack, should be pokemon level but i don't want to change database atm
-					// -> see transformToEntity in RocketmapPokemon
-					result = String.valueOf(pokemon.getPlayerLevel() != null ? pokemon.getPlayerLevel() : "");
-				} else if (placeholderString.equals("ivAttack") || placeholderString.equals("atk")) {
-					result = ivAttack;
+			// cp multiplier not provided atm...
+			// Double wp = calculateWP(pokemon.getPokemonId(),
+			// pokemon.getCpMultiplier(), attack, defense, stamina);
+			// String wpString = wp.toString();
+			// wpString = wpString.substring(0, wpString.indexOf("."));
+			// wpString = pokemon.getCp();
 
-				} else if (placeholderString.equals("ivStamina") || placeholderString.equals("sta")) {
-					result = ivStamina;
-				} else if (placeholderString.equals("appleLink") || placeholderString.equals("applemap")) {
-					result = appleLink;
-				} else if (placeholderString.equals("googleLink") || placeholderString.equals("mapurl")) {
-					result = googleLink;
-				} else if (placeholderString.equals("googleLink")) {
-					result = googleLink;
-				} else if (placeholderString.equals("costume")) {
-					result = costume != null ? costume : "";
-				} else if (placeholderString.equals("weatherEmoji")) {
-					result = weatherBoosted != null
-							? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
-							: "";
-				} else if (placeholderString.equals("form")) {
-					result = form != null && !form.equals("0") ? generateFormMessage(pokemonId, form) : "";
-				} else if (placeholderString.equals("ivDefense") || placeholderString.equals("def")) {
+			// if (form != null && !form.isEmpty() && !form.equals("0")) {
+			if (placeholderString.equalsIgnoreCase("name")) {
+				result = getPokemonName(pokemon.getPokemonId().toString());
+			} else if (placeholderString.equalsIgnoreCase("id")) {
+				result = pokemon.getPokemonId().toString();
+			} else if (placeholderString.equalsIgnoreCase("appleLink")
+					|| placeholderString.equalsIgnoreCase("applemap")) {
+				String appleLink = getAppleLink(pokemon.getLatitude(), pokemon.getLongitude());
+				result = appleLink;
+			} else if (placeholderString.equalsIgnoreCase("googleLink")
+					|| placeholderString.equalsIgnoreCase("mapurl")) {
+				String googleLink = getGoogleUrl(pokemon.getLatitude(), pokemon.getLongitude());
+				result = googleLink;
+			} else if (placeholderString.equalsIgnoreCase("costume")) {
+				result = pokemon.getCostumeId() != null ? pokemon.getCostumeId() : "";
+			} else if (placeholderString.equalsIgnoreCase("weatherEmoji")) {
+				result = pokemon.getWeatherBoosted() != null
+						? new StringBuffer().append(getWeatherEmoji(pokemon.getWeatherBoosted())).toString()
+						: "";
+			} else if (placeholderString.equalsIgnoreCase("clockEmoji")) {
+				result = new StringBuffer().append(Emoji.ALARM_CLOCK).toString();
+			} else if (placeholderString.equalsIgnoreCase("pushpinEmoji")) {
+				result = new StringBuffer().append(Emoji.ROUND_PUSHPIN).toString();
+			} else if (placeholderString.equalsIgnoreCase("globeEmoji")) {
+				result = new StringBuffer().append(Emoji.EARTH_GLOBE_EUROPE_AFRICA).toString();
+			} else if (placeholderString.equalsIgnoreCase("form")) {
+				String form = pokemon.getForm();
+				if (form != null && !form.isEmpty() && !form.equals("0")) {
+					result = generateFormMessage(pokemon.getPokemonId().toString(), form);
+				}
+			} else if (placeholderString.equalsIgnoreCase("level")) {
+				// Hack, should be pokemon level but i don't want to change database atm
+				// -> see transformToEntity in RocketmapPokemon
+				result = String.valueOf(
+						pokemon.getPlayerLevel() != null && pokemon.getPlayerLevel() > 0 ? pokemon.getPlayerLevel()
+								: "<not provided>");
+				// result = ivString;
+			} else if (placeholderString.equalsIgnoreCase("tthm")) {
+				result = String.valueOf(pokemonEndAvailable ? pokemon.getSecondsUntilDespawn() / 60 : "");
+			} else if (placeholderString.equalsIgnoreCase("tths")) {
+				result = String.valueOf(pokemonEndAvailable ? pokemon.getSecondsUntilDespawn() % 60 : "");
+			} else if (placeholderString.equalsIgnoreCase("time")) {
+				result = formatTimeFromSeconds(pokemon.getDisappearTime());
+			} else if (placeholderString.equalsIgnoreCase("gender")) {
+				if (pokemon.getGender() != null)
+					switch (pokemon.getGender().intValue()) {
+					case 1:
+						logger.debug("male");
+						result = new StringBuffer().append(Emoji.MALE.toString()).toString();
+						break;
+					case 2:
+						logger.debug("female");
+						result = new StringBuffer().append(Emoji.FEMALE.toString()).toString();
+						break;
+					default:
+						logger.debug("No gender found");
+						result = Emoji.NONE.toString();
+						break;
+					}
+			} else if (StringUtils.isNotEmpty(pokemon.getIndividualAttack())) {
+
+				if (placeholderString.equalsIgnoreCase("cp")) {
+					result = pokemon.getCp();
+				} else if (placeholderString.equalsIgnoreCase("ivDefense") || placeholderString.equalsIgnoreCase("def")
+						|| placeholderString.equalsIgnoreCase("defense")) {
+
+					String ivDefense = pokemon.getIndividualDefense();
 					result = ivDefense;
 
-				} else if (placeholderString.equals("gender")) {
-					if (gender != null)
-						switch (gender.intValue()) {
-						case 1:
-							logger.debug("male");
-							result = new StringBuffer().append(Emoji.MALE.toString()).toString();
-							break;
-						case 2:
-							logger.debug("female");
-							result = new StringBuffer().append(Emoji.FEMALE.toString()).toString();
-							break;
-						default:
-							logger.debug("No gender found");
-							result = Emoji.NONE.toString();
-							break;
-						}
-				} else if (placeholderString.equals("time")) {
-					result = formattedTime;
-				} else if (placeholderString.equals("id")) {
-					result = pokemonId;
-				} else if (placeholderString.equals("cp")) {
-					result = pokemon.getCp();
-				} else {
-					logger.debug("Unknown configToken: " + placeholderString);
-					result = "";
+				} else if (placeholderString.equalsIgnoreCase("iv")) {
+					int attack = Integer.parseInt(pokemon.getIndividualAttack());
+					int defense = Integer.parseInt(pokemon.getIndividualDefense());
+					int stamina = Integer.parseInt(pokemon.getIndividualStamina());
+					double ivs = calculateIVs(attack, defense, stamina);
+					String ivString = Double.toString(ivs);
+					ivString = ivString.substring(0, ivString.indexOf(".") + 2);
+					result = ivString;
+				} else if (placeholderString.equalsIgnoreCase("ivAttack") || placeholderString.equalsIgnoreCase("atk")
+						|| placeholderString.equalsIgnoreCase("attack")) {
+					String ivAttack = pokemon.getIndividualAttack();
+					result = ivAttack;
+				} else if (placeholderString.equalsIgnoreCase("ivStamina") || placeholderString.equalsIgnoreCase("sta")
+						|| placeholderString.equalsIgnoreCase("stamina")) {
+					String ivStamina = pokemon.getIndividualStamina();
+					result = ivStamina;
 				}
-			}
 
+			} else {
+				logger.debug("Unknown configToken: " + placeholderString);
+				result = "";
+			}
 			return result;
+
 		}
-		return placeholderString;
+		return "<empty placeholder>";
 	}
 
 	private String getRaidValueOf(String string, String level, String monsterName, String gymName, String begin,
@@ -606,6 +631,12 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			} else if (string.equals("weatherEmoji")) {
 				result = weatherBoosted != null ? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
 						: "";
+			} else if (string.equals("clockEmoji")) {
+				result = new StringBuffer().append(Emoji.ALARM_CLOCK).toString();
+			} else if (string.equals("pushpinEmoji")) {
+				result = new StringBuffer().append(Emoji.ROUND_PUSHPIN).toString();
+			} else if (string.equals("globeEmoji")) {
+				result = new StringBuffer().append(Emoji.EARTH_GLOBE_EUROPE_AFRICA).toString();
 			} else {
 				logger.debug("Unknown configToken: " + string);
 				result = "";
@@ -665,7 +696,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		// stringBuilder.append(MESSAGE_NEWLINE);
 		stringBuilder.append(Emoji.ALARM_CLOCK);
 		if (null != end) {
-			if (new Date().getTime() / 1000 + 8 * 60 * 60 < end) {
+			if (System.currentTimeMillis() / 1000 + 8 * 60 * 60 < end) {
 				String date = formatDateFromSeconds(end);
 				stringBuilder.append(date);
 				stringBuilder.append(MESSAGE_SPACE);
@@ -715,7 +746,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		stringBuilder.append(MESSAGE_SPACE);
 		stringBuilder.append(Emoji.ALARM_CLOCK);
 		stringBuilder.append(MESSAGE_SPACE);
-		if (new Date().getTime() / 1000 + 8 * 60 * 60 < end) {
+		if (System.currentTimeMillis() / 1000 + 8 * 60 * 60 < end) {
 			String date = formatDateFromSeconds(end);
 			stringBuilder.append(date);
 			stringBuilder.append(MESSAGE_SPACE);
@@ -988,7 +1019,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				// ivAttack, ivDefense, ivStamina, googleLink, appleLink);
 				logger.debug("Generated message from template: " + message);
 				if (message != null && !message.trim().isEmpty()) {
-					logger.info("return generated message with " + MessageConfigElement.CONFIG_ELEMENT_RAID.name() + " - template");
+					logger.info("return generated message with " + MessageConfigElement.CONFIG_ELEMENT_RAID.name()
+							+ " - template");
 					return message;
 				}
 

@@ -16,8 +16,8 @@
 
 package pogorobot.service;
 
-import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -29,6 +29,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +82,7 @@ public class PokemonServiceImpl implements PokemonService {
 				numberOfSavedPokemon++;
 			}
 		}
-		Date start = new Date();
+		StopWatch stopWatch = StopWatch.createStarted();
 		logger.info("Cleaning up processed Pokemon - to delete: " + processedMons.size() + ", to save: "
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
@@ -89,7 +90,8 @@ public class PokemonServiceImpl implements PokemonService {
 			processedPokemonDAO.deleteById(mon);
 			numberOfDeleted++;
 		}
-		long time = (new Date().getTime() - start.getTime()) / 1000;
+		stopWatch.stop();
+		long time = stopWatch.getTime(TimeUnit.SECONDS);
 		logger.info("Cleaning up processed Pokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
 	}
 
