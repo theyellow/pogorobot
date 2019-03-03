@@ -12,7 +12,9 @@ cache:
 deploy:
   -
     on:
-      branch: master
+      branch: 
+        master
+        develop
     provider: bintray
     skip_cleanup: true
     file: bintray-descriptor.json
