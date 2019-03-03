@@ -115,7 +115,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	@Override
 	public String getMoveName(String move) {
-		String moveName = getJsonMoves().getString(move);
+		String moveName = "";
+		if (StringUtils.isNotEmpty(move)) {
+			moveName = getJsonMoves().getString(move);
+		}
 		return moveName;
 	}
 
@@ -243,9 +246,12 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String decUrl = createDec();
 		String threeDigitFormattedMonId;
 		if (pokemonInt < 0) {
-			return decUrl + "/eg" + "gs/" + (pokemonInt * -1) + ".we" + "bp";
-		} else
-			threeDigitFormattedMonId = getThreeDigitFormattedPokemonId(pokemonInt);
+			int level = pokemonInt * -1;
+			logger.info("Created url for egg level " + level);
+			return decUrl + "/eg" + "gs/" + level + ".we" + "bp";
+		}
+		threeDigitFormattedMonId = getThreeDigitFormattedPokemonId(pokemonInt);
+
 		if (PogoBot.getConfiguration().getAlternativeStickers()) {
 			return decUrl + "po" + "kem" + "on_icon_" + threeDigitFormattedMonId + "_00.p" + "ng";
 		} else {

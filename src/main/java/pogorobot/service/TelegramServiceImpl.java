@@ -299,7 +299,8 @@ public class TelegramServiceImpl implements TelegramService {
 							future = startNewRaidMessageFuture(gym, groupChatId.toString(), eventsWithSubscribers,
 									messageId);
 						} else {
-							future = startNewEggMessageFuture(gym, level, groupChatId.toString(), eventsWithSubscribers,
+							future = startNewEggMessageFuture(gym, gym.getRaid().getRaidLevel(), groupChatId.toString(),
+									eventsWithSubscribers,
 									messageId);
 						}
 						SendRaidAnswer answer = getFutureAnswer(future);

@@ -114,26 +114,34 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	}
 
 	@Override
-	public SendRaidAnswer sendEggMessage(String chatId, Gym fullGym, String level,
+	public SendRaidAnswer sendEggMessage(String chatId, Gym gym, String level,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException {
 
-		Long end = fullGym.getRaid().getEnd();
-		Double latitude = fullGym.getLatitude();
-		Double longitude = fullGym.getLongitude();
-		String pokemonFound = telegramTextService.createEggMessageText(fullGym, end, level, latitude, longitude);
-		String url = telegramTextService.createDec() + "/eg" + "gs/" + level + ".we" + "bp";
-		if (PogoBot.getConfiguration().getAlternativeStickers()) {
-			url = "";
-		}
-		SendRaidAnswer answer = sendMessages(chatId, url, latitude, longitude,
-				pokemonFound + telegramTextService.getParticipantsText(eventWithSubscribers), false,
-				eventWithSubscribers,
-				fullGym.getGymId(), possibleMessageIdToUpdate);
-		logger.info("Sent to: " + chatId + ": Egg lvl. " + level);
-		logger.info("Answer: \nSticker:\n" + answer.getStickerAnswer() + "\nMainMessage: \n"
-				+ answer.getMainMessageAnswer() + "\nLocationMessage: \n" + answer.getLocationAnswer());
-		return answer;
+
+		return sendStandardMessage(null, gym, eventWithSubscribers, chatId, possibleMessageIdToUpdate);
+
+		// Long end = fullGym.getRaid().getEnd();
+		// Double latitude = fullGym.getLatitude();
+		// Double longitude = fullGym.getLongitude();
+		// String pokemonFound = telegramTextService.createEggMessageText(fullGym, end,
+		// level, latitude, longitude);
+		// String url = telegramTextService.createDec() + "/eg" + "gs/" + level + ".we"
+		// + "bp";
+		// if (PogoBot.getConfiguration().getAlternativeStickers()) {
+		// url = "";
+		// }
+		// SendRaidAnswer answer = sendMessages(chatId, url, latitude, longitude,
+		// pokemonFound + telegramTextService.getParticipantsText(eventWithSubscribers),
+		// false,
+		// eventWithSubscribers,
+		// fullGym.getGymId(), possibleMessageIdToUpdate);
+		// logger.info("Sent to: " + chatId + ": Egg lvl. " + level);
+		// logger.info("Answer: \nSticker:\n" + answer.getStickerAnswer() +
+		// "\nMainMessage: \n"
+		// + answer.getMainMessageAnswer() + "\nLocationMessage: \n" +
+		// answer.getLocationAnswer());
+		// return answer;
 	}
 
 	@Override
@@ -244,9 +252,17 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		// idForSticker > 0 -> monster-sticker
 		// idForSticker < 0 -> egg-sticker
 		// idForSticker = 0 -> shouldn't happen
-		int idForSticker = raidPokemon
-				? raid.getPokemonId() != null ? raid.getPokemonId().intValue() : (int) (-1 * raid.getRaidLevel())
-				: pokemon.getPokemonId().intValue();
+		int stickerId = 0;
+		if (raidPokemon) {
+			Long pokemonId = raid.getPokemonId();
+			boolean isEgg = pokemonId == null || pokemonId <= 0L;
+			logger.info("Get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
+			stickerId = isEgg ? -1 * raid.getRaidLevel().intValue() : pokemonId.intValue();
+		} else {
+			logger.info("Get sticker for pokemon");
+			stickerId = pokemon.getPokemonId().intValue();
+		}
+
 		String gymId = fullGym == null ? null : fullGym.getGymId();
 		String messageText = "";
 		if (raidPokemon) {
@@ -257,7 +273,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			String pokemonName = telegramTextService.getPokemonName(pokemon.getPokemonId().toString());
 			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
-		String stUrl = telegramTextService.getStickerUrl(idForSticker);
+		String stUrl = telegramTextService.getStickerUrl(stickerId);
 		return sendMessages(chatId, stUrl, latitude, longitude, messageText, !raidPokemon, eventWithSubscribers, gymId,
 				possibleMessageIdToUpdate);
 	}
