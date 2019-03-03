@@ -9,4 +9,4 @@ else
 VERSION='1.0.7-SNAPSHOT'
 fi
 
-screen -S telegram-bot -d -m java -Dext.properties.dir=file:$PWD/config -XX:CompressedClassSpaceSize=190m -XX:MetaspaceSize=256M -Xmx600m -jar pogorobot-$VERSION-exec.jar
+screen -S telegram-bot -d -m java -XX:+HeapDumpOnOutOfMemoryError -Xmx800m -Dext.properties.dir=file:$PWD/config -jar pogorobot-$VERSION-exec.jar
