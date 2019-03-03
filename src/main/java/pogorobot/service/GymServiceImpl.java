@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,7 @@ import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
 
+import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Gym;
 import pogorobot.entities.GymPokemon;
 import pogorobot.entities.Raid;
@@ -169,16 +171,18 @@ public class GymServiceImpl implements GymService {
 				.where(cb.or(cb.equal(pathToGymId, raidEvent.getGymId()), cb.equal(pathToId, raidEvent.getGymId())));
 		List<RaidAtGymEvent> resultList = entityManager.createQuery(query).getResultList();
 
+		SortedSet<EventWithSubscribers> eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
 		if (resultList.isEmpty()) {
 			String id = raidEvent.getId() != null ? raidEvent.getId() : raidEvent.getGymId();
 			raidEvent.setId(id);
-			raidEvent.getEventsWithSubscribers().stream().forEach(x -> entityManager.persist(x));
+			logger.info("Persist new raid with id " + id + " and " + eventsWithSubscribers.size() + " event-slots.");
+			eventsWithSubscribers.stream().forEach(x -> entityManager.persist(x));
 			entityManager.persist(raidEvent);
 		} else {
 			RaidAtGymEvent oldEvent = resultList.get(0);
-			if (raidEvent.getEventsWithSubscribers() != null && raidEvent.getEventsWithSubscribers().size() > 0) {
-				logger.warn("Events get overwritten! with {}", raidEvent.getEventsWithSubscribers());
-				oldEvent.setEventsWithSubscribers(raidEvent.getEventsWithSubscribers());
+			if (eventsWithSubscribers != null && eventsWithSubscribers.size() > 0) {
+				logger.warn("Events get overwritten! with {}", eventsWithSubscribers);
+				oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
 			}
 			if (raidEvent.getEnd() != null) {
 				oldEvent.setEnd(raidEvent.getEnd());
