@@ -82,10 +82,10 @@ public class RaidAtGymEvent {
 
 	private Long pokemonId;
 
-	@Transient
+	// @Transient
 	private Double latitude;
 
-	@Transient
+	// @Transient
 	private Double longitude;
 
 	public Double getLatitude() {

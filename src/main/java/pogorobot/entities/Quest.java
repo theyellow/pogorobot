@@ -39,91 +39,91 @@ public class Quest extends AbstractPersistable<Long> {
 					// }],
 	Long updated;
 
-	public final String getTemplate() {
+	public String getTemplate() {
 		return template;
 	}
 
-	public final void setTemplate(String template) {
+	public void setTemplate(String template) {
 		this.template = template;
 	}
 
-	public final String getPokestopId() {
+	public String getPokestopId() {
 		return pokestopId;
 	}
 
-	public final void setPokestopId(String pokestopId) {
+	public void setPokestopId(String pokestopId) {
 		this.pokestopId = pokestopId;
 	}
 
-	public final String getPokestopName() {
+	public String getPokestopName() {
 		return pokestopName;
 	}
 
-	public final void setPokestopName(String pokestopName) {
+	public void setPokestopName(String pokestopName) {
 		this.pokestopName = pokestopName;
 	}
 
-	public final String getPokestopUrl() {
+	public String getPokestopUrl() {
 		return pokestopUrl;
 	}
 
-	public final void setPokestopUrl(String pokestopUrl) {
+	public void setPokestopUrl(String pokestopUrl) {
 		this.pokestopUrl = pokestopUrl;
 	}
 
-	public final String getConditions() {
+	public String getConditions() {
 		return conditions;
 	}
 
-	public final void setConditions(String conditions) {
+	public void setConditions(String conditions) {
 		this.conditions = conditions;
 	}
 
-	public final Double getLatitude() {
+	public Double getLatitude() {
 		return latitude;
 	}
 
-	public final void setLatitude(Double latitude) {
+	public void setLatitude(Double latitude) {
 		this.latitude = latitude;
 	}
 
-	public final Double getLongitude() {
+	public Double getLongitude() {
 		return longitude;
 	}
 
-	public final void setLongitude(Double longitude) {
+	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
 	}
 
-	public final String getType() {
+	public String getType() {
 		return type;
 	}
 
-	public final void setType(String type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 
-	public final String getTarget() {
+	public String getTarget() {
 		return target;
 	}
 
-	public final void setTarget(String target) {
+	public void setTarget(String target) {
 		this.target = target;
 	}
 
-	public final String getRewards() {
+	public String getRewards() {
 		return rewards;
 	}
 
-	public final void setRewards(String rewards) {
+	public void setRewards(String rewards) {
 		this.rewards = rewards;
 	}
 
-	public final Long getUpdated() {
+	public Long getUpdated() {
 		return updated;
 	}
 
-	public final void setUpdated(Long updated) {
+	public void setUpdated(Long updated) {
 		this.updated = updated;
 	}
 	

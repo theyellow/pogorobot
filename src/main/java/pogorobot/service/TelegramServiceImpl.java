@@ -161,6 +161,7 @@ public class TelegramServiceImpl implements TelegramService {
 		if (withIv) {
 			// logger.debug("Begin calculating iv");
 			Double minIV = filter.getMinIV();
+			Double maxIV = filter.getMaxIV();
 			if (minIV != null) {
 				logger.debug("begin analyze IV for filter " + filter.getId());
 				Integer attack = Integer.valueOf(pokemon.getIndividualAttack());
@@ -168,7 +169,11 @@ public class TelegramServiceImpl implements TelegramService {
 				Integer stamina = Integer.valueOf(pokemon.getIndividualStamina());
 
 				Double calculatedIVs = telegramTextService.calculateIVs(attack, defense, stamina);
-				if (minIV <= calculatedIVs) {
+				boolean ivmatch = minIV <= calculatedIVs;
+				if (maxIV != null) {
+					ivmatch = ivmatch && maxIV >= calculatedIVs;
+				}
+				if (ivmatch) {
 					Double latitude = filter.getLatitude();
 					Double longitude = filter.getLongitude();
 					Double monLatitude = pokemon.getLatitude();

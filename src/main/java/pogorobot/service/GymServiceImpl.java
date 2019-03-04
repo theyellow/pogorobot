@@ -165,10 +165,13 @@ public class GymServiceImpl implements GymService {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
 		Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
-		Path<Object> pathToGymId = from.get("gymId");
 		Path<Object> pathToId = from.get("id");
+		Path<Object> pathToLatitude = from.get("latitude");
+		Path<Object> pathToLongitude = from.get("longitude");
 		query = query
-				.where(cb.or(cb.equal(pathToGymId, raidEvent.getGymId()), cb.equal(pathToId, raidEvent.getGymId())));
+				.where(cb.or(cb.equal(pathToId, raidEvent.getId()),
+						cb.and(cb.equal(pathToLatitude, raidEvent.getLatitude()),
+								cb.equal(pathToLongitude, raidEvent.getLongitude()))));
 		List<RaidAtGymEvent> resultList = entityManager.createQuery(query).getResultList();
 
 		SortedSet<EventWithSubscribers> eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
@@ -180,10 +183,15 @@ public class GymServiceImpl implements GymService {
 			entityManager.persist(raidEvent);
 		} else {
 			RaidAtGymEvent oldEvent = resultList.get(0);
-			if (eventsWithSubscribers != null && eventsWithSubscribers.size() > 0) {
-				logger.warn("Events get overwritten! with {}", eventsWithSubscribers);
+			if (oldEvent.getEventsWithSubscribers() == null) {
+				logger.info("Old event set is empty, use new one");
 				oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
 			}
+			// else
+			// if (eventsWithSubscribers != null && eventsWithSubscribers.size() > 0) {
+			// logger.warn("Events get overwritten! with {}", eventsWithSubscribers);
+			// oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
+			// }
 			if (raidEvent.getEnd() != null) {
 				oldEvent.setEnd(raidEvent.getEnd());
 			}
@@ -243,6 +251,8 @@ public class GymServiceImpl implements GymService {
 		raid.setEnd(raidAtGymEvent.getEnd());
 		raid.setPokemonId(raidAtGymEvent.getPokemonId());
 		raid.setRaidLevel(raidAtGymEvent.getLevel());
+
+		// Workaround for bad data: fill start/end if end/start exists
 		if (raid.getEnd() != null) {
 			if (raid.getStart() == null) {
 				raid.setStart(raid.getEnd() - RAID_DURATION * 60);

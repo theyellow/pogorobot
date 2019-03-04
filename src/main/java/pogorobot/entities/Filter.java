@@ -51,6 +51,8 @@ public class Filter extends AbstractPersistable<Long> {
 
 	private Double minIV;
 
+	private Double maxIV;
+
 	private Boolean onlyWithIV;
 
 	private Integer minWP;
@@ -292,6 +294,14 @@ public class Filter extends AbstractPersistable<Long> {
 
 	public void setIvGeofences(Set<Geofence> ivGeofences) {
 		this.ivGeofences = ivGeofences;
+	}
+
+	public Double getMaxIV() {
+		return maxIV;
+	}
+
+	public void setMaxIV(Double maxIV) {
+		this.maxIV = maxIV;
 	}
 
 }
