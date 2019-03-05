@@ -395,9 +395,11 @@ public class FilterServiceImpl implements FilterService {
 	public boolean isDistanceNearby(double latitude, double longitude, Double latitudeCenter, Double longitudeCenter,
 			Double radius) {
 		if (radius == null || latitudeCenter == null || longitudeCenter == null) {
+			logger.debug("Lat/Lon of center or radius null");
 			return false;
 		}
 		Double distance = calculateDistanceInKilometer(latitude, longitude, latitudeCenter, longitudeCenter);
+		logger.debug("Distance is " + distance + ", radius is " + radius);
 		return distance < radius;
 	}
 
@@ -405,6 +407,7 @@ public class FilterServiceImpl implements FilterService {
 	public Double calculateDistanceInKilometer(Double latitude, Double longitude, Double latitudeCenter,
 			Double longitudeCenter) {
 		if (latitudeCenter == null || longitudeCenter == null) {
+			logger.debug("Latitude or longitude of center are null");
 			return null;
 		}
 		int EARTH_RADIUS = 6371;

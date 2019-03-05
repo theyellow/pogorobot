@@ -178,7 +178,10 @@ public class TelegramServiceImpl implements TelegramService {
 					Double longitude = filter.getLongitude();
 					Double monLatitude = pokemon.getLatitude();
 					Double monLongitude = pokemon.getLongitude();
-					Double radius = filter.getRadiusPokemon();
+					Double radius = filter.getRadiusIV();
+					if (radius == null || filter.getRadiusIV() < filter.getRadiusPokemon()) {
+						radius = filter.getRadiusPokemon();
+					}
 					boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude,
 							radius);
 					if (nearby
@@ -192,8 +195,9 @@ public class TelegramServiceImpl implements TelegramService {
 						monsterFuture = startSendMonsterFuture(pokemon, chatId);
 						return monsterFuture;
 					} else {
-						logger.info("no iv filter criteria for filter " + filter.getId() + " matched this "
-								+ pokemon.getPokemonId());
+						logger.info("pokemon " + pokemon.getPokemonId()
+								+ " isn't nearby or in a chosen area for filter "
+								+ filter.getId());
 					}
 				} else {
 					logger.debug("iv didn't match for pokemon " + pokemon.getPokemonId() + " and filter "
