@@ -158,6 +158,7 @@ public class TelegramServiceImpl implements TelegramService {
 		filter = filterDAO.findById(id).orElse(null);
 		CompletableFuture<SendRaidAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
+		Double radiusPokemon = filter.getRadiusPokemon();
 		if (withIv) {
 			// logger.debug("Begin calculating iv");
 			Double minIV = filter.getMinIV();
@@ -178,12 +179,12 @@ public class TelegramServiceImpl implements TelegramService {
 					Double longitude = filter.getLongitude();
 					Double monLatitude = pokemon.getLatitude();
 					Double monLongitude = pokemon.getLongitude();
-					Double radius = filter.getRadiusIV();
-					if (radius == null || filter.getRadiusIV() < filter.getRadiusPokemon()) {
-						radius = filter.getRadiusPokemon();
+					Double radiusIV = filter.getRadiusIV() == null ? radiusPokemon : filter.getRadiusIV();
+					if (radiusIV != null && radiusPokemon != null && radiusIV < radiusPokemon) {
+						radiusIV = radiusPokemon;
 					}
 					boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude,
-							radius);
+							radiusIV);
 					if (nearby
 							|| filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
 									Type.IV)
@@ -220,7 +221,7 @@ public class TelegramServiceImpl implements TelegramService {
 			Double longitude = filter.getLongitude();
 			Double monLatitude = pokemon.getLatitude();
 			Double monLongitude = pokemon.getLongitude();
-			Double radius = filter.getRadiusPokemon();
+			Double radius = radiusPokemon;
 
 			logger.debug("begin looking for nearby or geofence");
 			boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radius);

@@ -89,15 +89,40 @@ public class GymServiceImpl implements GymService {
 	@Override
 	@Transactional
 	public Gym updateOrInsertGym(Gym gym) {
+		// query existing gyms by lat/lon-equality
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Gym> query = cb.createQuery(Gym.class);
-		query = query.where(cb.equal(query.from(Gym.class).get("gymId"), gym.getGymId()));
-		List<Gym> resultList = entityManager.createQuery(query).getResultList();
-		
+		CriteriaQuery<Gym> gymCriteria = queryGymExists(gym, cb);
+		List<Gym> resultList = entityManager.createQuery(gymCriteria).getResultList();
+
 		if (resultList.isEmpty()) {
+			logger.info("New gym/stop found");
 			entityManager.persist(gym);
 		} else {
-			Gym oldGym = resultList.get(0);
+			Gym oldGym = null;
+			if (resultList.size() > 1) {
+				logger.warn("Found " + resultList.size()
+						+ " gyms/stops at this location! Delete unneccessary gyms on database - i'll try to guess the best match for updating on database");
+				List<Gym> filteredStream = resultList.stream()
+						.filter(x -> !(x.getGymId() == null && x.getName() == null)).collect(Collectors.toList());
+				// Optional<Gym> optionalGym = filteredStream.findFirst();
+				if (filteredStream == null || filteredStream.isEmpty()) {
+					oldGym = resultList.get(0);
+					logger.warn(
+							"Found no gym/stop with name&id not null, take the first (with id " + oldGym.getId() + ")");
+				} else {
+					int bestGuessedCount = filteredStream.size();
+					if (bestGuessedCount > 1) {
+						logger.warn("Found " + bestGuessedCount + " potential matches: "
+								+ filteredStream.toArray(new String[bestGuessedCount]));
+					}
+					oldGym = filteredStream.get(0);
+					logger.warn("Take match with id " + oldGym.getId());
+				}
+			} else {
+				logger.debug("Found a gym/stop at that location, going to update it");
+				oldGym = resultList.get(0);
+			}
+
 			if (gym.getEnabled() != null) {
 				oldGym.setEnabled(gym.getEnabled());
 			}
@@ -154,6 +179,18 @@ public class GymServiceImpl implements GymService {
 		}
 		entityManager.flush();
 		return gym;
+	}
+
+	private CriteriaQuery<Gym> queryGymExists(Gym gym, CriteriaBuilder cb) {
+		CriteriaQuery<Gym> query = cb.createQuery(Gym.class);
+		Root<Gym> from = query.from(Gym.class);
+		// Predicate latEq = cb.equal(from.get("latitude"), gym.getLatitude());
+		// Predicate lonEq = cb.equal(from.get("longitude"), gym.getLongitude());
+		// Predicate equal = cb.equal(query.from(Gym.class).get("gymId"),
+		// gym.getGymId());
+		query = query.where(cb.and(cb.equal(from.get("longitude"), gym.getLongitude()),
+				cb.equal(from.get("latitude"), gym.getLatitude())));
+		return query;
 	}
 
 	@Override
