@@ -28,11 +28,12 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +92,7 @@ public class GymServiceImpl implements GymService {
 	public Gym updateOrInsertGym(Gym gym) {
 		// query existing gyms by lat/lon-equality
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Gym> gymCriteria = queryGymExists(gym, cb);
+		CriteriaQuery<Gym> gymCriteria = queryGymExisting(gym, cb);
 		List<Gym> resultList = entityManager.createQuery(gymCriteria).getResultList();
 
 		if (resultList.isEmpty()) {
@@ -113,7 +114,7 @@ public class GymServiceImpl implements GymService {
 					int bestGuessedCount = filteredStream.size();
 					if (bestGuessedCount > 1) {
 						logger.warn("Found " + bestGuessedCount + " potential matches: "
-								+ filteredStream.toArray(new String[bestGuessedCount]));
+								+ filteredStream);
 					}
 					oldGym = filteredStream.get(0);
 					logger.warn("Take match with id " + oldGym.getId());
@@ -123,13 +124,17 @@ public class GymServiceImpl implements GymService {
 				oldGym = resultList.get(0);
 			}
 
+			if (StringUtils.isNotEmpty(gym.getGymId())) {
+				oldGym.setGymId(gym.getGymId());
+			}
+
 			if (gym.getEnabled() != null) {
 				oldGym.setEnabled(gym.getEnabled());
 			}
-			if (gym.getDescription() != null) {
+			if (gym.getDescription() != null && !gym.getDescription().equals("''")) {
 				oldGym.setDescription(gym.getDescription());
 			}
-			if (gym.getLastModified() != null) {
+			if (gym.getLastModified() != null && gym.getLastModified() != 0L) {
 				oldGym.setLastModified(gym.getLastModified());
 			}
 			if (gym.getLatitude() != null) {
@@ -138,7 +143,7 @@ public class GymServiceImpl implements GymService {
 			if (gym.getLongitude() != null) {
 				oldGym.setLongitude(gym.getLongitude());
 			}
-			if (gym.getName() != null) {
+			if (StringUtils.isNotEmpty(gym.getName())) {
 				oldGym.setName(gym.getName());
 			}
 			if (gym.getOccupiedSince() != null) {
@@ -181,16 +186,24 @@ public class GymServiceImpl implements GymService {
 		return gym;
 	}
 
-	private CriteriaQuery<Gym> queryGymExists(Gym gym, CriteriaBuilder cb) {
+	private CriteriaQuery<Gym> queryGymExisting(Gym gym, CriteriaBuilder cb) {
 		CriteriaQuery<Gym> query = cb.createQuery(Gym.class);
 		Root<Gym> from = query.from(Gym.class);
-		// Predicate latEq = cb.equal(from.get("latitude"), gym.getLatitude());
-		// Predicate lonEq = cb.equal(from.get("longitude"), gym.getLongitude());
-		// Predicate equal = cb.equal(query.from(Gym.class).get("gymId"),
-		// gym.getGymId());
-		query = query.where(cb.and(cb.equal(from.get("longitude"), gym.getLongitude()),
-				cb.equal(from.get("latitude"), gym.getLatitude())));
-		return query;
+		Predicate latitudeEqual = cb.equal(from.get("latitude"), gym.getLatitude());
+		Predicate longitudeEqual = cb.equal(from.get("longitude"), gym.getLongitude());
+		Predicate gymIdEqualNotNull = cb.and(cb.isNotNull(from.get("gymId")), cb.notEqual(from.get("gymId"), ""),
+				cb.equal(from.get("gymId"), gym.getGymId()));
+		return query.where(cb.or(gymIdEqualNotNull, cb.and(latitudeEqual, longitudeEqual)));
+	}
+
+	private CriteriaQuery<RaidAtGymEvent> queryRaidEventExisting(RaidAtGymEvent raidAtGymEvent, CriteriaBuilder cb) {
+		CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
+		Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
+		Predicate latitudeEqual = cb.equal(from.get("latitude"), raidAtGymEvent.getLatitude());
+		Predicate longitudeEqual = cb.equal(from.get("longitude"), raidAtGymEvent.getLongitude());
+		Predicate gymIdEqualNotNull = cb.and(cb.isNotNull(from.get("gymId")), cb.notEqual(from.get("gymId"), ""),
+				cb.equal(from.get("gymId"), raidAtGymEvent.getGymId()));
+		return query.where(cb.or(gymIdEqualNotNull, cb.and(latitudeEqual, longitudeEqual)));
 	}
 
 	@Override
@@ -200,30 +213,41 @@ public class GymServiceImpl implements GymService {
 			return null;
 		}
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
-		Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
-		Path<Object> pathToId = from.get("id");
-		Path<Object> pathToLatitude = from.get("latitude");
-		Path<Object> pathToLongitude = from.get("longitude");
-		query = query
-				.where(cb.or(cb.equal(pathToId, raidEvent.getId()),
-						cb.and(cb.equal(pathToLatitude, raidEvent.getLatitude()),
-								cb.equal(pathToLongitude, raidEvent.getLongitude()))));
-		List<RaidAtGymEvent> resultList = entityManager.createQuery(query).getResultList();
 
-		SortedSet<EventWithSubscribers> eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
+		// query existing gyms by lat/lon-equality
+		// CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<RaidAtGymEvent> gymCriteria = queryRaidEventExisting(raidEvent, cb);
+		List<RaidAtGymEvent> resultList = entityManager.createQuery(gymCriteria).getResultList();
+
+		// CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
+		// Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
+		// Path<Object> pathToId = from.get("id");
+		// Path<Object> pathToLatitude = from.get("latitude");
+		// Path<Object> pathToLongitude = from.get("longitude");
+		// query = query
+		// .where(cb.or(cb.equal(pathToId, raidEvent.getId()),
+		// cb.and(cb.equal(pathToLatitude, raidEvent.getLatitude()),
+		// cb.equal(pathToLongitude, raidEvent.getLongitude()))));
+		// List<RaidAtGymEvent> resultList =
+		// entityManager.createQuery(query).getResultList();
+
+		SortedSet<EventWithSubscribers> eventsWithSubscribers = null;
 		if (resultList.isEmpty()) {
 			String id = raidEvent.getId() != null ? raidEvent.getId() : raidEvent.getGymId();
 			raidEvent.setId(id);
+			eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
 			logger.info("Persist new raid with id " + id + " and " + eventsWithSubscribers.size() + " event-slots.");
 			eventsWithSubscribers.stream().forEach(x -> entityManager.persist(x));
 			entityManager.persist(raidEvent);
 		} else {
 			RaidAtGymEvent oldEvent = resultList.get(0);
-			if (oldEvent.getEventsWithSubscribers() == null) {
-				logger.info("Old event set is empty, use new one");
+			if (!oldEvent.hasEventWithSubscribers()) {
+				logger.info("Old event set is empty, use new one (and initialize if not existing)");
+				eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
 				oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
 			}
+			// if (oldEvent.getEventsWithSubscribers() == null) {
+			// }
 			// else
 			// if (eventsWithSubscribers != null && eventsWithSubscribers.size() > 0) {
 			// logger.warn("Events get overwritten! with {}", eventsWithSubscribers);
@@ -314,7 +338,13 @@ public class GymServiceImpl implements GymService {
 		gym.setLatitude(raidAtGymEvent.getLatitude());
 		gym.setLongitude(raidAtGymEvent.getLongitude());
 		gym = updateOrInsertGym(gym);
-		entityManager.flush();
+
+		// Think i don't need this:
+		// entityManager.flush();
+
+		raidAtGymEvent.setLatitude(gym.getLatitude());
+		raidAtGymEvent.setLongitude(gym.getLongitude());
+		raidAtGymEvent.setGymId(gym.getGymId());
 
 		// hope this will work...
 		RaidAtGymEvent updatedOrInsertedRaidWithGymEvent = updateOrInsertRaidWithGymEvent(raidAtGymEvent);

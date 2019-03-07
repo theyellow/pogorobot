@@ -141,6 +141,11 @@ public class RaidAtGymEvent {
 		return eventsWithSubscribers;
 	}
 
+	@Transient
+	public boolean hasEventWithSubscribers() {
+		return eventsWithSubscribers != null && !eventsWithSubscribers.isEmpty();
+	}
+
 	public void setEventsWithSubscribers(SortedSet<EventWithSubscribers> eventsWithSubscribers) {
 		if (null == this.eventsWithSubscribers) {
 			this.eventsWithSubscribers = eventsWithSubscribers == null ? createEmptyEventSet() : eventsWithSubscribers;
