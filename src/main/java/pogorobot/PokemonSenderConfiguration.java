@@ -29,34 +29,34 @@ import pogorobot.telegram.config.StandardConfiguration;
 @PropertySources({ @PropertySource("${ext.properties.dir:classpath:}/botconfig.properties") })
 public class PokemonSenderConfiguration {
 
-	@Value("${standard.debug}")
+	@Value("${standard.debug:false}")
 	private Boolean debug;
 
-	@Value("${standard.usewebhook}")
+	@Value("${standard.usewebhook:false}")
 	private Boolean useWebHook;
 
-	@Value("${standard.port}")
+	@Value("${standard.port:-1}")
 	private int port;
 
 	@Value("${standard.raidtime}")
 	private int raidtime;
 
-	@Value("${standard.externalwebhookurl}")
+	@Value("${standard.externalwebhookurl:someurl}")
 	private String externalwebhookurl;
 
-	@Value("${standard.internalwebhookurl}")
+	@Value("${standard.internalwebhookurl:anotherurl}")
 	private String internalwebhookurl;
 
-	@Value("${standard.pathToCertificatePublicKey}")
+	@Value("${standard.pathToCertificatePublicKey:path}")
 	private String pathToCertificatePublicKey;
 
-	@Value("${standard.pathToCertificateStore}")
+	@Value("${standard.pathToCertificateStore:path}")
 	private String pathToCertificateStore;
 
-	@Value("${standard.certificateStorePassword}")
+	@Value("${standard.certificateStorePassword:path}")
 	private String certificateStorePassword;
 
-	@Value("${standard.pathToLogs}")
+	@Value("${standard.pathToLogs:./}")
 	private String pathToLogs;
 
 	@Value("${standard.jdbcurl}")
@@ -72,7 +72,7 @@ public class PokemonSenderConfiguration {
 	private String password;
 
 	@Value("${standard.gmapskey}")
-	private String gmapskey;
+	private String gmapskey = "";
 
 	@Value("${standard.botname}")
 	private String botname;
