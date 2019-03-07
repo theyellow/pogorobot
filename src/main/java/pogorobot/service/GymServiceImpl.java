@@ -19,19 +19,22 @@ package pogorobot.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,7 @@ import com.google.maps.errors.ApiException;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
 
+import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Gym;
 import pogorobot.entities.GymPokemon;
 import pogorobot.entities.Raid;
@@ -86,22 +90,51 @@ public class GymServiceImpl implements GymService {
 	@Override
 	@Transactional
 	public Gym updateOrInsertGym(Gym gym) {
+		// query existing gyms by lat/lon-equality
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<Gym> query = cb.createQuery(Gym.class);
-		query = query.where(cb.equal(query.from(Gym.class).get("gymId"), gym.getGymId()));
-		List<Gym> resultList = entityManager.createQuery(query).getResultList();
-		
+		CriteriaQuery<Gym> gymCriteria = queryGymExisting(gym, cb);
+		List<Gym> resultList = entityManager.createQuery(gymCriteria).getResultList();
+
 		if (resultList.isEmpty()) {
+			logger.info("New gym/stop found");
 			entityManager.persist(gym);
 		} else {
-			Gym oldGym = resultList.get(0);
+			Gym oldGym = null;
+			if (resultList.size() > 1) {
+				logger.warn("Found " + resultList.size()
+						+ " gyms/stops at this location! Delete unneccessary gyms on database - i'll try to guess the best match for updating on database");
+				List<Gym> filteredStream = resultList.stream()
+						.filter(x -> !(x.getGymId() == null && x.getName() == null)).collect(Collectors.toList());
+				// Optional<Gym> optionalGym = filteredStream.findFirst();
+				if (filteredStream == null || filteredStream.isEmpty()) {
+					oldGym = resultList.get(0);
+					logger.warn(
+							"Found no gym/stop with name&id not null, take the first (with id " + oldGym.getId() + ")");
+				} else {
+					int bestGuessedCount = filteredStream.size();
+					if (bestGuessedCount > 1) {
+						logger.warn("Found " + bestGuessedCount + " potential matches: "
+								+ filteredStream);
+					}
+					oldGym = filteredStream.get(0);
+					logger.warn("Take match with id " + oldGym.getId());
+				}
+			} else {
+				logger.debug("Found a gym/stop at that location, going to update it");
+				oldGym = resultList.get(0);
+			}
+
+			if (StringUtils.isNotEmpty(gym.getGymId())) {
+				oldGym.setGymId(gym.getGymId());
+			}
+
 			if (gym.getEnabled() != null) {
 				oldGym.setEnabled(gym.getEnabled());
 			}
-			if (gym.getDescription() != null) {
+			if (gym.getDescription() != null && !gym.getDescription().equals("''")) {
 				oldGym.setDescription(gym.getDescription());
 			}
-			if (gym.getLastModified() != null) {
+			if (gym.getLastModified() != null && gym.getLastModified() != 0L) {
 				oldGym.setLastModified(gym.getLastModified());
 			}
 			if (gym.getLatitude() != null) {
@@ -110,7 +143,7 @@ public class GymServiceImpl implements GymService {
 			if (gym.getLongitude() != null) {
 				oldGym.setLongitude(gym.getLongitude());
 			}
-			if (gym.getName() != null) {
+			if (StringUtils.isNotEmpty(gym.getName())) {
 				oldGym.setName(gym.getName());
 			}
 			if (gym.getOccupiedSince() != null) {
@@ -153,6 +186,26 @@ public class GymServiceImpl implements GymService {
 		return gym;
 	}
 
+	private CriteriaQuery<Gym> queryGymExisting(Gym gym, CriteriaBuilder cb) {
+		CriteriaQuery<Gym> query = cb.createQuery(Gym.class);
+		Root<Gym> from = query.from(Gym.class);
+		Predicate latitudeEqual = cb.equal(from.get("latitude"), gym.getLatitude());
+		Predicate longitudeEqual = cb.equal(from.get("longitude"), gym.getLongitude());
+		Predicate gymIdEqualNotNull = cb.and(cb.isNotNull(from.get("gymId")), cb.notEqual(from.get("gymId"), ""),
+				cb.equal(from.get("gymId"), gym.getGymId()));
+		return query.where(cb.or(gymIdEqualNotNull, cb.and(latitudeEqual, longitudeEqual)));
+	}
+
+	private CriteriaQuery<RaidAtGymEvent> queryRaidEventExisting(RaidAtGymEvent raidAtGymEvent, CriteriaBuilder cb) {
+		CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
+		Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
+		Predicate latitudeEqual = cb.equal(from.get("latitude"), raidAtGymEvent.getLatitude());
+		Predicate longitudeEqual = cb.equal(from.get("longitude"), raidAtGymEvent.getLongitude());
+		Predicate gymIdEqualNotNull = cb.and(cb.isNotNull(from.get("gymId")), cb.notEqual(from.get("gymId"), ""),
+				cb.equal(from.get("gymId"), raidAtGymEvent.getGymId()));
+		return query.where(cb.or(gymIdEqualNotNull, cb.and(latitudeEqual, longitudeEqual)));
+	}
+
 	@Override
 	@Transactional(TxType.REQUIRED)
 	public RaidAtGymEvent updateOrInsertRaidWithGymEvent(RaidAtGymEvent raidEvent) {
@@ -160,25 +213,46 @@ public class GymServiceImpl implements GymService {
 			return null;
 		}
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
-		Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
-		Path<Object> pathToGymId = from.get("gymId");
-		Path<Object> pathToId = from.get("id");
-		query = query
-				.where(cb.or(cb.equal(pathToGymId, raidEvent.getGymId()), cb.equal(pathToId, raidEvent.getGymId())));
-		List<RaidAtGymEvent> resultList = entityManager.createQuery(query).getResultList();
 
+		// query existing gyms by lat/lon-equality
+		// CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<RaidAtGymEvent> gymCriteria = queryRaidEventExisting(raidEvent, cb);
+		List<RaidAtGymEvent> resultList = entityManager.createQuery(gymCriteria).getResultList();
+
+		// CriteriaQuery<RaidAtGymEvent> query = cb.createQuery(RaidAtGymEvent.class);
+		// Root<RaidAtGymEvent> from = query.from(RaidAtGymEvent.class);
+		// Path<Object> pathToId = from.get("id");
+		// Path<Object> pathToLatitude = from.get("latitude");
+		// Path<Object> pathToLongitude = from.get("longitude");
+		// query = query
+		// .where(cb.or(cb.equal(pathToId, raidEvent.getId()),
+		// cb.and(cb.equal(pathToLatitude, raidEvent.getLatitude()),
+		// cb.equal(pathToLongitude, raidEvent.getLongitude()))));
+		// List<RaidAtGymEvent> resultList =
+		// entityManager.createQuery(query).getResultList();
+
+		SortedSet<EventWithSubscribers> eventsWithSubscribers = null;
 		if (resultList.isEmpty()) {
 			String id = raidEvent.getId() != null ? raidEvent.getId() : raidEvent.getGymId();
 			raidEvent.setId(id);
-			raidEvent.getEventsWithSubscribers().stream().forEach(x -> entityManager.persist(x));
+			eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
+			logger.info("Persist new raid with id " + id + " and " + eventsWithSubscribers.size() + " event-slots.");
+			eventsWithSubscribers.stream().forEach(x -> entityManager.persist(x));
 			entityManager.persist(raidEvent);
 		} else {
 			RaidAtGymEvent oldEvent = resultList.get(0);
-			if (raidEvent.getEventsWithSubscribers() != null && raidEvent.getEventsWithSubscribers().size() > 0) {
-				logger.warn("Events get overwritten! with {}", raidEvent.getEventsWithSubscribers());
-				oldEvent.setEventsWithSubscribers(raidEvent.getEventsWithSubscribers());
+			if (!oldEvent.hasEventWithSubscribers()) {
+				logger.info("Old event set is empty, use new one (and initialize if not existing)");
+				eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
+				oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
 			}
+			// if (oldEvent.getEventsWithSubscribers() == null) {
+			// }
+			// else
+			// if (eventsWithSubscribers != null && eventsWithSubscribers.size() > 0) {
+			// logger.warn("Events get overwritten! with {}", eventsWithSubscribers);
+			// oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
+			// }
 			if (raidEvent.getEnd() != null) {
 				oldEvent.setEnd(raidEvent.getEnd());
 			}
@@ -238,6 +312,8 @@ public class GymServiceImpl implements GymService {
 		raid.setEnd(raidAtGymEvent.getEnd());
 		raid.setPokemonId(raidAtGymEvent.getPokemonId());
 		raid.setRaidLevel(raidAtGymEvent.getLevel());
+
+		// Workaround for bad data: fill start/end if end/start exists
 		if (raid.getEnd() != null) {
 			if (raid.getStart() == null) {
 				raid.setStart(raid.getEnd() - RAID_DURATION * 60);
@@ -262,7 +338,13 @@ public class GymServiceImpl implements GymService {
 		gym.setLatitude(raidAtGymEvent.getLatitude());
 		gym.setLongitude(raidAtGymEvent.getLongitude());
 		gym = updateOrInsertGym(gym);
-		entityManager.flush();
+
+		// Think i don't need this:
+		// entityManager.flush();
+
+		raidAtGymEvent.setLatitude(gym.getLatitude());
+		raidAtGymEvent.setLongitude(gym.getLongitude());
+		raidAtGymEvent.setGymId(gym.getGymId());
 
 		// hope this will work...
 		RaidAtGymEvent updatedOrInsertedRaidWithGymEvent = updateOrInsertRaidWithGymEvent(raidAtGymEvent);
@@ -306,7 +388,7 @@ public class GymServiceImpl implements GymService {
 			allGymMonIds.removeAll(monsInGym);
 			numberOfSavedPokemon = numberOfSavedPokemon + monsInGym.size();
 		}
-		Date start = new Date();
+		StopWatch stopwatch = StopWatch.createStarted();
 		logger.info("Cleaning up old GymPokemon - to delete: " + allGymMonIds.size() + ", to save: "
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
@@ -314,9 +396,13 @@ public class GymServiceImpl implements GymService {
 			gymPokemonDao.deleteById(mon);
 			numberOfDeleted++;
 		}
-		long time = (new Date().getTime() - start.getTime()) / 1000;
+		stopwatch.stop();
+		long seconds = stopwatch.getTime(TimeUnit.SECONDS);
+		long ending = stopwatch.getTime(TimeUnit.MILLISECONDS) % 100;
+
 		logger.info(
-				"Cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
+				"Cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + seconds + "," + ending
+						+ " secs");
 	}
 
 	@Override

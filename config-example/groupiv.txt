@@ -1,2 +1,2 @@
-[Testgebiet]
-20
+[Raid Testgebiet]
+97.0

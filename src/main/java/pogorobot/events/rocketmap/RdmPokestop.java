@@ -19,7 +19,7 @@ package pogorobot.events.rocketmap;
 import pogorobot.entities.Gym;
 import pogorobot.events.EventMessage;
 
-public class RocketmapGym implements EventMessage<Gym> {
+public class RdmPokestop implements EventMessage<Gym> {
 
 	private String gym_id;
 	private Double latitude;
@@ -163,7 +163,7 @@ public class RocketmapGym implements EventMessage<Gym> {
 		gym.setDescription(description);
 		gym.setEnabled(enabled);
 		gym.setGymId(gym_id);
-		gym.setPokestop(gym_id == null || gym_id.isEmpty());
+		gym.setPokestop(true);
 		gym.setLastModified(last_modified);
 		gym.setLatitude(latitude);
 		gym.setLongitude(longitude);

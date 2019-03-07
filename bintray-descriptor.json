@@ -20,5 +20,7 @@
         [
         {"includePattern": "target/target-repo/(.*)", "uploadPattern": "./$1"}
         ],
+    "matrixParams": {
+        "override": 1 },
     "publish": true
 }

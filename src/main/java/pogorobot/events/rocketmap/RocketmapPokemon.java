@@ -239,13 +239,22 @@ public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
 		PokemonWithSpawnpoint pokemon = new PokemonWithSpawnpoint();
 		pokemon.setSpawnpointId(spawnpoint_id);
 		pokemon.setPokemonId(pokemon_id);
+
+		// Hack: misuse of field playerLevel with pokemon level
+		// pokemon.setPlayerLevel(player_level);
+		pokemon.setPlayerLevel(pokemon_level != null ? Long.valueOf(pokemon_level) : -1);
 		pokemon.setLatitude(latitude);
 		pokemon.setLongitude(longitude);
-		pokemon.setSecondsUntilDespawn(seconds_until_despawn);
-		pokemon.setSpawnEnd(spawn_end);
-		pokemon.setSpawnStart(spawn_start);
-		pokemon.setTimeUntilHidden_ms(time_until_hidden_ms);
-		pokemon.setDisappearTime(disappear_time);
+
+		// Help a little bit to fill more fields...
+		pokemon.setSecondsUntilDespawn(seconds_until_despawn != null ? seconds_until_despawn
+				: disappear_time != null ? (disappear_time - System.currentTimeMillis() / 1000) : 0);
+		pokemon.setSpawnStart(spawn_start != null ? spawn_start : System.currentTimeMillis() / 1000);
+		pokemon.setSpawnEnd(spawn_end != null ? spawn_end : pokemon.getSpawnStart() + pokemon.getSecondsUntilDespawn());
+		pokemon.setTimeUntilHidden_ms(
+				time_until_hidden_ms != null ? time_until_hidden_ms : pokemon.getSecondsUntilDespawn() * 1000);
+		pokemon.setDisappearTime(disappear_time != null ? disappear_time
+				: System.currentTimeMillis() / 1000 + pokemon.getSecondsUntilDespawn());
 		pokemon.setVerified(verified);
 		pokemon.setCpMultiplier(cp_multiplier);
 		pokemon.setEncounterId(encounter_id);
@@ -262,7 +271,6 @@ public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
 		pokemon.setLastModified(last_modified_time);
 		pokemon.setMove1(move_1);
 		pokemon.setMove2(move_2);
-		pokemon.setPlayerLevel(player_level);
 		pokemon.setWeatherBoosted(weather_boosted_condition);
 		return pokemon;
 	}

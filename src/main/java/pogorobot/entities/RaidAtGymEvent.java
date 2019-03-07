@@ -25,7 +25,6 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,9 +36,11 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
+@Table(name = "\"RaidAtGymEvent\"")
 public class RaidAtGymEvent {
 
 	// private String gymId;
@@ -81,10 +82,10 @@ public class RaidAtGymEvent {
 
 	private Long pokemonId;
 
-	@Transient
+	// @Transient
 	private Double latitude;
 
-	@Transient
+	// @Transient
 	private Double longitude;
 
 	public Double getLatitude() {
@@ -138,6 +139,11 @@ public class RaidAtGymEvent {
 			eventsWithSubscribers = createEmptyEventSet();
 		}
 		return eventsWithSubscribers;
+	}
+
+	@Transient
+	public boolean hasEventWithSubscribers() {
+		return eventsWithSubscribers != null && !eventsWithSubscribers.isEmpty();
 	}
 
 	public void setEventsWithSubscribers(SortedSet<EventWithSubscribers> eventsWithSubscribers) {
@@ -215,7 +221,7 @@ public class RaidAtGymEvent {
 		Integer slot = 10;
 
 		Long start = getStart();
-		long nowInSeconds = new Date().getTime() / 1000;
+		long nowInSeconds = System.currentTimeMillis() / 1000;
 		if (start == null || start < nowInSeconds) {
 			setStart(nowInSeconds);
 		}

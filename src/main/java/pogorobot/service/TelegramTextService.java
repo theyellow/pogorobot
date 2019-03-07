@@ -45,17 +45,15 @@ public interface TelegramTextService {
 	String createEggMessageText(Gym fullGym, Long end, String level,
 			Double latitude, Double longitude);
 
-	String getStickerMonUrl(int intValue) throws DecoderException;
+	String getStickerUrl(int intValue) throws DecoderException;
 
-	String createRaidMessageText(String pokemonName, Long end, String level,
-			String move1, String move2, Double latitude, Double longitude, String url, String address, String gymName);
+	// String createRaidMessageText(String pokemonName, Long end, String level,
+	// String move1, String move2, Double latitude, Double longitude, String url,
+	// String address, String gymName);
 
-	String createPokemonMessageNonIVText(String formattedTime, String pokemonName, String pokemonId, String form,
-			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude);
+	String createPokemonMessageNonIVText(PokemonWithSpawnpoint pokemon);
 
-	String createPokemonMessageWithIVText(String formattedTime, String pokemonName, String pokemonId, String form,
-			String costume, Long gender, Integer weatherBoosted, Double latitude, Double longitude,
-			PokemonWithSpawnpoint pokemon);
+	String createPokemonMessageWithIVText(PokemonWithSpawnpoint pokemon);
 
 	Double calculateWP(Long pokemonId, double cpMultiplier, int attack, int defense, int stamina);
 
@@ -80,5 +78,9 @@ public interface TelegramTextService {
 	String getParticipantsText(SortedSet<EventWithSubscribers> eventWithSubscribers);
 
 	String getRaidMessagePokemonText(Gym fullGym);
+
+	String formatLocaleTimeFromMillisSeconds(long l);
+
+	String formatLocaleDateFromMillis(long l);
 
 }

@@ -29,34 +29,34 @@ import pogorobot.telegram.config.StandardConfiguration;
 @PropertySources({ @PropertySource("${ext.properties.dir:classpath:}/botconfig.properties") })
 public class PokemonSenderConfiguration {
 
-	@Value("${standard.debug}")
+	@Value("${standard.debug:false}")
 	private Boolean debug;
 
-	@Value("${standard.usewebhook}")
+	@Value("${standard.usewebhook:false}")
 	private Boolean useWebHook;
 
-	@Value("${standard.port}")
+	@Value("${standard.port:-1}")
 	private int port;
 
 	@Value("${standard.raidtime}")
 	private int raidtime;
 
-	@Value("${standard.externalwebhookurl}")
+	@Value("${standard.externalwebhookurl:someurl}")
 	private String externalwebhookurl;
 
-	@Value("${standard.internalwebhookurl}")
+	@Value("${standard.internalwebhookurl:anotherurl}")
 	private String internalwebhookurl;
 
-	@Value("${standard.pathToCertificatePublicKey}")
+	@Value("${standard.pathToCertificatePublicKey:path}")
 	private String pathToCertificatePublicKey;
 
-	@Value("${standard.pathToCertificateStore}")
+	@Value("${standard.pathToCertificateStore:path}")
 	private String pathToCertificateStore;
 
-	@Value("${standard.certificateStorePassword}")
+	@Value("${standard.certificateStorePassword:path}")
 	private String certificateStorePassword;
 
-	@Value("${standard.pathToLogs}")
+	@Value("${standard.pathToLogs:./}")
 	private String pathToLogs;
 
 	@Value("${standard.jdbcurl}")
@@ -72,7 +72,7 @@ public class PokemonSenderConfiguration {
 	private String password;
 
 	@Value("${standard.gmapskey}")
-	private String gmapskey;
+	private String gmapskey = "";
 
 	@Value("${standard.botname}")
 	private String botname;
@@ -86,11 +86,34 @@ public class PokemonSenderConfiguration {
 	@Value("${standard.generateDdl}")
 	private boolean generateDdl;
 
+	@Value("${standard.alternativeStickers}")
+	private boolean alternativeStickers;
+
+	@Value("${standard.showStickers}")
+	private boolean showStickers;
+
+	@Value("${standard.showLocation}")
+	private boolean showLocation;
+
+	@Value("${standard.enableWebPagePreview}")
+	private boolean enableWebPagePreview;
+
+	@Value("${standard.showRaidStickers}")
+	private boolean showRaidStickers;
+
+	@Value("${standard.showRaidLocation}")
+	private boolean showRaidLocation;
+
+	@Value("${standard.enableRaidWebPagePreview}")
+	private boolean enableRaidWebPagePreview;
+
 	@Bean
 	public StandardConfiguration getStandardConfiguration() {
 		StandardConfiguration vars = new StandardConfiguration(debug, useWebHook, port, externalwebhookurl, internalwebhookurl,
 				pathToCertificatePublicKey, pathToCertificateStore, certificateStorePassword, pathToLogs, jdbcUrl,
-				controllerDB, user, password, generateDdl, gmapskey, botname, bottoken, raidtime, hibernateDialect);
+				controllerDB, user, password, generateDdl, gmapskey, botname, bottoken, raidtime, hibernateDialect,
+				alternativeStickers, showStickers, showLocation, enableWebPagePreview, showRaidStickers,
+				showRaidLocation, enableRaidWebPagePreview);
 		return vars;
 	}
 }

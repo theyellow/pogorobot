@@ -39,6 +39,8 @@ public interface TelegramService {
 
 	public void triggerRaidMessages(RaidAtGymEvent gym);
 
+	String getLocaleTime(long timeInMillis);
+
 	// public JSONObject getJsonPokemons();
 	//
 	// public String getPokemonName(String pokemon);

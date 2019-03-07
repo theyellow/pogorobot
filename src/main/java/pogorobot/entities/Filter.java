@@ -25,10 +25,12 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
+@Table(name = "\"Filter\"")
 public class Filter extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = -1842789670931226752L;
@@ -48,6 +50,8 @@ public class Filter extends AbstractPersistable<Long> {
 	private List<UserGroup> receiveFromGroups;
 
 	private Double minIV;
+
+	private Double maxIV;
 
 	private Boolean onlyWithIV;
 
@@ -290,6 +294,14 @@ public class Filter extends AbstractPersistable<Long> {
 
 	public void setIvGeofences(Set<Geofence> ivGeofences) {
 		this.ivGeofences = ivGeofences;
+	}
+
+	public Double getMaxIV() {
+		return maxIV;
+	}
+
+	public void setMaxIV(Double maxIV) {
+		this.maxIV = maxIV;
 	}
 
 }

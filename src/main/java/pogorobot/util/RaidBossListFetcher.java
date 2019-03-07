@@ -33,8 +33,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -140,14 +138,29 @@ public class RaidBossListFetcher {
 			}
 			waitForFetch = false;
 		};
-		r.run();
+		Thread xmCreator = new Thread(r);
+
+		long startTimeMillis = System.currentTimeMillis();
+		try {
+			xmCreator.start();
+			// wait 60 s for timeout
+			xmCreator.join(1000 * 60L);
+		} catch (InterruptedException e) {
+			System.out.println("XmlCreator-thread got interrupted");
+		}
+		long currentTimeMillis = System.currentTimeMillis();
+		long durationInMillis = currentTimeMillis - startTimeMillis;
+		System.out.println(
+				"XmlCreator-thread finished after " + durationInMillis / 1000 + "." + (durationInMillis % 1000) / 10
+						+ " s");
 	}
 
-	private WebDriver openUrl(String url) {
-		HtmlUnitDriver driver = new HtmlUnitDriver(BrowserVersion.BEST_SUPPORTED, true);
-		driver.navigate().to(url);
-		return driver;
-	}
+	// private WebDriver openUrl(String url) {
+	// HtmlUnitDriver driver = new HtmlUnitDriver(BrowserVersion.BEST_SUPPORTED,
+	// true);
+	// driver.navigate().to(url);
+	// return driver;
+	// }
 
 	public List<String> parseXmlFile() {
 		List<String> result = new ArrayList<>();

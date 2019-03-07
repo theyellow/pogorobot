@@ -24,14 +24,16 @@ import pogorobot.events.EventMessage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = RocketmapEventGym.class, name = "gym"),
-    @JsonSubTypes.Type(value = RocketmapEventGymInfo.class, name = "gym_details"),
-    @JsonSubTypes.Type(value = RocketmapEventEgg.class, name = "egg"),
-    @JsonSubTypes.Type(value = RocketmapEventRaid.class, name = "raid"),
-    @JsonSubTypes.Type(value = RocketmapEventPokemon.class, name = "pokemon") }
-)
+@JsonSubTypes({ @JsonSubTypes.Type(value = RocketmapEventGym.class, name = "gym"),
+		@JsonSubTypes.Type(value = RocketmapEventGymInfo.class, name = "gym_details"),
+		@JsonSubTypes.Type(value = RocketmapEventEgg.class, name = "egg"),
+		@JsonSubTypes.Type(value = RocketmapEventRaid.class, name = "raid"),
+		@JsonSubTypes.Type(value = RocketmapEventPokemon.class, name = "pokemon"),
+		@JsonSubTypes.Type(value = RdmEventQuest.class, name = "quest"),
+		@JsonSubTypes.Type(value = RdmEventPokestop.class, name = "pokestop") })
 public abstract class RocketmapEvent<T extends EventMessage<?>> {
+
+	// TODO: Rename to IncomingEvent !
 
 	private String type;
 
@@ -44,7 +46,7 @@ public abstract class RocketmapEvent<T extends EventMessage<?>> {
 	}
 
 	public abstract T getMessage();
-	
+
 	public abstract void setMessage(T message);
-	
+
 }
