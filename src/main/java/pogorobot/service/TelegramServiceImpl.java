@@ -89,6 +89,9 @@ public class TelegramServiceImpl implements TelegramService {
 	private GymService gymService;
 
 	@Autowired
+	private EventWithSubscribersService eventWithSubscribersService;
+
+	@Autowired
 	private FilterRepository filterDAO;
 
 	@Autowired
@@ -273,14 +276,22 @@ public class TelegramServiceImpl implements TelegramService {
 		String gymId = event.getGymId();
 		Gym gym = gymService.getGym(gymId);
 		Long end = event.getEnd();
-		String quickMove = gym.getRaid().getMove1();
-		quickMove = quickMove != null ? quickMove : "Unbekannt";
-		String chargeMove = gym.getRaid().getMove2();
-		chargeMove = chargeMove != null ? chargeMove : "Unbekannt";
+
+		// TODO: Shouldn't this be at another place?
+		// String quickMove = gym.getRaid().getMove1();
+		// quickMove = quickMove != null ? quickMove : "Unbekannt";
+		// String chargeMove = gym.getRaid().getMove2();
+		// chargeMove = chargeMove != null ? chargeMove : "Unbekannt";
+
 		if (gymId != null && end != null) {
 			Gym fullGym = gymService.getGym(gymId);
 			Long level = event.getLevel();
-			SortedSet<EventWithSubscribers> eventsWithSubscribers = event.getEventsWithSubscribers();
+			SortedSet<EventWithSubscribers> eventsWithSubscribers;
+			if (event.hasEventWithSubscribers()) {
+				eventsWithSubscribers = event.getEventsWithSubscribers();
+			} else {
+				eventsWithSubscribers = eventWithSubscribersService.getSubscribersForRaid(gymId);
+			}
 
 			Long pokemonIdLong = event.getPokemonId();
 			int pokemonId = pokemonIdLong == null ? -1 : pokemonIdLong.intValue();
@@ -288,7 +299,7 @@ public class TelegramServiceImpl implements TelegramService {
 			boolean alreadyPosted = false;
 			if (processedRaids != null) {
 				boolean sendOnlyUpdate = false;
-
+				logger.info("Got event at gym that has " + processedRaids.size() + " entries");
 				for (ProcessedRaids processedRaid : processedRaids) {
 
 					Set<GroupMessages> groupsRaidIsPosted = null;
@@ -297,6 +308,7 @@ public class TelegramServiceImpl implements TelegramService {
 					// if (!processedGymIds.isEmpty() && processedGymIds.size() == 1) {
 					// ProcessedRaids processedRaid = processedGymIds.get(0);
 					groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
+					logger.info("There are " + groupsRaidIsPosted.size() + " chats where this raid is posted");
 					for (GroupMessages groupMessages : groupsRaidIsPosted) {
 						sendOnlyUpdate = true;
 						Long groupChatId = groupMessages.getGroupChatId();
@@ -306,9 +318,13 @@ public class TelegramServiceImpl implements TelegramService {
 						boolean raidMessage = !(pokemonId == -1);
 						CompletableFuture<SendRaidAnswer> future = null;
 						if (raidMessage) {
+							logger.info("trigger raid-editmessage future from triggerRaidMessages for processed raid "
+									+ processedRaid.getId());
 							future = startNewRaidMessageFuture(gym, groupChatId.toString(), eventsWithSubscribers,
 									messageId);
 						} else {
+							logger.info("trigger egg-editmessage future from triggerRaidMessages for processed raid "
+									+ processedRaid.getId());
 							future = startNewEggMessageFuture(gym, gym.getRaid().getRaidLevel(), groupChatId.toString(),
 									eventsWithSubscribers,
 									messageId);
@@ -331,6 +347,8 @@ public class TelegramServiceImpl implements TelegramService {
 				if (sendOnlyUpdate) {
 					return;
 				}
+			} else {
+				logger.info("This event wasn't processed before");
 			}
 			ProcessedRaids processedRaid = new ProcessedRaids(gymId, end);
 			logger.info("New level-" + event.getLevel() + " raid at gym: " + gymId + " , mon: " + event.getPokemonId()
@@ -413,6 +431,7 @@ public class TelegramServiceImpl implements TelegramService {
 				// magic number: pokemonId -1 means "egg"
 				boolean raidMessage = !(pokemonId == -1);
 				if (raidMessage) {
+					logger.info("sendOrUpdate raid, filter " + filter.getId() + " match");
 					future = startNewRaidMessageFuture(gym, chatId, eventWithSubscribers, null);
 				} else {
 					future = startNewEggMessageFuture(gym, level, chatId, eventWithSubscribers, null);
