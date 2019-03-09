@@ -1,26 +1,26 @@
 {
 	"monster": {
-		"text": "*#{{id}} {{name}} {{gender}}*, L {{level}}, {{cp}} WP, {{iv}}%, {{atk}} / {{def}} / {{sta}}. Ende: {{time}}, Übrige Zeit: {{tthm}}m {{tths}}s {{weatherEmoji}} {{form}} {{costume}}",
+		"text": "*#{{id}} {{name}} {{gender}}*, L {{level}}, {{cp}} WP, {{iv}}%, {{atk}} / {{def}} / {{sta}}. Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s {{weatherEmoji}} {{form}} {{costume}}",
 		"color": "{{ivcolor}}",
 		"icon_url": "{{{imgurl}}}",
-		"description": "\n  [Google Maps]({{{mapurl}}})   [Apple Maps]({{{applemap}}})"
+		"description": "\n  [Google Maps]({{{mapurl}}})  {{globeEmoji}}   [Apple Maps]({{{applemap}}})"
 	},
 	"monsterNoIv": {
 		"color": "{{color}}",
-		"text": "*#{{id}} {{name}} {{gender}}* Ende: {{time}}, Übrige Zeit: {{tthm}}m {{tths}}s ",
+		"text": "*#{{id}} {{name}} {{gender}}* Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s ",
 		"icon_url": "{{{imgurl}}}",
-		"description": "\n  [Google Maps]({{{mapurl}}})   [Apple Maps]({{{applemap}}})"
+		"description": "\n  [Google Maps]({{{googlemap}}}) {{globeEmoji}} [Apple Maps]({{{applemap}}})"
 	},
 	"raid": {
-		"text": "*Raid Level {{level}} - {{name}}* \n[{{gymname}}]({{{imgurl}}}){{flagemoji}} \n{{begin}} - {{end}}",
-		"description": "\n[Google Maps]({{{mapurl}}})           [Apple Maps]({{{applemap}}})",
+		"text": "*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}} \n[{{gymname}}]({{{imgurl}}}){{flagemoji}}",
+		"description": "\n{{globeEmoji}} [Google Maps]({{{mapurl}}})     {{pushpinEmoji}} [Apple Maps]({{{applemap}}})",
 		"color": "{{color}}",
 		"url": "{{{mapurl}}}",
 		"icon_url": "{{{imgurl}}}"
 	},
 	"egg": {
-		"text": "*Raid Level {{level}} - {{name}}* \n[{{gymname}}]({{{imgurl}}}) \n{{begin}} - {{end}}",
-		"description": "\n[Google Maps]({{{mapurl}}})       [Apple Maps]({{{applemap}}})",
+		"text": "*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}}\n[{{gymname}}]({{{imgurl}}})",
+		"description": "\n{{globeEmoji}} [Google Maps]({{{mapurl}}})     {{pushpinEmoji}} [Apple Maps]({{{applemap}}})",
 		"color": "{{color}}",
 		"url": "{{{mapurl}}}",
 		"icon_url": "{{{imgurl}}}"

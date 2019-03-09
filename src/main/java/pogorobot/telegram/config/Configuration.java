@@ -94,7 +94,7 @@ public class Configuration {
 		this.enableWebPagePreview = enableWebPagePreview;
 		this.showRaidLocation = showLocation;
 		this.showRaidStickers = showStickers;
-		this.enableRaidWebPagePreview = enableWebPagePreview;
+		this.enableRaidWebPagePreview = enableRaidWebPagePreview;
 	}
 
 	public Boolean getDebug() {

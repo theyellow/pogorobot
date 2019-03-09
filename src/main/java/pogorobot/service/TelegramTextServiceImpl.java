@@ -991,8 +991,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				}
 				if (subscribersSize > 0) {
 					String optionalPluralN = subscribersSize == 1 ? "" : "n";
-					String eventHeadline = singleTimeSlot.getTime() + " Uhr: " + subscribersSize + " Zusage"
-							+ optionalPluralN + MESSAGE_NEWLINE;
+					String eventHeadline = "_" + singleTimeSlot.getTime() + " Uhr: " + subscribersSize + " Zusage"
+							+ optionalPluralN + "_" + MESSAGE_NEWLINE;
 					participantsText += eventHeadline;
 
 					List<String> userLines = new ArrayList<>();
