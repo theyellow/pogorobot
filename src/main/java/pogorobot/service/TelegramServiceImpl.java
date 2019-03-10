@@ -62,6 +62,8 @@ import pogorobot.telegram.util.Type;
 @Service("telegramService")
 public class TelegramServiceImpl implements TelegramService {
 
+	private static final String GOT_INTERRUPTED = "Got interrupted";
+
 	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
 
 	@Autowired
@@ -268,25 +270,13 @@ public class TelegramServiceImpl implements TelegramService {
 				} else {
 					logger.error(e.getMessage(), e);
 				}
-				if (checkIfInterrupted(e)) {
-					Thread.currentThread().interrupt();
-				}
 			} catch (InterruptedException e) {
-				logger.warn("Got interrupted");
+				logger.warn(GOT_INTERRUPTED);
 				Thread.currentThread().interrupt();
 			}
 			return null;
 		});
 		return future;
-	}
-
-	private boolean checkIfInterrupted(Exception e) {
-		if (e instanceof InterruptedException) {
-			logger.warn("Got interrupted");
-			return true;
-		} else {
-			return false;
-		}
 	}
 
 	@Override
@@ -477,7 +467,7 @@ public class TelegramServiceImpl implements TelegramService {
 				logger.error(e.getMessage(), e);
 				return null;
 			} catch (InterruptedException e) {
-				logger.warn("Got interrupted");
+				logger.warn(GOT_INTERRUPTED);
 				Thread.currentThread().interrupt();
 				return null;
 			}
@@ -531,7 +521,7 @@ public class TelegramServiceImpl implements TelegramService {
 			} catch (ExecutionException e) {
 				logger.error("Error while triggering egg or raid message. ", e.getCause());
 			} catch (InterruptedException e) {
-				logger.warn("Got interrupted");
+				logger.warn(GOT_INTERRUPTED);
 				Thread.currentThread().interrupt();
 			}
 		} else {
@@ -555,13 +545,9 @@ public class TelegramServiceImpl implements TelegramService {
 					}
 				}
 				logger.error(e.getMessage(), e);
-				if (checkIfInterrupted(e)) {
-					Thread.currentThread().interrupt();
-				}
-
 				return null;
 			} catch (InterruptedException e) {
-				logger.warn("Got interrupted");
+				logger.warn(GOT_INTERRUPTED);
 				Thread.currentThread().interrupt();
 				return null;
 			}
