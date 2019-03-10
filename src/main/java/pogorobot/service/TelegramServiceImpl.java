@@ -268,17 +268,21 @@ public class TelegramServiceImpl implements TelegramService {
 				} else {
 					logger.error(e.getMessage(), e);
 				}
-				checkIfInterrupted(e);
+				if (checkIfInterrupted(e)) {
+					Thread.currentThread().interrupt();
+				}
 			}
 			return null;
 		});
 		return future;
 	}
 
-	private void checkIfInterrupted(Exception e) {
+	private boolean checkIfInterrupted(Exception e) {
 		if (e instanceof InterruptedException) {
 			logger.warn("Got interrupted");
-			Thread.currentThread().interrupt();
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -468,7 +472,9 @@ public class TelegramServiceImpl implements TelegramService {
 					}
 				}
 				logger.error(e.getMessage(), e);
-				checkIfInterrupted(e);
+				if (checkIfInterrupted(e)) {
+					Thread.currentThread().interrupt();
+				}
 				return null;
 			}
 		});
@@ -520,7 +526,9 @@ public class TelegramServiceImpl implements TelegramService {
 				return answer;
 			} catch (InterruptedException | ExecutionException e) {
 				logger.error("Error while triggering egg or raid message. ", e.getCause());
-				checkIfInterrupted(e);
+				if (checkIfInterrupted(e)) {
+					Thread.currentThread().interrupt();
+				}
 			}
 		} else {
 			logger.debug("nothing to do, no future. returning null");
@@ -543,7 +551,10 @@ public class TelegramServiceImpl implements TelegramService {
 					}
 				}
 				logger.error(e.getMessage(), e);
-				checkIfInterrupted(e);
+				if (checkIfInterrupted(e)) {
+					Thread.currentThread().interrupt();
+				}
+
 				return null;
 			}
 		});
