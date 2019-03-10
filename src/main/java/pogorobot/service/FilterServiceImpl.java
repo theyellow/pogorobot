@@ -344,6 +344,7 @@ public class FilterServiceImpl implements FilterService {
 
 	@Override
 	@Deprecated
+	@Transactional
 	public boolean isPointInOneGeofenceOfTelegramId(double latitude, double longitude, Long telegramId) {
 		Set<Geofence> geofences = getGeofencesForTelegramId(telegramId);
 		if (geofences == null || geofences.size() == 0) {
@@ -490,6 +491,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
+	@Transactional
 	public GeoArray getGeoArrayForGeofence(String geofenceName) {
 		Geofence poly = getGeofenceByName(geofenceName);
 		List<Double> polygon = poly.getPolygon();
