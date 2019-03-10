@@ -47,23 +47,27 @@ public class RaidImageScanner {
 		}
 
 		try {
-			try (ReadableByteChannel rbc = Channels.newChannel(realUrl.openStream())) {
-				// FileOutputStream fos;
-				String workingDir = System.getProperty("user.dir") + "/";
-				try (FileOutputStream fos = new FileOutputStream(workingDir + filename)) {
-					fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			if (realUrl == null) {
+				System.out.println("WARN: Couldn't open " + url);
+			} else {
+				try (ReadableByteChannel rbc = Channels.newChannel(realUrl.openStream())) {
+					// FileOutputStream fos;
+					String workingDir = System.getProperty("user.dir") + "/";
+					try (FileOutputStream fos = new FileOutputStream(workingDir + filename)) {
+						fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+					}
+					File src = new File(workingDir + filename);
+					// TODO: refactor for config
+					String destPathname = workingDir + "/screenshots/";
+					File destFile = new File(destPathname);
+					if (!destFile.exists()) {
+						destFile.mkdirs();
+					}
+					File dest = new File(destPathname + filename);
+					Path srcPath = src.toPath();
+					Path destPath = dest.toPath();
+					Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
 				}
-				File src = new File(workingDir + filename);
-				// TODO: refactor for config
-				String destPathname = workingDir + "/screenshots/";
-				File destFile = new File(destPathname);
-				if (!destFile.exists()) {
-					destFile.mkdirs();
-				}
-				File dest = new File(destPathname + filename);
-				Path srcPath = src.toPath();
-				Path destPath = dest.toPath();
-				Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
