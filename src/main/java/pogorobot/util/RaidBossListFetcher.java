@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -166,6 +167,13 @@ public class RaidBossListFetcher {
 		List<String> result = new ArrayList<>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		// disable external entities
+		factory.setExpandEntityReferences(false);
+		try {
+			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		} catch (ParserConfigurationException e1) {
+			System.out.println("WARN: Setting FEATURE_SECURE_PROCESSING to true failed while parsing XML");
+		}
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder;
 		Document doc = null;
