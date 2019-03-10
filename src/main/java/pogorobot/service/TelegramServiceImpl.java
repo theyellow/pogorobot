@@ -159,6 +159,10 @@ public class TelegramServiceImpl implements TelegramService {
 		Long id = filter.getId();
 		logger.debug("begin filter analyze for filter " + id);
 		filter = filterDAO.findById(id).orElse(null);
+		if (filter == null) {
+			logger.warn("Could not find filter with id " + id);
+			return null;
+		}
 		CompletableFuture<SendRaidAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
 		Double radiusPokemon = filter.getRadiusPokemon();
@@ -263,6 +267,10 @@ public class TelegramServiceImpl implements TelegramService {
 					logger.error(e.getMessage(), e);
 				} else {
 					logger.error(e.getMessage(), e);
+				}
+				if (e instanceof InterruptedException) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
 				}
 			}
 			return null;
@@ -456,6 +464,10 @@ public class TelegramServiceImpl implements TelegramService {
 					}
 				}
 				logger.error(e.getMessage(), e);
+				if (e instanceof InterruptedException) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
+				}
 				return null;
 			}
 		});
@@ -507,6 +519,10 @@ public class TelegramServiceImpl implements TelegramService {
 				return answer;
 			} catch (InterruptedException | ExecutionException e) {
 				logger.error("Error while triggering egg or raid message. ", e.getCause());
+				if (e instanceof InterruptedException) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
+				}
 			}
 		} else {
 			logger.debug("nothing to do, no future. returning null");
@@ -529,6 +545,10 @@ public class TelegramServiceImpl implements TelegramService {
 					}
 				}
 				logger.error(e.getMessage(), e);
+				if (e instanceof InterruptedException) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
+				}
 				return null;
 			}
 		});

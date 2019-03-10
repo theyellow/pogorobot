@@ -369,7 +369,10 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		if (userService != null) {
 			user = userService.getOrCreateUser(from.getId().toString());
 		}
-
+		if (user == null) {
+			logger.warn("Could not find user " + from.getId());
+			return null;
+		}
 		SendMessage echoMessage = new SendMessage();
 		Long chatId = message.getChatId();
 		echoMessage.setChatId(chatId);
@@ -852,6 +855,10 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		manualRaid.setStart(secondsFromEpoch);
 		manualRaid.setEnd(secondsFromEpoch + GymService.RAID_DURATION * 60);
 
+		if (eggOrRaid == null) {
+			logger.warn("Could not decide whether to create an egg or raid message by incoming manual data");
+			return null;
+		}
 		// telegramTextService.formatTimeFromSeconds(millisFromEpoch);
 		if (eggOrRaid.equals(TelegramKeyboardService.EGG)) {
 			manualRaid.setLevel(pokemonOrLevel);
@@ -975,9 +982,10 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 				for (Subscriber subscriber : toRemove) {
 					eventWithSubscribers.removeSubscriber(subscriber);
 				}
-				if (users.contains(user)) {
+				// TODO: Where is save now?
+				// if (users.contains(user)) {
 					// eventWithSubscribersRepository.save(x);
-				}
+				// }
 
 			}
 		} else if (TelegramKeyboardService.ADDONE.equals(commandOrGymId)) {

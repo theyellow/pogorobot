@@ -297,7 +297,10 @@ public class GymServiceImpl implements GymService {
 				result += geocodingResult.formattedAddress != null ?  geocodingResult.formattedAddress + " " : result + " ";
 			}
 		} catch (ApiException | InterruptedException | IOException e) {
-			logger.error(e.getMessage(), e);
+			if (e instanceof InterruptedException) {
+				logger.error("Interrupted while creating geoAdress", e);
+				Thread.currentThread().interrupt();
+			}
 		}
 		result = result.replaceAll(", Germany", "");
 		return result;

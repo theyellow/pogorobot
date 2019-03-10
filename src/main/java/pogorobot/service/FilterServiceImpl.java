@@ -487,6 +487,10 @@ public class FilterServiceImpl implements FilterService {
 		default:
 			break;
 		}
+		if (geofences == null) {
+			logger.warn("No geofence found for filter " + user.getUserFilter().getId());
+			return new ArrayList<>();
+		}
 		geofences.size();
 		return geofences.stream().collect(Collectors.toList());
 	}
