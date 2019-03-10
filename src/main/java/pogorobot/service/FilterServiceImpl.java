@@ -336,6 +336,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
+	@Transactional
 	public boolean isPointInGeofence(double latitude, double longitude, String geofenceName) {
 		Geo geo = new Geo(latitude, longitude);
 		GeoArray polygon = getGeoArrayForGeofence(geofenceName);
