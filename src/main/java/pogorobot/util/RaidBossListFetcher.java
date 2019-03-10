@@ -237,10 +237,11 @@ public class RaidBossListFetcher {
 		}
 
 		// use FileWriter to write file
-		FileWriter fw = new FileWriter(file.getAbsoluteFile());
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write(inputLine);
-		bw.close();
+		try (FileWriter fw = new FileWriter(file.getAbsoluteFile())) {
+			try (BufferedWriter bw = new BufferedWriter(fw)) {
+				bw.write(inputLine);
+			}
+		}
 	}
 
 	public List<String> getBosses() {
