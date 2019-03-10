@@ -1,4 +1,4 @@
-# pogorobot [![Build Status](https://travis-ci.org/theyellow/pogorobot.svg?branch=master)](https://travis-ci.org/theyellow/pogorobot)
+# pogorobot [![Build Status](https://travis-ci.org/theyellow/pogorobot.svg?branch=master)](https://travis-ci.org/theyellow/pogorobot) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=security_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=bugs)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)
 
 the telegrambot for Pokemon Go
 
@@ -19,7 +19,9 @@ There is no need for external webservers, but you need java and a database (at t
 [Download compiled ![Download](https://api.bintray.com/packages/theyellow/repo/pogorobot/images/download.svg?version=latest) ](https://bintray.com/theyellow/repo/pogorobot/latest/link)<br>
 (config-example directly at github, shell-script for linux with 'screen' also available there)
 
-
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=theyellow_pogorobot)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)
 
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=bugs)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=security_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=ncloc)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)
+ [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=ncloc)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)
+
+
+
