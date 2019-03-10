@@ -86,8 +86,7 @@ public class FilterServiceImpl implements FilterService {
 		CriteriaQuery<Filter> query = criteriaBuilder.createQuery(Filter.class);
 		Root<Filter> root = query.from(Filter.class);
 		query = query.where(criteriaBuilder.equal(root.get("filterType"), type));
-		List<Filter> result = entityManager.createQuery(query).getResultList();
-		return result;
+		return entityManager.createQuery(query).getResultList();
 	}
 
 	@Override
