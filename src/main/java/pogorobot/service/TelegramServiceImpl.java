@@ -159,10 +159,10 @@ public class TelegramServiceImpl implements TelegramService {
 	private CompletableFuture<SendRaidAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
 			Filter filter, boolean onlyDeepScan) {
 		Long id = filter.getId();
-		logger.debug("begin filter analyze for filter " + id);
+		logger.debug("begin filter analyze for filter {}", id);
 		filter = filterDAO.findById(id).orElse(null);
 		if (filter == null) {
-			logger.warn("Could not find filter with id " + id);
+			logger.warn("Could not find filter with id {}", id);
 			return null;
 		}
 		CompletableFuture<SendRaidAnswer> monsterFuture = null;
@@ -173,7 +173,7 @@ public class TelegramServiceImpl implements TelegramService {
 			Double minIV = filter.getMinIV();
 			Double maxIV = filter.getMaxIV();
 			if (minIV != null) {
-				logger.debug("begin analyze IV for filter " + filter.getId());
+				logger.debug("begin analyze IV for filter {}", filter.getId());
 				Integer attack = Integer.valueOf(pokemon.getIndividualAttack());
 				Integer defense = Integer.valueOf(pokemon.getIndividualDefense());
 				Integer stamina = Integer.valueOf(pokemon.getIndividualStamina());
@@ -200,30 +200,28 @@ public class TelegramServiceImpl implements TelegramService {
 							|| filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
 									Type.POKEMON)) {
 
-						logger.debug(
-								"start creating new future to send mon " + pokemon.getPokemonId() + " to " + chatId);
+						logger.debug("start creating new future to send mon {} to {}", pokemon.getPokemonId(), chatId);
 						monsterFuture = startSendMonsterFuture(pokemon, chatId);
 						return monsterFuture;
 					} else {
-						logger.info("pokemon " + pokemon.getPokemonId()
-								+ " isn't nearby or in a chosen area for filter "
-								+ filter.getId());
+						logger.info("pokemon {} isn't nearby or in a chosen area for filter {}", pokemon.getPokemonId(),
+								filter.getId());
 					}
 				} else {
-					logger.debug("iv didn't match for pokemon " + pokemon.getPokemonId() + " and filter "
-							+ filter.getId() + " : min iv is " + minIV + " , calculated iv " + calculatedIVs);
+					logger.debug("iv didn't match for pokemon {} and filter {} : min iv is {} , calculated iv {}",
+							pokemon.getPokemonId(), filter.getId(), minIV, calculatedIVs);
 				}
 			} else {
-				logger.debug("no min iv given in filter " + filter.getId());
+				logger.debug("no min iv given in filter {}", filter.getId());
 			}
 		} else {
-			logger.debug("no iv scanning for filter " + filter.getId() + " because no iv given for pokemon "
-					+ pokemon.getPokemonId() + " at spawnpoint " + pokemon.getSpawnpointId());
+			logger.debug("no iv scanning for filter {} because no iv given for pokemon {} at spawnpoint {}",
+					filter.getId(), pokemon.getPokemonId(), pokemon.getSpawnpointId());
 		}
 		if (!onlyDeepScan && filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
 			logger.debug("begin of pokemon-search by area/nearby");
 			if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
-				logger.debug("only-iv filtering stops sending message to " + chatId);
+				logger.debug("only-iv filtering stops sending message to {}", chatId);
 				return null;
 			}
 			Double latitude = filter.getLatitude();
@@ -237,7 +235,7 @@ public class TelegramServiceImpl implements TelegramService {
 			if (nearby || filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
 					Type.POKEMON)) {
 
-				logger.debug("pokemon " + pokemon.getPokemonId() + " will be send to " + chatId);
+				logger.debug("pokemon {} will be send to {}", pokemon.getPokemonId(), chatId);
 				monsterFuture = startSendMonsterFuture(pokemon, chatId);
 				return monsterFuture;
 			}
@@ -271,16 +269,12 @@ public class TelegramServiceImpl implements TelegramService {
 					logger.error(e.getMessage(), e);
 				}
 			} catch (InterruptedException e) {
-				interrupt();
+				logger.warn(GOT_INTERRUPTED + " in sendMonFuture");
+				Thread.currentThread().interrupt();
 			}
 			return null;
 		});
 		return future;
-	}
-
-	private void interrupt() {
-		logger.warn(GOT_INTERRUPTED);
-		Thread.currentThread().interrupt();
 	}
 
 	@Override
@@ -471,7 +465,8 @@ public class TelegramServiceImpl implements TelegramService {
 				logger.error(e.getMessage(), e);
 				return null;
 			} catch (InterruptedException e) {
-				interrupt();
+				logger.warn(GOT_INTERRUPTED + " in startNewRaidMessageFuture");
+				Thread.currentThread().interrupt();
 				return null;
 			}
 		});
@@ -524,7 +519,8 @@ public class TelegramServiceImpl implements TelegramService {
 			} catch (ExecutionException e) {
 				logger.error("Error while triggering egg or raid message. ", e.getCause());
 			} catch (InterruptedException e) {
-				interrupt();
+				logger.warn(GOT_INTERRUPTED + " in getFutureAnswer");
+				Thread.currentThread().interrupt();
 			}
 		} else {
 			logger.debug("nothing to do, no future. returning null");
@@ -549,7 +545,8 @@ public class TelegramServiceImpl implements TelegramService {
 				logger.error(e.getMessage(), e);
 				return null;
 			} catch (InterruptedException e) {
-				interrupt();
+				logger.warn(GOT_INTERRUPTED + " in startNewEggMessageFuture");
+				Thread.currentThread().interrupt();
 				return null;
 			}
 		});
