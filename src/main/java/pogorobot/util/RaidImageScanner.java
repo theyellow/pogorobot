@@ -27,10 +27,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RaidImageScanner {
+
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public RaidImageScanner() {
 	}
@@ -43,12 +47,12 @@ public class RaidImageScanner {
 			realUrl = new URL(url);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("malformed url", e);
 		}
 
 		try {
 			if (realUrl == null) {
-				System.out.println("WARN: Couldn't open " + url);
+				logger.warn("WARN: Couldn't open " + url);
 			} else {
 				try (ReadableByteChannel rbc = Channels.newChannel(realUrl.openStream())) {
 					// FileOutputStream fos;
@@ -70,8 +74,7 @@ public class RaidImageScanner {
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("IO-Exception, couldn't open file?");
 		}
 		// BytePointer outText;
 		// System.setProperty("TESSDATA_PREFIX", "tessdata");

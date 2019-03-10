@@ -34,6 +34,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -46,6 +48,8 @@ import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class RaidBossListFetcher {
+
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public static void main(String[] args) {
 		RaidBossListFetcher rblf = new RaidBossListFetcher();
@@ -103,8 +107,7 @@ public class RaidBossListFetcher {
 					sb.append("  </row>\n");
 				});
 			} catch (FailingHttpStatusCodeException | IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				logger.warn("Error while generating raidbosslist.xml", e1);
 			}
 			webClient.close();
 			webClient = null;
@@ -134,8 +137,7 @@ public class RaidBossListFetcher {
 			try {
 				writeXml(sb.toString());
 			} catch (IOException e) {
-				e.printStackTrace();
-				System.out.println("Error while parsing raidbosslist.");
+				logger.warn("Error while parsing raidbosslist.", e);
 			}
 			waitForFetch = false;
 		};
@@ -147,11 +149,11 @@ public class RaidBossListFetcher {
 			// wait 60 s for timeout
 			xmCreator.join(1000 * 60L);
 		} catch (InterruptedException e) {
-			System.out.println("XmlCreator-thread got interrupted");
+			logger.warn("XmlCreator-thread got interrupted");
 		}
 		long currentTimeMillis = System.currentTimeMillis();
 		long durationInMillis = currentTimeMillis - startTimeMillis;
-		System.out.println(
+		logger.warn(
 				"XmlCreator-thread finished after " + durationInMillis / 1000 + "." + (durationInMillis % 1000) / 10
 						+ " s");
 	}
@@ -172,7 +174,7 @@ public class RaidBossListFetcher {
 		try {
 			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 		} catch (ParserConfigurationException e1) {
-			System.out.println("WARN: Setting FEATURE_SECURE_PROCESSING to true failed while parsing XML");
+			logger.warn("WARN: Setting FEATURE_SECURE_PROCESSING to true failed while parsing XML");
 		}
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder;
@@ -205,10 +207,10 @@ public class RaidBossListFetcher {
 					result.add(pokemonAndLevel.trim());
 				}
 			} catch (XPathExpressionException e) {
-				e.printStackTrace();
+				logger.error("Error while parsing", e);
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			e.printStackTrace();
+			logger.warn("Another error while parsing", e);
 		}
 		return result;
 	}
@@ -230,10 +232,12 @@ public class RaidBossListFetcher {
 		File file = new File(fileName);
 
 		if (!file.exists()) {
-			file.createNewFile();
+			boolean createNewFile = file.createNewFile();
+			logger.info(createNewFile ? "New file created" : "Error, perhaps old file wasn't correctly deleted");
 		} else {
 			file.delete();
-			file.createNewFile();
+			boolean createNewFile = file.createNewFile();
+			logger.info(createNewFile ? "New file created" : "Error, perhaps old file wasn't correctly deleted");
 		}
 
 		// use FileWriter to write file
