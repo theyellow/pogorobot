@@ -13,7 +13,6 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 */
-
 package pogorobot.service;
 
 import java.util.ArrayList;
@@ -92,33 +91,27 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
-	// @Query("SELECT Filter FROM Filter u inner join Filter_telegramIds m where
-	// m.telegramIds in :telegramIds")
 	public List<Filter> getFiltersForUsers(List<User> telegramIds) {
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Filter> query = criteriaBuilder.createQuery(Filter.class);
 		Root<Filter> root = query.from(Filter.class);
 		Expression<List<String>> path = root.get("receivers");
 		In<Boolean> matchingTelegramIds = criteriaBuilder.in(path.in(telegramIds));
-		List<Filter> result = entityManager.createQuery(query.where(matchingTelegramIds)).getResultList();
-		return result;
+		return entityManager.createQuery(query.where(matchingTelegramIds)).getResultList();
 	}
 
 	@Override
 	public boolean processGymFilter(Filter filter, RocketmapGym gym) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean processEggFilter(Filter filter, RocketmapEgg egg) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean processPokemonFilter(Filter filter, RocketmapPokemon pokemon) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -155,7 +148,6 @@ public class FilterServiceImpl implements FilterService {
 		filter.setLatitude(latitude);
 		filter.setLongitude(longitude);
 		filter.setRadius(radius);
-		// filter.setGyms(gyms);
 		filter.setPokemons(pokemon);
 		filter.setRaidLevel(raidLevel);
 		return filter;
