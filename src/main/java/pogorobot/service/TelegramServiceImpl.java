@@ -257,7 +257,7 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
 				return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
-			} catch (FileNotFoundException | TelegramApiException | InterruptedException | DecoderException e) {
+			} catch (FileNotFoundException | TelegramApiException | DecoderException e) {
 				if (e instanceof TelegramApiRequestException) {
 					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
 					logger.error("API-response: " + e1.getApiResponse());
@@ -271,6 +271,9 @@ public class TelegramServiceImpl implements TelegramService {
 				if (checkIfInterrupted(e)) {
 					Thread.currentThread().interrupt();
 				}
+			} catch (InterruptedException e) {
+				logger.warn("Got interrupted");
+				Thread.currentThread().interrupt();
 			}
 			return null;
 		});
@@ -463,7 +466,7 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				return telegramSendMessagesService.sendRaidMessage(fullGym, chatId, eventWithSubscribers,
 						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | TelegramApiException | InterruptedException | DecoderException e) {
+			} catch (FileNotFoundException | TelegramApiException | DecoderException e) {
 				if (e instanceof TelegramApiRequestException) {
 					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
 					logger.error("API-response: " + e1.getApiResponse());
@@ -472,9 +475,10 @@ public class TelegramServiceImpl implements TelegramService {
 					}
 				}
 				logger.error(e.getMessage(), e);
-				if (checkIfInterrupted(e)) {
-					Thread.currentThread().interrupt();
-				}
+				return null;
+			} catch (InterruptedException e) {
+				logger.warn("Got interrupted");
+				Thread.currentThread().interrupt();
 				return null;
 			}
 		});
@@ -524,11 +528,11 @@ public class TelegramServiceImpl implements TelegramService {
 					logger.info("No answer from future...");
 				}
 				return answer;
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (ExecutionException e) {
 				logger.error("Error while triggering egg or raid message. ", e.getCause());
-				if (checkIfInterrupted(e)) {
-					Thread.currentThread().interrupt();
-				}
+			} catch (InterruptedException e) {
+				logger.warn("Got interrupted");
+				Thread.currentThread().interrupt();
 			}
 		} else {
 			logger.debug("nothing to do, no future. returning null");
@@ -542,7 +546,7 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(), eventWithSubscribers,
 						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | TelegramApiException | InterruptedException | DecoderException e) {
+			} catch (FileNotFoundException | TelegramApiException | DecoderException e) {
 				if (e instanceof TelegramApiRequestException) {
 					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
 					logger.error("API-response: " + e1.getApiResponse());
@@ -555,6 +559,10 @@ public class TelegramServiceImpl implements TelegramService {
 					Thread.currentThread().interrupt();
 				}
 
+				return null;
+			} catch (InterruptedException e) {
+				logger.warn("Got interrupted");
+				Thread.currentThread().interrupt();
 				return null;
 			}
 		});
