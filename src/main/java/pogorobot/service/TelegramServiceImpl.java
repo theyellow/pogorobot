@@ -255,27 +255,7 @@ public class TelegramServiceImpl implements TelegramService {
 	}
 
 	private CompletableFuture<SendRaidAnswer> startSendMonsterFuture(PokemonWithSpawnpoint pokemon, String chatId) {
-		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
-			try {
-				logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
-				return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
-			} catch (FileNotFoundException | DecoderException e) {
-				logger.error(e.getMessage(), e);
-			} catch (InterruptedException e) {
-				logger.warn(GOT_INTERRUPTED + " in sendMonFuture");
-				Thread.currentThread().interrupt();
-			} catch (TelegramApiException e) {
-				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-				logger.error(API_RESPONSE + e1.getApiResponse());
-				if (null != e1.getParameters()) {
-					logger.error("parameters: " + e1.getParameters().toString());
-				}
-				logger.error(e.getMessage(), e);
-			}
-
-			return null;
-		});
-		return future;
+		return startNewMessageFuture(null, null, chatId, null, null, pokemon, "pokemon");
 	}
 
 	@Override
@@ -451,26 +431,8 @@ public class TelegramServiceImpl implements TelegramService {
 
 	private CompletableFuture<SendRaidAnswer> startNewRaidMessageFuture(Gym fullGym, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
-		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
-			try {
-				return telegramSendMessagesService.sendRaidMessage(fullGym, chatId, eventWithSubscribers,
-						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | DecoderException e) {
-				logger.error(e.getMessage(), e);
-			} catch (InterruptedException e) {
-				logger.warn(GOT_INTERRUPTED + " in startNewRaidMessageFuture");
-				Thread.currentThread().interrupt();
-			} catch (TelegramApiException e) {
-				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-				logger.error(API_RESPONSE + e1.getApiResponse());
-				if (null != e1.getParameters()) {
-					logger.error("Telegram parameters: " + e1.getParameters().toString());
-				}
-				logger.error(e.getMessage(), e);
-			}
-			return null;
-		});
-		return future;
+		return startNewMessageFuture(fullGym, null, chatId, eventWithSubscribers, possibleMessageIdToUpdate, null,
+				"raid");
 	}
 
 	private ProcessedRaids updateProcessedRaid(ProcessedRaids processedRaid, SendRaidAnswer answer) {
@@ -528,16 +490,26 @@ public class TelegramServiceImpl implements TelegramService {
 		return null;
 	}
 
-	private CompletableFuture<SendRaidAnswer> startNewEggMessageFuture(Gym gym, Long level, String chatId,
-			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
+	private CompletableFuture<SendRaidAnswer> startNewMessageFuture(Gym gym, Long level, String chatId,
+			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate,
+			PokemonWithSpawnpoint pokemon, String type) {
 		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
 			try {
-				return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(), eventWithSubscribers,
+				if ("egg".equals(type)) {
+					return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(),
+							eventWithSubscribers,
 						possibleMessageIdToUpdate);
+				} else if ("raid".equals(type)) {
+					return telegramSendMessagesService.sendRaidMessage(gym, chatId, eventWithSubscribers,
+							possibleMessageIdToUpdate);
+				} else if ("pokemon".equals(type)) {
+					logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
+					return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
+				}
 			} catch (FileNotFoundException | DecoderException e) {
 				logger.error(e.getMessage(), e);
 			} catch (InterruptedException e) {
-				logger.warn(GOT_INTERRUPTED + " in startNewEggMessageFuture");
+				logger.warn(GOT_INTERRUPTED, " with type " + type);
 				Thread.currentThread().interrupt();
 			} catch (TelegramApiException e) {
 				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
@@ -550,6 +522,11 @@ public class TelegramServiceImpl implements TelegramService {
 			return null;
 		});
 		return future;
+	}
+
+	private CompletableFuture<SendRaidAnswer> startNewEggMessageFuture(Gym gym, Long level, String chatId,
+			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
+		return startNewMessageFuture(gym, level, chatId, eventWithSubscribers, possibleMessageIdToUpdate, null, "egg");
 	}
 
 	/**
