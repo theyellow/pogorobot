@@ -5,6 +5,7 @@ script:
   - export DATE_TIME=`date +'%y.%m.%d %H:%M:%S'`
 #  - mvn clean compile package install -DrepositoryId=local -Durl=file:./target/distribution
   - mvn clean compile package install deploy
+  - mvn sonar:sonar -Dsonar.projectKey=theyellow_pogorobot -Dsonar.organization=theyellow-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_LOGIN
 #  - mvn deploy:deploy-file -Durl=file:./target/distribution -DrepositoryId=local -Dfile=./target/pogorobot-1.0.5-SNAPSHOT.jar -DpomFile=pom.xml
 cache:
   directories:
