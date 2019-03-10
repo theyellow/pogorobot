@@ -235,9 +235,13 @@ public class RaidBossListFetcher {
 			boolean createNewFile = file.createNewFile();
 			logger.info(createNewFile ? "New file created" : "Error, perhaps old file wasn't correctly deleted");
 		} else {
-			file.delete();
+			boolean delete = file.delete();
+			if (!delete) {
+				logger.warn("Error, can't delete file " + file.getAbsolutePath());
+			}
 			boolean createNewFile = file.createNewFile();
-			logger.info(createNewFile ? "New file created" : "Error, perhaps old file wasn't correctly deleted");
+			logger.info(createNewFile ? "New file created"
+					: "Error, new file could not be generated. Perhaps old file wasn't correctly deleted");
 		}
 
 		// use FileWriter to write file
