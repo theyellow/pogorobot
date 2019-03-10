@@ -13,7 +13,6 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 */
-
 package pogorobot.service;
 
 import java.util.ArrayList;
@@ -87,38 +86,31 @@ public class FilterServiceImpl implements FilterService {
 		CriteriaQuery<Filter> query = criteriaBuilder.createQuery(Filter.class);
 		Root<Filter> root = query.from(Filter.class);
 		query = query.where(criteriaBuilder.equal(root.get("filterType"), type));
-		List<Filter> result = entityManager.createQuery(query).getResultList();
-		return result;
+		return entityManager.createQuery(query).getResultList();
 	}
 
 	@Override
-	// @Query("SELECT Filter FROM Filter u inner join Filter_telegramIds m where
-	// m.telegramIds in :telegramIds")
 	public List<Filter> getFiltersForUsers(List<User> telegramIds) {
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Filter> query = criteriaBuilder.createQuery(Filter.class);
 		Root<Filter> root = query.from(Filter.class);
 		Expression<List<String>> path = root.get("receivers");
 		In<Boolean> matchingTelegramIds = criteriaBuilder.in(path.in(telegramIds));
-		List<Filter> result = entityManager.createQuery(query.where(matchingTelegramIds)).getResultList();
-		return result;
+		return entityManager.createQuery(query.where(matchingTelegramIds)).getResultList();
 	}
 
 	@Override
 	public boolean processGymFilter(Filter filter, RocketmapGym gym) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean processEggFilter(Filter filter, RocketmapEgg egg) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean processPokemonFilter(Filter filter, RocketmapPokemon pokemon) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -155,7 +147,6 @@ public class FilterServiceImpl implements FilterService {
 		filter.setLatitude(latitude);
 		filter.setLongitude(longitude);
 		filter.setRadius(radius);
-		// filter.setGyms(gyms);
 		filter.setPokemons(pokemon);
 		filter.setRaidLevel(raidLevel);
 		return filter;
@@ -345,6 +336,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
+	@Transactional
 	public boolean isPointInGeofence(double latitude, double longitude, String geofenceName) {
 		Geo geo = new Geo(latitude, longitude);
 		GeoArray polygon = getGeoArrayForGeofence(geofenceName);
@@ -353,6 +345,7 @@ public class FilterServiceImpl implements FilterService {
 
 	@Override
 	@Deprecated
+	@Transactional
 	public boolean isPointInOneGeofenceOfTelegramId(double latitude, double longitude, Long telegramId) {
 		Set<Geofence> geofences = getGeofencesForTelegramId(telegramId);
 		if (geofences == null || geofences.size() == 0) {
@@ -494,11 +487,16 @@ public class FilterServiceImpl implements FilterService {
 		default:
 			break;
 		}
+		if (geofences == null) {
+			logger.warn("No geofence found for filter " + user.getUserFilter().getId());
+			return new ArrayList<>();
+		}
 		geofences.size();
 		return geofences.stream().collect(Collectors.toList());
 	}
 
 	@Override
+	@Transactional
 	public GeoArray getGeoArrayForGeofence(String geofenceName) {
 		Geofence poly = getGeofenceByName(geofenceName);
 		List<Double> polygon = poly.getPolygon();

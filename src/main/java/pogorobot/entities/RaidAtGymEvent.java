@@ -233,7 +233,7 @@ public class RaidAtGymEvent {
 
 		int minute = endTime.getMinute();
 		int timeToEnd = (minute % 5 == 0 ? 5 : minute % 5) + 5;
-		LocalDateTime firstTime = endTime.minusMinutes(timeToEnd + 35);
+		LocalDateTime firstTime = endTime.minusMinutes(timeToEnd + 35L);
 		result.add(firstTime.format(formatter));
 		LocalDateTime nextTime = firstTime.plusMinutes(15);
 		result.add(nextTime.format(formatter));

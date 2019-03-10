@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -33,6 +34,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -45,6 +48,8 @@ import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class RaidBossListFetcher {
+
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public static void main(String[] args) {
 		RaidBossListFetcher rblf = new RaidBossListFetcher();
@@ -71,6 +76,8 @@ public class RaidBossListFetcher {
 				try {
 					TimeUnit.SECONDS.sleep(8);
 				} catch (InterruptedException e) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
 				}
 				raidbosstable.getElementsByTagName("tr").stream().filter(row -> row.isDisplayed()).forEach(row -> {
 					System.out.println(row);
@@ -102,8 +109,7 @@ public class RaidBossListFetcher {
 					sb.append("  </row>\n");
 				});
 			} catch (FailingHttpStatusCodeException | IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				logger.warn("Error while generating raidbosslist.xml", e1);
 			}
 			webClient.close();
 			webClient = null;
@@ -133,8 +139,7 @@ public class RaidBossListFetcher {
 			try {
 				writeXml(sb.toString());
 			} catch (IOException e) {
-				e.printStackTrace();
-				System.out.println("Error while parsing raidbosslist.");
+				logger.warn("Error while parsing raidbosslist.", e);
 			}
 			waitForFetch = false;
 		};
@@ -146,13 +151,13 @@ public class RaidBossListFetcher {
 			// wait 60 s for timeout
 			xmCreator.join(1000 * 60L);
 		} catch (InterruptedException e) {
-			System.out.println("XmlCreator-thread got interrupted");
+			logger.warn("XmlCreator-thread got interrupted");
+			Thread.currentThread().interrupt();
 		}
 		long currentTimeMillis = System.currentTimeMillis();
 		long durationInMillis = currentTimeMillis - startTimeMillis;
-		System.out.println(
-				"XmlCreator-thread finished after " + durationInMillis / 1000 + "." + (durationInMillis % 1000) / 10
-						+ " s");
+		logger.warn("XmlCreator-thread finished after " + durationInMillis / 1000 + "." + (durationInMillis % 1000) / 10
+				+ " s");
 	}
 
 	// private WebDriver openUrl(String url) {
@@ -166,6 +171,13 @@ public class RaidBossListFetcher {
 		List<String> result = new ArrayList<>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		// disable external entities
+		factory.setExpandEntityReferences(false);
+		try {
+			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		} catch (ParserConfigurationException e1) {
+			logger.warn("WARN: Setting FEATURE_SECURE_PROCESSING to true failed while parsing XML");
+		}
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder;
 		Document doc = null;
@@ -197,10 +209,10 @@ public class RaidBossListFetcher {
 					result.add(pokemonAndLevel.trim());
 				}
 			} catch (XPathExpressionException e) {
-				e.printStackTrace();
+				logger.error("Error while parsing", e);
 			}
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			e.printStackTrace();
+			logger.warn("Another error while parsing", e);
 		}
 		return result;
 	}
@@ -222,17 +234,24 @@ public class RaidBossListFetcher {
 		File file = new File(fileName);
 
 		if (!file.exists()) {
-			file.createNewFile();
+			boolean createNewFile = file.createNewFile();
+			logger.info(createNewFile ? "New file created" : "Error, perhaps old file wasn't correctly deleted");
 		} else {
-			file.delete();
-			file.createNewFile();
+			boolean delete = file.delete();
+			if (!delete) {
+				logger.warn("Error, can't delete file " + file.getAbsolutePath());
+			}
+			boolean createNewFile = file.createNewFile();
+			logger.info(createNewFile ? "New file created"
+					: "Error, new file could not be generated. Perhaps old file wasn't correctly deleted");
 		}
 
 		// use FileWriter to write file
-		FileWriter fw = new FileWriter(file.getAbsoluteFile());
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write(inputLine);
-		bw.close();
+		try (FileWriter fw = new FileWriter(file.getAbsoluteFile())) {
+			try (BufferedWriter bw = new BufferedWriter(fw)) {
+				bw.write(inputLine);
+			}
+		}
 	}
 
 	public List<String> getBosses() {
@@ -242,6 +261,8 @@ public class RaidBossListFetcher {
 				try {
 					TimeUnit.SECONDS.sleep(3);
 				} catch (InterruptedException e) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
 				}
 			} else {
 				break;

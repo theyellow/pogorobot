@@ -62,6 +62,10 @@ import pogorobot.telegram.util.Type;
 @Service("telegramService")
 public class TelegramServiceImpl implements TelegramService {
 
+	private static final String API_RESPONSE = "API-response: ";
+
+	private static final String GOT_INTERRUPTED = "Got interrupted";
+
 	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
 
 	@Autowired
@@ -157,8 +161,12 @@ public class TelegramServiceImpl implements TelegramService {
 	private CompletableFuture<SendRaidAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
 			Filter filter, boolean onlyDeepScan) {
 		Long id = filter.getId();
-		logger.debug("begin filter analyze for filter " + id);
+		logger.debug("begin filter analyze for filter {}", id);
 		filter = filterDAO.findById(id).orElse(null);
+		if (filter == null) {
+			logger.warn("Could not find filter with id {}", id);
+			return null;
+		}
 		CompletableFuture<SendRaidAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
 		Double radiusPokemon = filter.getRadiusPokemon();
@@ -167,7 +175,7 @@ public class TelegramServiceImpl implements TelegramService {
 			Double minIV = filter.getMinIV();
 			Double maxIV = filter.getMaxIV();
 			if (minIV != null) {
-				logger.debug("begin analyze IV for filter " + filter.getId());
+				logger.debug("begin analyze IV for filter {}", filter.getId());
 				Integer attack = Integer.valueOf(pokemon.getIndividualAttack());
 				Integer defense = Integer.valueOf(pokemon.getIndividualDefense());
 				Integer stamina = Integer.valueOf(pokemon.getIndividualStamina());
@@ -194,30 +202,28 @@ public class TelegramServiceImpl implements TelegramService {
 							|| filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
 									Type.POKEMON)) {
 
-						logger.debug(
-								"start creating new future to send mon " + pokemon.getPokemonId() + " to " + chatId);
+						logger.debug("start creating new future to send mon {} to {}", pokemon.getPokemonId(), chatId);
 						monsterFuture = startSendMonsterFuture(pokemon, chatId);
 						return monsterFuture;
 					} else {
-						logger.info("pokemon " + pokemon.getPokemonId()
-								+ " isn't nearby or in a chosen area for filter "
-								+ filter.getId());
+						logger.info("pokemon {} isn't nearby or in a chosen area for filter {}", pokemon.getPokemonId(),
+								filter.getId());
 					}
 				} else {
-					logger.debug("iv didn't match for pokemon " + pokemon.getPokemonId() + " and filter "
-							+ filter.getId() + " : min iv is " + minIV + " , calculated iv " + calculatedIVs);
+					logger.debug("iv didn't match for pokemon {} and filter {} : min iv is {} , calculated iv {}",
+							pokemon.getPokemonId(), filter.getId(), minIV, calculatedIVs);
 				}
 			} else {
-				logger.debug("no min iv given in filter " + filter.getId());
+				logger.debug("no min iv given in filter {}", filter.getId());
 			}
 		} else {
-			logger.debug("no iv scanning for filter " + filter.getId() + " because no iv given for pokemon "
-					+ pokemon.getPokemonId() + " at spawnpoint " + pokemon.getSpawnpointId());
+			logger.debug("no iv scanning for filter {} because no iv given for pokemon {} at spawnpoint {}",
+					filter.getId(), pokemon.getPokemonId(), pokemon.getSpawnpointId());
 		}
 		if (!onlyDeepScan && filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
 			logger.debug("begin of pokemon-search by area/nearby");
 			if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
-				logger.debug("only-iv filtering stops sending message to " + chatId);
+				logger.debug("only-iv filtering stops sending message to {}", chatId);
 				return null;
 			}
 			Double latitude = filter.getLatitude();
@@ -231,7 +237,7 @@ public class TelegramServiceImpl implements TelegramService {
 			if (nearby || filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
 					Type.POKEMON)) {
 
-				logger.debug("pokemon " + pokemon.getPokemonId() + " will be send to " + chatId);
+				logger.debug("pokemon {} will be send to {}", pokemon.getPokemonId(), chatId);
 				monsterFuture = startSendMonsterFuture(pokemon, chatId);
 				return monsterFuture;
 			}
@@ -249,25 +255,7 @@ public class TelegramServiceImpl implements TelegramService {
 	}
 
 	private CompletableFuture<SendRaidAnswer> startSendMonsterFuture(PokemonWithSpawnpoint pokemon, String chatId) {
-		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
-			try {
-				logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
-				return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
-			} catch (FileNotFoundException | TelegramApiException | InterruptedException | DecoderException e) {
-				if (e instanceof TelegramApiRequestException) {
-					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-					logger.error("API-response: " + e1.getApiResponse());
-					if (null != e1.getParameters()) {
-						logger.error("parameters: " + e1.getParameters().toString());
-					}
-					logger.error(e.getMessage(), e);
-				} else {
-					logger.error(e.getMessage(), e);
-				}
-			}
-			return null;
-		});
-		return future;
+		return startNewMessageFuture(null, null, chatId, null, null, pokemon, "pokemon");
 	}
 
 	@Override
@@ -443,23 +431,8 @@ public class TelegramServiceImpl implements TelegramService {
 
 	private CompletableFuture<SendRaidAnswer> startNewRaidMessageFuture(Gym fullGym, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
-		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
-			try {
-				return telegramSendMessagesService.sendRaidMessage(fullGym, chatId, eventWithSubscribers,
-						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | TelegramApiException | InterruptedException | DecoderException e) {
-				if (e instanceof TelegramApiRequestException) {
-					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-					logger.error("API-response: " + e1.getApiResponse());
-					if (null != e1.getParameters()) {
-						logger.error("Telegram parameters: " + e1.getParameters().toString());
-					}
-				}
-				logger.error(e.getMessage(), e);
-				return null;
-			}
-		});
-		return future;
+		return startNewMessageFuture(fullGym, null, chatId, eventWithSubscribers, possibleMessageIdToUpdate, null,
+				"raid");
 	}
 
 	private ProcessedRaids updateProcessedRaid(ProcessedRaids processedRaid, SendRaidAnswer answer) {
@@ -505,8 +478,11 @@ public class TelegramServiceImpl implements TelegramService {
 					logger.info("No answer from future...");
 				}
 				return answer;
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (ExecutionException e) {
 				logger.error("Error while triggering egg or raid message. ", e.getCause());
+			} catch (InterruptedException e) {
+				logger.warn(GOT_INTERRUPTED + " in getFutureAnswer");
+				Thread.currentThread().interrupt();
 			}
 		} else {
 			logger.debug("nothing to do, no future. returning null");
@@ -514,25 +490,43 @@ public class TelegramServiceImpl implements TelegramService {
 		return null;
 	}
 
-	private CompletableFuture<SendRaidAnswer> startNewEggMessageFuture(Gym gym, Long level, String chatId,
-			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
+	private CompletableFuture<SendRaidAnswer> startNewMessageFuture(Gym gym, Long level, String chatId,
+			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate,
+			PokemonWithSpawnpoint pokemon, String type) {
 		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
 			try {
-				return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(), eventWithSubscribers,
+				if ("egg".equals(type)) {
+					return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(),
+							eventWithSubscribers,
 						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | TelegramApiException | InterruptedException | DecoderException e) {
-				if (e instanceof TelegramApiRequestException) {
-					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-					logger.error("API-response: " + e1.getApiResponse());
-					if (null != e1.getParameters()) {
-						logger.error("parameters: " + e1.getParameters().toString());
-					}
+				} else if ("raid".equals(type)) {
+					return telegramSendMessagesService.sendRaidMessage(gym, chatId, eventWithSubscribers,
+							possibleMessageIdToUpdate);
+				} else if ("pokemon".equals(type)) {
+					logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
+					return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
+				}
+			} catch (FileNotFoundException | DecoderException e) {
+				logger.error(e.getMessage(), e);
+			} catch (InterruptedException e) {
+				logger.warn(GOT_INTERRUPTED, " with type " + type);
+				Thread.currentThread().interrupt();
+			} catch (TelegramApiException e) {
+				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
+				logger.error(API_RESPONSE + e1.getApiResponse());
+				if (null != e1.getParameters()) {
+					logger.error("parameters: " + e1.getParameters().toString());
 				}
 				logger.error(e.getMessage(), e);
-				return null;
 			}
+			return null;
 		});
 		return future;
+	}
+
+	private CompletableFuture<SendRaidAnswer> startNewEggMessageFuture(Gym gym, Long level, String chatId,
+			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
+		return startNewMessageFuture(gym, level, chatId, eventWithSubscribers, possibleMessageIdToUpdate, null, "egg");
 	}
 
 	/**

@@ -317,6 +317,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		}
 		try {
 			JSONObject monsterTemplateFromFile = null;
+			if (pokemon == null) {
+				logger.error("Tried to create mon-message but got no mon");
+				return "Problem with message";
+			}
 			if (pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().trim().isEmpty()) {
 				monsterTemplateFromFile = getTemplateFromFile(MessageConfigElement.CONFIG_ELEMENT_MONSTER);
 			} else {

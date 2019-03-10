@@ -27,13 +27,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RaidImageScanner {
 
-	public RaidImageScanner() {}
-	
+	Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	public RaidImageScanner() {
+	}
+
 	public void scanImage(String url) {
 		String filename = url.substring(url.lastIndexOf("/") + 1).toLowerCase();
 		URL realUrl = null;
@@ -42,32 +47,35 @@ public class RaidImageScanner {
 			realUrl = new URL(url);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("malformed url", e);
 		}
 
 		try {
-			ReadableByteChannel rbc = Channels.newChannel(realUrl.openStream());
-			FileOutputStream fos;
-			String workingDir = System.getProperty("user.dir") + "/";
-			fos = new FileOutputStream(workingDir + filename);
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-			File src = new File(workingDir + filename);
-			// TODO: refactor for config
-			String destPathname = workingDir + "/screenshots/";
-			File destFile = new File(destPathname);
-			if (!destFile.exists()) {
-				destFile.mkdirs();
+			if (realUrl == null) {
+				logger.warn("WARN: Couldn't open " + url);
+			} else {
+				try (ReadableByteChannel rbc = Channels.newChannel(realUrl.openStream())) {
+					// FileOutputStream fos;
+					String workingDir = System.getProperty("user.dir") + "/";
+					try (FileOutputStream fos = new FileOutputStream(workingDir + filename)) {
+						fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+					}
+					File src = new File(workingDir + filename);
+					// TODO: refactor for config
+					String destPathname = workingDir + "/screenshots/";
+					File destFile = new File(destPathname);
+					if (!destFile.exists()) {
+						destFile.mkdirs();
+					}
+					File dest = new File(destPathname + filename);
+					Path srcPath = src.toPath();
+					Path destPath = dest.toPath();
+					Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
+				}
 			}
-			File dest = new File(destPathname + filename);
-			Path srcPath = src.toPath();
-			Path destPath = dest.toPath();
-			Files.move(srcPath, destPath, StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.warn("IO-Exception, couldn't open file?");
 		}
-
 		// BytePointer outText;
 		// System.setProperty("TESSDATA_PREFIX", "tessdata");
 		// TessBaseAPI api = new TessBaseAPI();
