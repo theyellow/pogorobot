@@ -122,14 +122,14 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				if (state == MessageQueue.GET_MESSAGE) {
 					mSendQueues.add(queue);
 					processNext = true;
-				} else if (state == MessageQueue.WAIT) {
+				} else if (state == MessageQueue.WAIT_SIG) {
 					processNext = true;
 				} else if (state == MessageQueue.DELETE) {
 					it.remove();
 				}
 			}
 
-			// If any of chats are in state WAIT or GET_MESSAGE, request another
+			// If any of chats are in state WAIT_SIG or GET_MESSAGE, request another
 			// iteration
 			if (processNext)
 				mSendRequested.set(true);
@@ -157,7 +157,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	private static class MessageQueue {
 		public static final int EMPTY = 0; // Queue is empty
-		public static final int WAIT = 1; // Queue has message(s) but not yet
+		public static final int WAIT_SIG = 1; // Queue has message(s) but not yet
 											// allowed to send
 		public static final int DELETE = 2; // No one message of given queue was
 											// sent longer than
@@ -191,7 +191,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			else if (empty)
 				return EMPTY;
 			else
-				return WAIT;
+				return WAIT_SIG;
 		}
 
 		public synchronized BotApiMethod<? extends Serializable> getMessage(long currentTime) {
