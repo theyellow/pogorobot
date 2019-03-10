@@ -62,6 +62,8 @@ import pogorobot.telegram.util.Type;
 @Service("telegramService")
 public class TelegramServiceImpl implements TelegramService {
 
+	private static final String API_RESPONSE = "API-response: ";
+
 	private static final String GOT_INTERRUPTED = "Got interrupted";
 
 	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
@@ -257,21 +259,20 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
 				return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
-			} catch (FileNotFoundException | TelegramApiException | DecoderException e) {
-				if (e instanceof TelegramApiRequestException) {
-					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-					logger.error("API-response: " + e1.getApiResponse());
-					if (null != e1.getParameters()) {
-						logger.error("parameters: " + e1.getParameters().toString());
-					}
-					logger.error(e.getMessage(), e);
-				} else {
-					logger.error(e.getMessage(), e);
-				}
+			} catch (FileNotFoundException | DecoderException e) {
+				logger.error(e.getMessage(), e);
 			} catch (InterruptedException e) {
 				logger.warn(GOT_INTERRUPTED + " in sendMonFuture");
 				Thread.currentThread().interrupt();
+			} catch (TelegramApiException e) {
+				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
+				logger.error(API_RESPONSE + e1.getApiResponse());
+				if (null != e1.getParameters()) {
+					logger.error("parameters: " + e1.getParameters().toString());
+				}
+				logger.error(e.getMessage(), e);
 			}
+
 			return null;
 		});
 		return future;
@@ -454,21 +455,20 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				return telegramSendMessagesService.sendRaidMessage(fullGym, chatId, eventWithSubscribers,
 						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | TelegramApiException | DecoderException e) {
-				if (e instanceof TelegramApiRequestException) {
-					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-					logger.error("API-response: " + e1.getApiResponse());
-					if (null != e1.getParameters()) {
-						logger.error("Telegram parameters: " + e1.getParameters().toString());
-					}
-				}
+			} catch (FileNotFoundException | DecoderException e) {
 				logger.error(e.getMessage(), e);
-				return null;
 			} catch (InterruptedException e) {
 				logger.warn(GOT_INTERRUPTED + " in startNewRaidMessageFuture");
 				Thread.currentThread().interrupt();
-				return null;
+			} catch (TelegramApiException e) {
+				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
+				logger.error(API_RESPONSE + e1.getApiResponse());
+				if (null != e1.getParameters()) {
+					logger.error("Telegram parameters: " + e1.getParameters().toString());
+				}
+				logger.error(e.getMessage(), e);
 			}
+			return null;
 		});
 		return future;
 	}
@@ -534,21 +534,20 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(), eventWithSubscribers,
 						possibleMessageIdToUpdate);
-			} catch (FileNotFoundException | TelegramApiException | DecoderException e) {
-				if (e instanceof TelegramApiRequestException) {
-					TelegramApiRequestException e1 = (TelegramApiRequestException) e;
-					logger.error("API-response: " + e1.getApiResponse());
-					if (null != e1.getParameters()) {
-						logger.error("parameters: " + e1.getParameters().toString());
-					}
-				}
+			} catch (FileNotFoundException | DecoderException e) {
 				logger.error(e.getMessage(), e);
-				return null;
 			} catch (InterruptedException e) {
 				logger.warn(GOT_INTERRUPTED + " in startNewEggMessageFuture");
 				Thread.currentThread().interrupt();
-				return null;
+			} catch (TelegramApiException e) {
+				TelegramApiRequestException e1 = (TelegramApiRequestException) e;
+				logger.error(API_RESPONSE + e1.getApiResponse());
+				if (null != e1.getParameters()) {
+					logger.error("parameters: " + e1.getParameters().toString());
+				}
+				logger.error(e.getMessage(), e);
 			}
+			return null;
 		});
 		return future;
 	}
