@@ -89,7 +89,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	private static final long MANY_CHATS_SEND_INTERVAL = 33;
 	private static final long ONE_CHAT_SEND_INTERVAL = 1000;
-	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10;
+	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10L;
 	private final Timer mSendTimer = new Timer(true);
 	private final ConcurrentHashMap<Long, MessageQueue> mMessagesMap = new ConcurrentHashMap<>(32, 0.75f, 1);
 	private final ArrayList<MessageQueue> mSendQueues = new ArrayList<>();
@@ -239,10 +239,14 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			mMessagesMap.put(chatId, queue);
 		} else {
 			queue.putMessage(messageRequest);
-			mMessagesMap.putIfAbsent(chatId, queue); // Double check, because
+			MessageQueue absent = mMessagesMap.putIfAbsent(chatId, queue); // Double check, because
 														// the queue can be
 														// removed from hashmap
 														// on state DELETE
+			if (absent == null) {
+				logger.warn("no mapping of chat " + chatId + " , now queue state is "
+						+ queue.getCurrentState(System.currentTimeMillis()));
+			}
 		}
 		mSendRequested.set(true);
 	}
@@ -373,10 +377,10 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		if (update.hasCallbackQuery()) {
 			CallbackQuery callbackQuery = update.getCallbackQuery();
 			updateUser(callbackQuery.getFrom());
-			BotApiMethod<? extends Serializable> message = handleCallbackQuery(update);
-			if (message != null) {
-				logger.info(message.toString());
-			}
+			handleCallbackQuery(update);
+			// if (message != null) {
+			// logger.info(message.toString());
+			// }
 			// return message;
 		}
 		if (update.hasInlineQuery()) {
@@ -502,11 +506,12 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		String callbackCommand = data[0];
 
 		logger.info(callbackquery.getData());
-		if (1 == 0) {
-			Boolean message = this
-					.sendAnswerCallbackQuery("Bitte einen der Buttons verwenden", false, callbackquery);
-			return null;
-		}
+		// if (1 == 0) {
+		// Boolean message = this
+		// .sendAnswerCallbackQuery("Bitte einen der Buttons verwenden", false,
+		// callbackquery);
+		// return null;
+		// }
 
 		// Following callbackCommands are for new raid/egg input manually done by users
 

@@ -41,7 +41,7 @@ public class ScreenConfigCreator {
 		Long comp2_x = comp3_x + zeilenhoehe_comp_x;
 		Long comp1_x = comp2_x + zeilenhoehe_comp_x;
 
-		int crop_x1 = Math.round(width / 355);
+		int crop_x1 = Math.round(width / 355f);
 		Long crop1_x1 = comp1_x - crop_x1;
 		Long crop2_x1 = comp2_x - crop_x1;
 		Long crop3_x1 = comp3_x - crop_x1;

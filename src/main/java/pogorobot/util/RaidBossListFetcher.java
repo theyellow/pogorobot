@@ -76,6 +76,8 @@ public class RaidBossListFetcher {
 				try {
 					TimeUnit.SECONDS.sleep(8);
 				} catch (InterruptedException e) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
 				}
 				raidbosstable.getElementsByTagName("tr").stream().filter(row -> row.isDisplayed()).forEach(row -> {
 					System.out.println(row);
@@ -150,12 +152,12 @@ public class RaidBossListFetcher {
 			xmCreator.join(1000 * 60L);
 		} catch (InterruptedException e) {
 			logger.warn("XmlCreator-thread got interrupted");
+			Thread.currentThread().interrupt();
 		}
 		long currentTimeMillis = System.currentTimeMillis();
 		long durationInMillis = currentTimeMillis - startTimeMillis;
-		logger.warn(
-				"XmlCreator-thread finished after " + durationInMillis / 1000 + "." + (durationInMillis % 1000) / 10
-						+ " s");
+		logger.warn("XmlCreator-thread finished after " + durationInMillis / 1000 + "." + (durationInMillis % 1000) / 10
+				+ " s");
 	}
 
 	// private WebDriver openUrl(String url) {
@@ -259,6 +261,8 @@ public class RaidBossListFetcher {
 				try {
 					TimeUnit.SECONDS.sleep(3);
 				} catch (InterruptedException e) {
+					logger.warn("Got interrupted");
+					Thread.currentThread().interrupt();
 				}
 			} else {
 				break;
