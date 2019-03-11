@@ -593,6 +593,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					.sendAnswerCallbackQuery("Bitte einen der Buttons verwenden", false, callbackquery);
 			return null;
 		}
+		this.sendAnswerCallbackQuery("Eingabe wurde bearbeitet", false, callbackquery);
 		return null;
 	}
 
