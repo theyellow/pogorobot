@@ -292,7 +292,7 @@ public class ConfigReaderImpl implements ConfigReader {
 			String key = entry.getKey();
 			List<Long> value = entry.getValue();
 			if (value == null || value.size() != 1) {
-				logger.debug("No value or too many values for " + key + "   ---->  " + value);
+				logger.warn("No value or too many values for " + key + "   ---->  " + value);
 			} else {
 				for (UserGroup userGroup : userGroups) {
 					if (userGroup.getGroupName().equals(key)) {

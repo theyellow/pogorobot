@@ -581,14 +581,7 @@ public class TelegramKeyboardServiceImpl implements TelegramKeyboardService {
 
 	private List<Geofence> getGeofencesNotYetAdded(User user, Type pokemonFilter) {
 		List<Geofence> geofences = new ArrayList<>();
-		if (Type.RAID.equals(pokemonFilter)) {
-			geofences = filterService.getAllGeofences().stream().filter(x -> x.getGeofenceName().startsWith("Raid"))
-					.collect(Collectors.toList());
-		} else {
-			geofences = filterService.getAllGeofences().stream().filter(x -> !x.getGeofenceName().startsWith("Raid"))
-					.collect(Collectors.toList());
-
-		}
+		geofences = filterService.getAllGeofences().stream().collect(Collectors.toList());
 		List<Geofence> userGeofences = filterService.getGeofencesForUser(user, pokemonFilter);
 		for (Geofence geofence : userGeofences) {
 			geofences.remove(geofence);

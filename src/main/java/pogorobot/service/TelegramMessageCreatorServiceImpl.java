@@ -555,7 +555,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		message.setChatId(telegramId);
 		message.setMessageId(callbackquery.getMessage().getMessageId());
 		message.enableMarkdown(true);
-		String text = "*Raid-Level im Filter einstellen: *";
+		String text = "*Raid-Level* im Filter einstellen: *";
 		text += getFilteredRaidLevelForUser(telegramId.intValue());
 		message.setText(text + "*                       ");
 		message.setReplyMarkup(
