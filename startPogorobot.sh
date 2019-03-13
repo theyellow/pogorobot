@@ -6,7 +6,7 @@ then
 VERSION=$1
 else
 : # $1 was not given
-VERSION='1.0.7-SNAPSHOT'
+VERSION='1.0.7'
 fi
 
 screen -S telegram-bot -d -m java -XX:+HeapDumpOnOutOfMemoryError -Xmx800m -Dext.properties.dir=file:$PWD/config -jar pogorobot-$VERSION-exec.jar
