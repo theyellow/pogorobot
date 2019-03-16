@@ -56,7 +56,7 @@ public class PokemonSenderConfiguration {
 	@Value("${standard.certificateStorePassword:path}")
 	private String certificateStorePassword;
 
-	@Value("${standard.pathToLogs:./}")
+	@Value("${standard.pathToLogs:./logs}")
 	private String pathToLogs;
 
 	@Value("${standard.jdbcurl}")
@@ -71,8 +71,8 @@ public class PokemonSenderConfiguration {
 	@Value("${standard.password}")
 	private String password;
 
-	@Value("${standard.gmapskey}")
-	private String gmapskey = "";
+	@Value("${standard.gmapskey:notnecessary}")
+	private String gmapskey;
 
 	@Value("${standard.botname}")
 	private String botname;

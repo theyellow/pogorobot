@@ -28,33 +28,35 @@
 		<!-- <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version> -->
 
 		<db.name>telegramdb</db.name>
-<!-- 		<dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName> -->
+		<!-- <dbunit.dataTypeFactoryName>org.dbunit.ext.mysql.MySqlDataTypeFactory</dbunit.dataTypeFactoryName> -->
 		<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
 		<!-- <jdbc.url>jdbc:postgresql://localhost/${db.name}</jdbc.url> -->
-<!-- 		<jdbc.url>jdbc:mysql://localhost/${db.name}?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url> -->
-<!-- 		<jdbc.url.prev>jdbc:mysql://localhost/${db.name}_prev?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url.prev> -->
-<!-- 		<hibernate.dialect>org.hibernate.dialect.PostgreSQL9Dialect</hibernate.dialect> -->
+		<!-- <jdbc.url>jdbc:mysql://localhost/${db.name}?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url> -->
+		<!-- <jdbc.url.prev>jdbc:mysql://localhost/${db.name}_prev?createDatabaseIfNotExist=true&amp;amp;useUnicode=true&amp;amp;characterEncoding=utf-8&amp;amp;autoReconnect=true</jdbc.url.prev> -->
+		<!-- <hibernate.dialect>org.hibernate.dialect.PostgreSQL9Dialect</hibernate.dialect> -->
 		<!-- <hibernate.dialect>org.hibernate.dialect.MySQL5Dialect</hibernate.dialect> -->
-<!-- 		<hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect> -->
+		<!-- <hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect> -->
 		<liquibase.hibernate.version>3.6</liquibase.hibernate.version>
-<!-- 		<jdbc.groupId>mysql</jdbc.groupId> -->
-<!-- 		<jdbc.artifactId>mysql-connector-java</jdbc.artifactId> -->
-<!-- 		<jdbc.version>5.1.45</jdbc.version> -->
-<!-- 		<jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName> -->
-<!-- 		<jdbc.username>telegram</jdbc.username> -->
-<!-- 		<jdbc.password>telegram</jdbc.password> -->
+		<!-- <jdbc.groupId>mysql</jdbc.groupId> -->
+		<!-- <jdbc.artifactId>mysql-connector-java</jdbc.artifactId> -->
+		<!-- <jdbc.version>5.1.45</jdbc.version> -->
+		<!-- <jdbc.driverClassName>com.mysql.jdbc.Driver</jdbc.driverClassName> -->
+		<!-- <jdbc.username>telegram</jdbc.username> -->
+		<!-- <jdbc.password>telegram</jdbc.password> -->
 
 		<pogoprotos.version>2.38.5</pogoprotos.version>
 		<protobuf-java.version>3.5.1</protobuf-java.version>
 		<telegrambots.version>4.1.2</telegrambots.version>
 		<telegrambots-extensions.version>4.1.2</telegrambots-extensions.version>
 		<jsoup.version>1.10.3</jsoup.version>
-<!-- 		<hibernate-c3p0.version>5.2.12.Final</hibernate-c3p0.version> -->
+		<!-- <hibernate-c3p0.version>5.2.12.Final</hibernate-c3p0.version> -->
 		<google-maps-services.version>0.2.6</google-maps-services.version>
 		<openmap.version>5.1.13-1</openmap.version>
 		<liquibase-maven-plugin.version>3.5.3</liquibase-maven-plugin.version>
 		<hibernate5-ddl-maven-plugin.version>2.1.0</hibernate5-ddl-maven-plugin.version>
 		<javax.interceptor-api.version>1.2</javax.interceptor-api.version>
+		<docker.image.prefix>theyellow</docker.image.prefix>
+		<dockerfile-maven-version>1.4.10</dockerfile-maven-version>
 	</properties>
 
 	<dependencies>
@@ -125,7 +127,7 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-c3p0</artifactId>
-<!-- 			<version>${hibernate-c3p0.version}</version> -->
+			<!-- <version>${hibernate-c3p0.version}</version> -->
 		</dependency>
 		<dependency>
 			<groupId>com.google.maps</groupId>
@@ -163,12 +165,12 @@
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
-		    <version>3.141.59</version><!--$NO-MVN-MAN-VER$-->
+			<version>3.141.59</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-api</artifactId>
-		    <version>3.141.59</version><!--$NO-MVN-MAN-VER$-->
+			<version>3.141.59</version><!--$NO-MVN-MAN-VER$ -->
 		</dependency>
 		<dependency>
 			<groupId>com.pokebattler</groupId>
@@ -180,25 +182,25 @@
 			<artifactId>javax.interceptor-api</artifactId>
 			<version>${javax.interceptor-api.version}</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.seleniumhq.selenium</groupId> -->
-<!-- 			<artifactId>htmlunit-driver</artifactId> -->
-<!-- 			<version>2.33.3</version> -->
-<!-- 		</dependency> -->
-<!-- <dependency> -->
-<!--     <groupId>org.seleniumhq.selenium</groupId> -->
-<!--     <artifactId>selenium-htmlunit-driver</artifactId> -->
-<!--     <version>2.52.0</version> -->
-<!-- </dependency> -->
-<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/htmlunit-driver -->
-<dependency>
-    <groupId>org.seleniumhq.selenium</groupId>
-    <artifactId>htmlunit-driver</artifactId>
-    <version>2.33.3</version>
-</dependency>
+		<!-- <dependency> -->
+		<!-- <groupId>org.seleniumhq.selenium</groupId> -->
+		<!-- <artifactId>htmlunit-driver</artifactId> -->
+		<!-- <version>2.33.3</version> -->
+		<!-- </dependency> -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.seleniumhq.selenium</groupId> -->
+		<!-- <artifactId>selenium-htmlunit-driver</artifactId> -->
+		<!-- <version>2.52.0</version> -->
+		<!-- </dependency> -->
+		<!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/htmlunit-driver -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>htmlunit-driver</artifactId>
+			<version>2.33.3</version>
+		</dependency>
 
 
-		
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -230,7 +232,7 @@
 			<plugin>
 				<groupId>org.liquibase</groupId>
 				<artifactId>liquibase-maven-plugin</artifactId>
-<!-- 				<version>3.5.3</version> -->
+				<!-- <version>3.5.3</version> -->
 				<configuration>
 					<skip>${skipTests}</skip>
 					<propertyFile>target/classes/liquibase/liquibase.properties</propertyFile>
@@ -311,9 +313,61 @@
 				<configuration>
 					<descriptors>
 						<descriptor>src/main/assembly/repository.xml</descriptor>
+						<descriptor>src/main/assembly/distribution.xml</descriptor>
 					</descriptors>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>${dockerfile-maven-version}</version>
+				<!-- <executions> -->
+				<!-- <execution> -->
+				<!-- <id>id</id> -->
+				<!-- <goals> -->
+				<!-- <goal>build</goal> -->
+				<!-- </goals> -->
+				<!-- </execution> -->
+				<!-- </executions> -->
+				<configuration>
+					<repository>${docker.image.prefix}/${project.artifactId}</repository>
+					<!-- <tag>${project.version}</tag> -->
+					<buildArgs>
+						<JAR_FILE>${project.artifactId}-${project.version}-exec.jar</JAR_FILE>
+					</buildArgs>
+				</configuration>
+			</plugin>
+			<!-- <plugin> -->
+			<!-- <groupId>com.spotify</groupId> -->
+			<!-- <artifactId>dockerfile-maven-plugin</artifactId> -->
+			<!-- <version>1.4.10</version> -->
+			<!-- <configuration> -->
+			<!-- <buildArgs>target/${project.artifactId}-${project.version}-exec.jar</buildArgs> -->
+			<!-- <repository>${docker.image.prefix}/${project.artifactId}</repository> -->
+			<!-- </configuration> -->
+			<!-- </plugin> -->
+			<!-- <plugin> -->
+			<!-- <groupId>org.apache.maven.plugins</groupId> -->
+			<!-- <artifactId>maven-dependency-plugin</artifactId> -->
+			<!-- <executions> -->
+			<!-- <execution> -->
+			<!-- <id>unpack</id> -->
+			<!-- <phase>deploy</phase> -->
+			<!-- <goals> -->
+			<!-- <goal>unpack</goal> -->
+			<!-- </goals> -->
+			<!-- <configuration> -->
+			<!-- <artifactItems> -->
+			<!-- <artifactItem> -->
+			<!-- <groupId>${project.groupId}</groupId> -->
+			<!-- <artifactId>${project.artifactId}</artifactId> -->
+			<!-- <version>${project.version}</version> -->
+			<!-- </artifactItem> -->
+			<!-- </artifactItems> -->
+			<!-- </configuration> -->
+			<!-- </execution> -->
+			<!-- </executions> -->
+			<!-- </plugin> -->
 		</plugins>
 	</build>
 
@@ -321,7 +375,15 @@
 
 
 	<repositories>
-
+		<repository>
+			<id>central</id>
+			<name>Maven Repository Switchboard</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
 		<repository>
 			<id>nuiton.release</id>
 			<name>NuitonReleaseRepository</name>
