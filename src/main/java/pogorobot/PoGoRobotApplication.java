@@ -380,7 +380,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		}
 		StartCommand startCommand = ctx.getBean(StartCommand.class);
 		HelloCommand helloCommand = ctx.getBean(HelloCommand.class);
-		HelpCommand helpCommand = ctx.getBean(HelpCommand.class, pogoBot);
+		HelpCommand helpCommand = ctx.getBean(HelpCommand.class);
 		StopCommand stopCommand = ctx.getBean(StopCommand.class);
 		StopallCommand stopallCommand = ctx.getBean(StopallCommand.class);
 		pogoBot.register(helloCommand);

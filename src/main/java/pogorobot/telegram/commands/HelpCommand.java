@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -30,7 +29,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.UserService;
-import pogorobot.telegram.PogoBot;
 
 /**
  * This command helps the user to find the command they need
@@ -51,11 +49,12 @@ public class HelpCommand extends BotCommand {
 	private TelegramKeyboardService telegramKeyboardService;
 
 	// @Autowired
-	private PogoBot pogoBot;
+	// private PogoBot pogoBot;
 
-	public HelpCommand(PogoBot pogoBot) {
+	// public HelpCommand(PogoBot pogoBot) {
+	public HelpCommand() {
 		super("help", "Zeig alle Befehle des Bots an");
-		this.pogoBot = pogoBot;
+		// this.pogoBot = pogoBot;
 	}
 	// public HelpCommand(ICommandRegistry pogoBot, UserService userService,
 	// TelegramKeyboardService keyboardService) {
@@ -73,11 +72,11 @@ public class HelpCommand extends BotCommand {
 		}
 
 		StringBuilder helpMessageBuilder = new StringBuilder("<b>Help</b>\n");
-		helpMessageBuilder.append("Das sind die Befehle für diesen Bot:\n\n");
+		helpMessageBuilder.append("Das sind die Befehle für diesen Bot:\n\nUps, vergessen :(");
 
-		for (IBotCommand botCommand : pogoBot.getRegisteredCommands()) {
-			helpMessageBuilder.append(botCommand.toString()).append("\n\n");
-		}
+		// for (IBotCommand botCommand : pogoBot.getRegisteredCommands()) {
+		// helpMessageBuilder.append(botCommand.toString()).append("\n\n");
+		// }
 
 		SendMessage helpMessage = new SendMessage();
 		helpMessage.setChatId(chat.getId().toString());
