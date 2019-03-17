@@ -1,11 +1,12 @@
 
-# Telegram bot:
+# telegram bot:
 
-standard.botname=PoGoRobot
+standard.botname=<your-bot-name>
+# bot token:
 standard.bottoken=123456789:AAAA-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # Path to log files
-# standard.pathToLogs=./
+#standard.pathToLogs=./
 
 # Database for pogorobot (postgres or mysql):
 
@@ -20,8 +21,8 @@ standard.jdbcurl=jdbc:mysql://localhost:3306/telegramdb
 standard.controllerdbclass=com.mysql.jdbc.Driver
 
 # database user and password
-standard.user=telegram
-standard.password=password
+standard.user=<your-db-user>
+standard.password=<your-db-secret>
 
 # to generate new database structure set to true
 standard.generateDdl=false

@@ -6,7 +6,7 @@ VOLUME /tmp
 #COPY ${DEPENDENCY}/BOOT-INF/classes /pogorobot
 #ENTRYPOINT ["java","-cp","pogorobot:pogorobot/lib/*","pogorobot.PoGoRobotApplication"]
 ARG JAR_FILE
-COPY config-example /config
+COPY config /config
 COPY target/${JAR_FILE} pogorobot.jar
-#ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/pogorobot.jar"]
+#ENTRYPOINT ["java","-jar","/pogorobot.jar"]
 ENTRYPOINT ["java","-Dext.properties.dir=file:/config","-Xmx700m","-jar","/pogorobot.jar"]
