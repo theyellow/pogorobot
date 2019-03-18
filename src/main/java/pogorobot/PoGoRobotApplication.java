@@ -246,6 +246,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			configReader.updateGroupFilterWithMons();
 			configReader.updateGroupFilterWithRaidMons();
 			configReader.updateGroupFilterWithIV();
+			configReader.updateGroupFilterWithLevel();
 
 			for (User user : allUsers) {
 				if (user.isSuperadmin()) {

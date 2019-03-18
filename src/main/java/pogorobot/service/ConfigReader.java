@@ -37,6 +37,8 @@ public interface ConfigReader {
 
 	void updateGroupFiltersWithGeofences() throws IOException;
 
+	void updateGroupFilterWithLevel() throws IOException;
+
 	Map<MessageConfigElement, JSONObject> getMessageTemplate() throws IOException;
 
 }

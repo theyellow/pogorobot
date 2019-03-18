@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
@@ -159,6 +160,12 @@ public class ConfigReaderImpl implements ConfigReader {
 		updateFilterWithGroupsInternally(newFilters);
 	}
 
+	@Override
+	public void updateGroupFilterWithLevel() throws IOException {
+		List<Filter> newFilters = getFiltersWithGroupRaidLevelFromFile();
+		updateFilterWithGroupsInternally(newFilters);
+	}
+
 	private void updateFilterWithGroupsInternally(List<Filter> newFilters) {
 		List<Filter> groupFilters = filterService.getFiltersByType(FilterType.GROUP);
 		List<UserGroup> userGroups = new ArrayList<>();
@@ -181,6 +188,11 @@ public class ConfigReaderImpl implements ConfigReader {
 					List<Integer> pokemon = newFilter.getPokemons();
 					if (pokemon != null && !pokemon.isEmpty()) {
 						installedFilter.setPokemons(pokemon);
+					}
+
+					Integer raidLevel = newFilter.getRaidLevel();
+					if (null != raidLevel) {
+						installedFilter.setRaidLevel(raidLevel);
 					}
 
 					Set<Geofence> geofences = newFilter.getGeofences();
@@ -412,6 +424,7 @@ public class ConfigReaderImpl implements ConfigReader {
 		return result;
 	}
 
+
 	private <T> Map<String, List<T>> parseGroupConfigFile(String fileName, Function<String, T> function)
 			throws IOException {
 		Map<String, List<T>> result = new HashMap<>();
@@ -468,6 +481,25 @@ public class ConfigReaderImpl implements ConfigReader {
 			Filter filter = new Filter();
 			filter.setFilterType(FilterType.GROUP);
 			filter.setRaidPokemon(groupRaidPokemon.getValue());
+			UserGroup group = new UserGroup();
+			group.setGroupName(groupRaidPokemon.getKey());
+			group.setGroupFilter(filter);
+			filter.setGroup(group);
+			result.add(filter);
+		}
+		return result;
+	}
+
+	private List<Filter> getFiltersWithGroupRaidLevelFromFile() throws IOException {
+		List<Filter> result = new ArrayList<>();
+		String fileName = "groupraidlevel.txt";
+		Map<String, List<Integer>> groups = parseGroupConfigFile(fileName, x -> Integer.valueOf(x.trim()));
+		for (Entry<String, List<Integer>> groupRaidPokemon : groups.entrySet()) {
+			Filter filter = new Filter();
+			filter.setFilterType(FilterType.GROUP);
+			if (!CollectionUtils.isEmpty(groupRaidPokemon.getValue())) {
+				filter.setRaidLevel(groupRaidPokemon.getValue().get(0));
+			}
 			UserGroup group = new UserGroup();
 			group.setGroupName(groupRaidPokemon.getKey());
 			group.setGroupFilter(filter);
