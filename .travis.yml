@@ -9,9 +9,9 @@ cache:
   directories:
   - $HOME/.m2
 deploy:
-  - if: type = push
+  - 
     on:
-      all_branches: true
+      all_branches: false
     provider: bintray
     skip_cleanup: true
     file: bintray-descriptor.json
