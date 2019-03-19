@@ -4,7 +4,7 @@ install: true
 script:
   - export DATE_TIME=`date +'%y.%m.%d %H:%M:%S'`
   - mvn clean compile package install deploy
-  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; mvn sonar:sonar -Dsonar.projectKey=theyellow_pogorobot -Dsonar.organization=theyellow-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_LOGIN;fi'
+  - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; mvn sonar:sonar -Dsonar.projectKey=theyellow_pogorobot -Dsonar.organization=theyellow-github -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=$SONAR_LOGIN; fi'
 cache:
   directories:
   - $HOME/.m2
