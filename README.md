@@ -8,9 +8,9 @@ It can be used for
 - submitting manual raid-entries by users
 - being webhooked up by Rocketmap, RDM, PGSS (submit an issue if you would like to have monocle or something else, needs to be tested...)
 
-To be used it in private-mode or in groups or channels.
+To be used in private-mode or in groups or channels.
 
-In private mode users can manually select in telegram what and where they want to see monsters and raids. 
+In private mode, users can manually select in telegram what and where they want to see monsters and raids. 
 
 There is no need for external webservers, but you need java and a database (at the moment only mysql-build exists, submit an issue if you would like to have postgres or h2).
 
