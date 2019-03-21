@@ -164,9 +164,6 @@ public class RaidAtGymEvent {
 				}
 			}
 		}
-
-		// this.eventsWithSubscribers.removeAll(this.eventsWithSubscribers);
-		// this.eventsWithSubscribers.addAll(eventsWithSubscribers);
 		this.eventsWithSubscribers.stream().forEach(x -> x.setRaid(this));
 	}
 
@@ -210,13 +207,6 @@ public class RaidAtGymEvent {
 
 	@Transient
 	private final SortedSet<String> getPossibleTimeStrings() {
-		// int secondTimeSlotAfterMinutes = 10;
-		// int thirdTimeSlotAfterMinutes = 25;
-		// int fourthTimeSlotAfterMinutes = 40;
-		// List<Integer> timeslotsAfterMinutes = new ArrayList<>();
-		// Integer slot = 10;
-
-		// TODO: Do we really need this:
 		Long start = getStart();
 		long nowInSeconds = System.currentTimeMillis() / 1000;
 		if (start == null) {
@@ -242,128 +232,8 @@ public class RaidAtGymEvent {
 		nextTime = nextTime.plusMinutes(10);
 		result.add(nextTime.format(formatter));
 
-		// while (getEnd() > (getStart() + slot * 60) && timeslotsAfterMinutes.size() <=
-		// 4) {
-		// timeslotsAfterMinutes.add(slot);
-		// slot += 15;
-		// }
-		// LocalDateTime beginTime =
-		// LocalDateTime.ofInstant(Instant.ofEpochSecond(getStart()), systemDefault);
-		// LocalDateTime firstSlot = beginTime.truncatedTo(ChronoUnit.MINUTES);
-		// LocalDateTime nextFiveMinuteSlot = beginTime.truncatedTo(ChronoUnit.HOURS)
-		// .plusMinutes(5 * (beginTime.getMinute() / 5) + 5);
-		// refactoredAddTimeSlots(result, beginTime, endTime, formatter,
-		// nextFiveMinuteSlot,
-		// timeslotsAfterMinutes.toArray(new Integer[timeslotsAfterMinutes.size()]));
-		// addTimeSlots(secondTimeSlotAfterMinutes, thirdTimeSlotAfterMinutes,
-		// fourthTimeSlotAfterMinutes, result,
-		// endTime, formatter, nextFiveMinuteSlot);
 		return result;
 	}
-
-	// private void refactoredAddTimeSlots(SortedSet<String> result, LocalDateTime
-	// beginTime, LocalDateTime endTime,
-	// DateTimeFormatter formatter,
-	// LocalDateTime nextFiveMinuteSlot, Integer... timeSlotsAfterMinutes) {
-	// Arrays.asList(timeSlotsAfterMinutes).stream().forEach((afterMinutes) -> {
-	// if (isNotAfterEnd(afterMinutes, endTime, nextFiveMinuteSlot)) {
-	// addNormalTimeslot(afterMinutes, result, formatter, nextFiveMinuteSlot);
-	// }
-	// });
-	// addEndTime(result, endTime, formatter);
-		// setStart(end - GymService.RAID_DURATION * 60);
-		// if (isNotAfterEnd(nextTimeSlotAfterMinutes, endTime, nextFiveMinuteSlot)) {
-		// if (fourthTimeSlotAfterMinutes != null) {
-		// addTimeSlots(thirdTimeSlotAfterMinutes, fourthTimeSlotAfterMinutes, null,
-		// result, endTime, formatter,
-		// nextFiveMinuteSlot);
-		// } else if (thirdTimeSlotAfterMinutes != null) {
-		// addTimeSlots(nextTimeSlotAfterMinutes, null, null, result, endTime,
-		// formatter, nextFiveMinuteSlot);
-		// }
-		// // addLastTimeslots(thirdTimeSlotAfterMinutes, fourthTimeSlotAfterMinutes,
-		// // result, endTime, formatter, nextFiveMinuteSlot);
-		// } else {
-		// addEndTime(result, endTime, formatter);
-		// }
-	// }
-
-	// private void addTimeSlots(int nextTimeSlotAfterMinutes, Integer
-	// thirdTimeSlotAfterMinutes,
-	// Integer fourthTimeSlotAfterMinutes, SortedSet<String> result, LocalDateTime
-	// endTime,
-	// DateTimeFormatter formatter, LocalDateTime nextFiveMinuteSlot) {
-	// if (isNotAfterEnd(nextTimeSlotAfterMinutes, endTime, nextFiveMinuteSlot)) {
-	// addNormalTimeslot(nextTimeSlotAfterMinutes, result, formatter,
-	// nextFiveMinuteSlot);
-	// if (fourthTimeSlotAfterMinutes != null) {
-	// addTimeSlots(thirdTimeSlotAfterMinutes, fourthTimeSlotAfterMinutes, null,
-	// result, endTime, formatter,
-	// nextFiveMinuteSlot);
-	// } else if (thirdTimeSlotAfterMinutes != null) {
-	// addTimeSlots(nextTimeSlotAfterMinutes, null, null, result, endTime,
-	// formatter, nextFiveMinuteSlot);
-	// }
-	// // addLastTimeslots(thirdTimeSlotAfterMinutes, fourthTimeSlotAfterMinutes,
-	// // result, endTime, formatter, nextFiveMinuteSlot);
-	// } else {
-	// addEndTime(result, endTime, formatter);
-	// }
-	// }
-
-	// private void addLastTimeslots(int nextTimeSlotAfterMinutes, Integer
-	// nextNextTimeSlotAfterMinutes,
-	// SortedSet<String> result, LocalDateTime endTime,
-	// DateTimeFormatter formatter, LocalDateTime nextFiveMinuteSlot) {
-	// if (isNotAfterEnd(nextTimeSlotAfterMinutes, endTime, nextFiveMinuteSlot)) {
-	// addNormalTimeslot(nextTimeSlotAfterMinutes, result, formatter,
-	// nextFiveMinuteSlot);
-	// if (nextNextTimeSlotAfterMinutes != null) {
-	// addLastTimeslots(nextNextTimeSlotAfterMinutes, null, result, endTime,
-	// formatter, nextFiveMinuteSlot);
-	// }
-	// // addLastTimeslot(nextNextTimeSlotAfterMinutes, result, endTime, formatter,
-	// // nextFiveMinuteSlot);
-	// } else {
-	// addEndTime(result, endTime, formatter);
-	// }
-	// }
-
-	// private void addLastTimeslot(int nextTimeSlotAfterMinutes,
-	// SortedSet<String> result, LocalDateTime endTime, DateTimeFormatter formatter,
-	// LocalDateTime nextFiveMinuteSlot) {
-	// if (isNotAfterEnd(nextTimeSlotAfterMinutes, endTime, nextFiveMinuteSlot)) {
-	// addNormalTimeslot(nextTimeSlotAfterMinutes, result, formatter,
-	// nextFiveMinuteSlot);
-	// } else {
-	// addEndTime(result, endTime, formatter);
-	// }
-	// }
-
-	// private boolean isNotAfterEnd(int fourthTimeSlotAfterMinutes, LocalDateTime
-	// endTime,
-	// LocalDateTime nextFiveMinuteSlot) {
-	// return
-	// endTime.isAfter(nextFiveMinuteSlot.plusMinutes(fourthTimeSlotAfterMinutes));
-	// }
-	//
-	// private boolean addNormalTimeslot(int fourthTimeSlotAfterMinutes,
-	// SortedSet<String> result,
-	// DateTimeFormatter formatter, LocalDateTime nextFiveMinuteSlot) {
-	// return
-	// result.add(nextFiveMinuteSlot.plusMinutes(fourthTimeSlotAfterMinutes).format(formatter));
-	// }
-	//
-	// private boolean addEndTime(SortedSet<String> result, LocalDateTime endTime,
-	// DateTimeFormatter formatter) {
-	// return result.add(endTime.minusMinutes(2).format(formatter));
-	// }
-
-	// public static void main(String[] args) {
-	// RaidWithGym raid = new RaidWithGym("myGymId");
-	// new RaidAtGymEvent(raid).getEventsWithSubscribers().stream()
-	// .forEachOrdered(x -> System.out.println(x.getTime()));
-	// }
 
 	public String getId() {
 		return id;

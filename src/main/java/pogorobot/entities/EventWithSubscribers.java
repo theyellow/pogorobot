@@ -97,11 +97,6 @@ public class EventWithSubscribers extends AbstractPersistable<Long> implements C
 		this.raid = raid;
 	}
 
-	// @Transient
-	// public String getGymId() {
-	// return getRaid().getGymId();
-	// }
-
 	@Override
 	public int compareTo(EventWithSubscribers o) {
 		int compareTo;
@@ -110,7 +105,12 @@ public class EventWithSubscribers extends AbstractPersistable<Long> implements C
 		} else if (o == null || o.getTime() == null) {
 			compareTo = 1;
 		} else {
-			compareTo = time.compareTo(o.getTime());
+			if (time.startsWith("9") && o.getTime().startsWith("10")) {
+				// special: between 9 and 10 we need to compare ourself this time string
+				compareTo = -1;
+			} else {
+				compareTo = time.compareTo(o.getTime());
+			}
 		}
 		return compareTo;
 	}
