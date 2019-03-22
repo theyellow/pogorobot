@@ -17,6 +17,9 @@
 package pogorobot;
 
 import java.beans.PropertyVetoException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -91,6 +94,8 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 	private RaidBossListUpdater raidBossListUpdater;
 
+	private GroupfilesTimestamps groufileTimestamp;
+
 	public static void main(String[] args) {
 		SpringApplication.run(PoGoRobotApplication.class, args);
 	}
@@ -110,6 +115,77 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		return () -> {
 			gymService.deleteOldGymPokemonOnDatabase();
 		};
+	}
+
+	private Runnable getReloadConfigurationTask(ConfigReader configReader) {
+		return () -> {
+			logger.debug("Check for new configuration timestamps");
+			if (groupfilesNewTimestamp()) {
+				logger.info("Reload group*.txt files and geofences");
+				try {
+					loadConfiguration(configReader);
+				} catch (IOException e) {
+					logger.error("Error while reloading configuration", e);
+				}
+			}
+		};
+	}
+
+	private boolean groupfilesNewTimestamp() {
+		GroupfilesTimestamps groupfilesTimestamps = new GroupfilesTimestamps();
+		int compareValue = groupfilesTimestamps.compareTo(groufileTimestamp);
+		return compareValue != 0;
+	}
+
+	private class GroupfilesTimestamps implements Comparable<GroupfilesTimestamps> {
+		private long timestampGroupRaidLevelFile;
+		private long timestampGroupRaidMonstersFile;
+		private long timestampGroupMonsterFile;
+		private long timestampGroupIvFile;
+		private long timestampGroupGeofencesFile;
+		private long timestampGroupChatIdFile;
+		private long timestampGeofencesFile;
+
+		public GroupfilesTimestamps() {
+			String relativePath = System.getProperty("ext.properties.dir").substring(5);
+			try {
+				timestampGroupRaidLevelFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupraidlevel.txt"))
+						.toMillis();
+				timestampGroupRaidMonstersFile = Files
+						.getLastModifiedTime(Paths.get(relativePath, "groupraidmonsters.txt")).toMillis();
+				timestampGroupMonsterFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupmonsters.txt"))
+						.toMillis();
+				timestampGroupIvFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupiv.txt")).toMillis();
+				timestampGroupGeofencesFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupgeofences.txt"))
+						.toMillis();
+				timestampGroupChatIdFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupchatid.txt"))
+						.toMillis();
+				timestampGeofencesFile = Files.getLastModifiedTime(Paths.get(relativePath, "geofences.txt")).toMillis();
+			} catch (IOException e) {
+				logger.error("Couldn't retrieve timestamps from " + relativePath);
+			}
+
+		}
+
+		@Override
+		public int compareTo(GroupfilesTimestamps o) {
+			if (null == o) {
+				return 1;
+			}
+			// @formatter:off
+			if (timestampGeofencesFile == o.timestampGeofencesFile &&
+				timestampGroupChatIdFile == o.timestampGroupChatIdFile &&
+				timestampGroupGeofencesFile == o.timestampGroupGeofencesFile &&
+				timestampGroupIvFile == o.timestampGroupIvFile &&
+				timestampGroupMonsterFile == o.timestampGroupMonsterFile &&
+				timestampGroupRaidMonstersFile == o.timestampGroupRaidMonstersFile &&
+				timestampGroupRaidLevelFile == o.timestampGroupRaidLevelFile) {
+			// @formatter:on
+				return 0;
+			}
+			return -1;
+		}
+
 	}
 
 	private Runnable getUpdateRaidBossListTask(PossibleRaidPokemonRepository raidPokemonRepository) {
@@ -240,13 +316,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 			ConfigReader configReader = ctx.getBean(ConfigReader.class);
 
-			configReader.updateGeofences();
-			configReader.updateGroupsWithIds();
-			configReader.updateGroupFiltersWithGeofences();
-			configReader.updateGroupFilterWithMons();
-			configReader.updateGroupFilterWithRaidMons();
-			configReader.updateGroupFilterWithIV();
-			configReader.updateGroupFilterWithLevel();
+			loadConfiguration(configReader);
 
 			for (User user : allUsers) {
 				if (user.isSuperadmin()) {
@@ -270,7 +340,21 @@ public class PoGoRobotApplication implements ApplicationRunner {
 					new CronTrigger("0 16 5,11,17,23 * * *"));
 			taskScheduler.schedule(getDeleteOldGymsTask(telegramSendMessagesService),
 					new CronTrigger("10/40 * * * * *"));
+			taskScheduler.schedule(getReloadConfigurationTask(ctx.getBean(ConfigReader.class)),
+					new CronTrigger("20/50 * * * * *"));
+
 		};
+	}
+
+	private void loadConfiguration(ConfigReader configReader) throws IOException {
+		groufileTimestamp = new GroupfilesTimestamps();
+		configReader.updateGeofences();
+		configReader.updateGroupsWithIds();
+		configReader.updateGroupFiltersWithGeofences();
+		configReader.updateGroupFilterWithMons();
+		configReader.updateGroupFilterWithRaidMons();
+		configReader.updateGroupFilterWithIV();
+		configReader.updateGroupFilterWithLevel();
 	}
 
 	private Runnable getDeleteOldGymsTask(TelegramSendMessagesService telegramSendMessagesService) {

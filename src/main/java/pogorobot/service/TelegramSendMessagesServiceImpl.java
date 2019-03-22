@@ -459,7 +459,6 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				return;
 			}
 			if (nowInSecons > endTime) {
-				logger.info("Delete message - time difference in minutes is " + (nowInSecons - endTime) / 60);
 				owningRaid = processedRaidRepository.findById(owningRaid.getId()).orElse(null);
 				if (owningRaid == null) {
 					logger.warn("Could not find owning raid in table");
@@ -507,7 +506,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 							+ possibleException.getMessage());
 					// TODO: what kind of error handling is best here? (We also want to dele
 					// throw possibleException;
+				} else {
+					logger.info("Deleted message, difference is " + (nowInSecons - endTime) / 60 + " minutes");
 				}
+
 				if (possibleException != null) {
 					logger.warn("Some messages in chats couldn't be deleted, thrown Exception was: "
 							+ possibleException.getMessage());
