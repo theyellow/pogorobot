@@ -6,7 +6,7 @@ It can be used for
 - delivering monster-messages to users and/or groups
 - delivering raid-messages to users and/or groups
 - submitting manual raid-entries by users
-- being webhooked up by Rocketmap, RDM, PGSS (submit an issue if you would like to have monocle or something else, needs to be tested...)
+- being webhooked up by Rocketmap, RDM, PGSS (submit an issue if you would like to have MAD, needs to be tested...)
 
 To be used in private-mode or in groups or channels.
 
@@ -16,7 +16,9 @@ There is no need for external webservers, but you need java and a database (at t
 
 [Short installation instructions for hosting your bot](https://github.com/theyellow/pogorobot/wiki/Short-installation-and-usage-guide)
 
-[Download compiled ![Download](https://api.bintray.com/packages/theyellow/repo/pogorobot/images/download.svg?version=latest) ](https://bintray.com/theyellow/repo/pogorobot/latest/link) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=security_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=bugs)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)<br>
+[Telegram for help](https://t.me/pogorobot_users)
+
+[Download untested precompiled binary ![Download](https://api.bintray.com/packages/theyellow/repo/pogorobot/images/download.svg?version=latest) ](https://bintray.com/theyellow/repo/pogorobot/latest/link) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=security_rating)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)<br>
 (config-example directly at github, shell-script for linux with 'screen' also available there)
 
 
