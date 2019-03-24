@@ -64,5 +64,5 @@ public interface TelegramSendMessagesService {
 	//
 	// JSONObject getJsonPokemons();
 
-	void deleteMessage(Long groupChatId, Integer messageId, String groupName) throws TelegramApiException;
+	void deleteMessage(Long groupChatId, Integer messageId) throws TelegramApiException;
 }
