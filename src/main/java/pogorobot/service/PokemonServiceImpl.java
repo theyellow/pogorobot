@@ -17,6 +17,7 @@
 package pogorobot.service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.ProcessedPokemon;
+import pogorobot.entities.SendMessages;
 import pogorobot.repositories.ProcessedPokemonRepository;
 
 @Service("pokemonService")
@@ -74,19 +76,28 @@ public class PokemonServiceImpl implements PokemonService {
 		CriteriaQuery<ProcessedPokemon> retrieveProcessedMons = cb.createQuery(ProcessedPokemon.class);
 		retrieveProcessedMons.from(ProcessedPokemon.class);
 		List<ProcessedPokemon> processedPokemon = entityManager.createQuery(retrieveProcessedMons).getResultList();
-		List<String> processedMons = processedPokemon.stream().map(processed -> processed.getId())
+		List<Long> processedMons = processedPokemon.stream().map(processed -> processed.getId())
 				.collect(Collectors.toList());
+
 		int numberOfSavedPokemon = 0;
+
 		for (String encounterId : encounterIds) {
 			if (processedMons.remove(encounterId)) {
 				numberOfSavedPokemon++;
 			}
 		}
+		List<Set<SendMessages>> processedMessages = processedPokemon.stream()
+				.map(processed -> processed.getChatsPokemonIsPosted()).collect(Collectors.toList());
+
 		StopWatch stopWatch = StopWatch.createStarted();
-		logger.info("Cleaning up processed Pokemon - to delete: " + processedMons.size() + ", to save: "
+		logger.info("Cleaning up processed Pokemon - to delete: " + processedMessages.size() + ", to save: "
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
-		for (String mon : processedMons) {
+		for (Set<SendMessages> mon : processedMessages) {
+			// processedPokemonDAO.deleteById(mon);
+			// numberOfDeleted++;
+		}
+		for (Long mon : processedMons) {
 			processedPokemonDAO.deleteById(mon);
 			numberOfDeleted++;
 		}

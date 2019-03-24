@@ -20,7 +20,7 @@ import java.io.Serializable;
 
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-public class SendRaidAnswer {
+public class SendMessageAnswer {
 
 	Message stickerAnswer;
 

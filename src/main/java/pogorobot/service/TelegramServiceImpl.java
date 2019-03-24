@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
@@ -43,12 +44,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
-import pogorobot.entities.GroupMessages;
 import pogorobot.entities.Gym;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.ProcessedPokemon;
 import pogorobot.entities.ProcessedRaids;
 import pogorobot.entities.RaidAtGymEvent;
+import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
 import pogorobot.repositories.FilterRepository;
@@ -56,7 +57,7 @@ import pogorobot.repositories.ProcessedPokemonRepository;
 import pogorobot.repositories.ProcessedRaidRepository;
 import pogorobot.repositories.RaidAtGymEventRepository;
 import pogorobot.repositories.UserGroupRepository;
-import pogorobot.telegram.util.SendRaidAnswer;
+import pogorobot.telegram.util.SendMessageAnswer;
 import pogorobot.telegram.util.Type;
 
 @Service("telegramService")
@@ -107,31 +108,52 @@ public class TelegramServiceImpl implements TelegramService {
 		if (pokemon.getPokemonId() != null) // && pokemon.getVerified() deleted 'cause of RDRM
 		{
 			boolean deepScan = false;
-			ProcessedPokemon processedPokemon = processedPokemonDAO.findById(pokemon.getEncounterId()).orElse(null);
+
+			// TODO: remove pokemon messages and find a way to identify: (encounterId
+			// possible?)
+
+			List<ProcessedPokemon> processedPokemon = processedPokemonDAO.findByEncounterId(pokemon.getEncounterId());
+			ProcessedPokemon processedMon = null;
 			if (processedPokemon == null) {
-				processedPokemonDAO.save(new ProcessedPokemon(pokemon.getEncounterId()));
+				processedMon = processedPokemonDAO
+						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
+
 			} else {
 				logger.debug("pokemon already encountered with encounterId " + pokemon.getEncounterId() + " , pokemon: "
 						+ pokemon);
 				if (pokemon.getWeight() != null && pokemon.getDisappearTime() != null) {
 					deepScan = true;
-					logger.debug("it's a detailed mon-scan, so check iv-filter again...");
+					logger.debug("it's a detailed mon-scan, so check iv-filter again and update message...");
+					if (!processedPokemon.isEmpty()) {
+						List<Set<SendMessages>> possibleMessageIdToUpdate = processedPokemon.stream()
+								.map(x -> x.getChatsPokemonIsPosted()).collect(Collectors.toList());
+						for (Set<SendMessages> set : possibleMessageIdToUpdate) {
+							set.stream().forEach(x -> updateMonsterMessage(pokemon, x, true));
+						}
+						return;
+					}
 				} else {
 					logger.debug("but it's no detail-scan");
 				}
-
 			}
+
+			if (processedMon == null) {
+				processedMon = processedPokemonDAO
+						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
+			}
+
 			// Process all users:
 			for (User user : userService.getAllUsers()) {
 				if (user.isShowPokemonMessages()) {
 					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
 					Filter userFilter = user.getUserFilter();
-					CompletableFuture<SendRaidAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-							userFilter, deepScan);
-					SendRaidAnswer answer = getFutureAnswer(monsterFuture);
+					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
+							userFilter, deepScan, null);
+					SendMessageAnswer answer = getFutureAnswer(monsterFuture);
 					if (answer != null) {
 						logger.debug("Now we have future while sending to person :) The main-messageId is "
 								+ answer.getMainMessageAnswer().getMessageId());
+						updateProcessedMonster(processedMon, answer);
 					}
 				}
 			}
@@ -139,16 +161,18 @@ public class TelegramServiceImpl implements TelegramService {
 			final boolean onlyDeep = deepScan;
 
 			// Process all groups
+			final ProcessedPokemon processedMonFinal = processedMon;
 			userGroupRepository.findAll().iterator().forEachRemaining(group -> {
 				String chatId = String.valueOf(group.getChatId());
 				Filter groupFilter = group.getGroupFilter();
-				CompletableFuture<SendRaidAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-						groupFilter, onlyDeep);
+				CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
+						groupFilter, onlyDeep, null);
 				if (monsterFuture != null) {
-					SendRaidAnswer answer = getFutureAnswer(monsterFuture);
+					SendMessageAnswer answer = getFutureAnswer(monsterFuture);
 					if (answer != null) {
-						logger.debug("Now we have future while sending to group :) The main-messageId is "
-								+ answer.getMainMessageAnswer().getMessageId());
+						logger.debug("Now we have future while sending to group :) The main-message is "
+								+ answer.getMainMessageAnswer());
+						updateProcessedMonster(processedMonFinal, answer);
 					}
 				}
 			});
@@ -158,8 +182,26 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 	}
 
-	private CompletableFuture<SendRaidAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
-			Filter filter, boolean onlyDeepScan) {
+	private Boolean updateMonsterMessage(PokemonWithSpawnpoint pokemon, SendMessages sendMessage, boolean deepScan) {
+
+		logger.info(
+				"trigger updateMonsterMessage-editmessage future from triggerMonsterMessages for processed monster ");
+		CompletableFuture<SendMessageAnswer> future = startSendMonsterFuture(pokemon,
+				sendMessage.getGroupChatId().toString(), sendMessage.getMessageId());
+		SendMessageAnswer answer = getFutureAnswer(future);
+
+		// TODO: This code is possibly missing now
+		// if (answer != null && (answer.getLocationAnswer() != null ||
+		// answer.getStickerAnswer() != null
+		// || answer.getMainMessageAnswer() != null)) {
+		// updateProcessedMonster(processedPokemon, answer);
+		// }
+
+		return null;
+	}
+
+	private CompletableFuture<SendMessageAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
+			Filter filter, boolean onlyDeepScan, Integer possibleMessageIdToUpdate) {
 		Long id = filter.getId();
 		logger.debug("begin filter analyze for filter {}", id);
 		filter = filterDAO.findById(id).orElse(null);
@@ -167,7 +209,7 @@ public class TelegramServiceImpl implements TelegramService {
 			logger.warn("Could not find filter with id {}", id);
 			return null;
 		}
-		CompletableFuture<SendRaidAnswer> monsterFuture = null;
+		CompletableFuture<SendMessageAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
 		Double radiusPokemon = filter.getRadiusPokemon();
 		if (withIv) {
@@ -203,7 +245,7 @@ public class TelegramServiceImpl implements TelegramService {
 									Type.POKEMON)) {
 
 						logger.debug("start creating new future to send mon {} to {}", pokemon.getPokemonId(), chatId);
-						monsterFuture = startSendMonsterFuture(pokemon, chatId);
+						monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
 						return monsterFuture;
 					} else {
 						logger.info("pokemon {} isn't nearby or in a chosen area for filter {}", pokemon.getPokemonId(),
@@ -238,14 +280,15 @@ public class TelegramServiceImpl implements TelegramService {
 					Type.POKEMON)) {
 
 				logger.debug("pokemon {} will be send to {}", pokemon.getPokemonId(), chatId);
-				monsterFuture = startSendMonsterFuture(pokemon, chatId);
+				monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
 				return monsterFuture;
 			}
 		} else {
 			String msg = "no nearby- or area-search for filter " + filter.getId() + " because ";
 
-			if (onlyDeepScan) {
+			if (onlyDeepScan && filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
 				msg += " a deep inspection (pokemon 'spawned 2nd time' with iv-details) of iv was happening";
+				monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
 			} else {
 				msg += " pokemon " + pokemon.getPokemonId() + " is not in list";
 			}
@@ -254,8 +297,9 @@ public class TelegramServiceImpl implements TelegramService {
 		return monsterFuture;
 	}
 
-	private CompletableFuture<SendRaidAnswer> startSendMonsterFuture(PokemonWithSpawnpoint pokemon, String chatId) {
-		return startNewMessageFuture(null, null, chatId, null, null, pokemon, "pokemon");
+	private CompletableFuture<SendMessageAnswer> startSendMonsterFuture(PokemonWithSpawnpoint pokemon, String chatId,
+			Integer possibleMessageIdToUpdate) {
+		return startNewMessageFuture(null, null, chatId, null, possibleMessageIdToUpdate, pokemon, "pokemon");
 	}
 
 	@Override
@@ -290,21 +334,24 @@ public class TelegramServiceImpl implements TelegramService {
 				logger.info("Got event at gym that has " + processedRaids.size() + " entries");
 				for (ProcessedRaids processedRaid : processedRaids) {
 
-					Set<GroupMessages> groupsRaidIsPosted = null;
+					Set<SendMessages> groupsRaidIsPosted = null;
 					// List<ProcessedRaids> processedGymIds =
 					// processedRaidRepository.findByGymId(gym.getGymId());
 					// if (!processedGymIds.isEmpty() && processedGymIds.size() == 1) {
 					// ProcessedRaids processedRaid = processedGymIds.get(0);
 					groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
+
+					// Needed trigger to initialize resultSet:
 					logger.info("There are " + groupsRaidIsPosted.size() + " chats where this raid is posted");
-					for (GroupMessages groupMessages : groupsRaidIsPosted) {
+
+					for (SendMessages groupMessages : groupsRaidIsPosted) {
 						sendOnlyUpdate = true;
 						Long groupChatId = groupMessages.getGroupChatId();
 						Integer messageId = groupMessages.getMessageId();
 
 						// magic number: pokemonId -1 means "egg"
 						boolean raidMessage = !(pokemonId == -1);
-						CompletableFuture<SendRaidAnswer> future = null;
+						CompletableFuture<SendMessageAnswer> future = null;
 						if (raidMessage) {
 							logger.info("trigger raid-editmessage future from triggerRaidMessages for processed raid "
 									+ processedRaid.getId());
@@ -314,10 +361,9 @@ public class TelegramServiceImpl implements TelegramService {
 							logger.info("trigger egg-editmessage future from triggerRaidMessages for processed raid "
 									+ processedRaid.getId());
 							future = startNewEggMessageFuture(gym, gym.getRaid().getRaidLevel(), groupChatId.toString(),
-									eventsWithSubscribers,
-									messageId);
+									eventsWithSubscribers, messageId);
 						}
-						SendRaidAnswer answer = getFutureAnswer(future);
+						SendMessageAnswer answer = getFutureAnswer(future);
 						if (answer != null && (answer.getLocationAnswer() != null || answer.getStickerAnswer() != null
 								|| answer.getMainMessageAnswer() != null)) {
 							updateProcessedRaid(processedRaid, answer);
@@ -349,9 +395,9 @@ public class TelegramServiceImpl implements TelegramService {
 			//
 			for (Filter filter : filterService.getFiltersByType(FilterType.GROUP)) {
 				try {
-					CompletableFuture<SendRaidAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
+					CompletableFuture<SendMessageAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
 							filter, pokemonId, filter.getGroup().getChatId().toString(), eventsWithSubscribers);
-					SendRaidAnswer answer = getFutureAnswer(raidFuture);
+					SendMessageAnswer answer = getFutureAnswer(raidFuture);
 					if (answer != null && (answer.getLocationAnswer() != null || answer.getStickerAnswer() != null
 							|| answer.getMainMessageAnswer() != null)) {
 						updateProcessedRaid(processedRaid, answer);
@@ -366,7 +412,7 @@ public class TelegramServiceImpl implements TelegramService {
 				if (user.isShowRaidMessages()) {
 					Filter userFilter = filterDAO.findById(user.getUserFilter().getId()).orElse(null);
 					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
-					CompletableFuture<SendRaidAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
+					CompletableFuture<SendMessageAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
 							userFilter, pokemonId, chatId, eventsWithSubscribers);
 					getFutureAnswer(raidFuture);
 				}
@@ -376,20 +422,20 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 	}
 
-	private CompletableFuture<SendRaidAnswer> sendOrUpdateRaidIfFiltersMatch(Gym gym, Long level, Filter filter,
+	private CompletableFuture<SendMessageAnswer> sendOrUpdateRaidIfFiltersMatch(Gym gym, Long level, Filter filter,
 			int pokemonId, String chatId, SortedSet<EventWithSubscribers> eventWithSubscribers) {
 		List<Integer> raidPokemon = filter.getRaidPokemon();
-		CompletableFuture<SendRaidAnswer> future = null;
+		CompletableFuture<SendMessageAnswer> future = null;
 
 		// boolean sendOnlyUpdate = false;
-		// Set<GroupMessages> groupsRaidIsPosted = null;
+		// Set<SendMessages> chatsPokemonIsPosted = null;
 		// List<ProcessedRaids> processedGymIds =
 		// processedRaidRepository.findByGymId(gym.getGymId());
 		// if (!processedGymIds.isEmpty() && processedGymIds.size() == 1) {
 		// ProcessedRaids processedRaid = processedGymIds.get(0);
-		// groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
+		// chatsPokemonIsPosted = processedRaid.getGroupsRaidIsPosted();
 		// sendOnlyUpdate = true;
-		// for (GroupMessages groupMessages : groupsRaidIsPosted) {
+		// for (SendMessages groupMessages : chatsPokemonIsPosted) {
 		// Long groupChatId = groupMessages.getGroupChatId();
 		// Integer messageId = groupMessages.getMessageId();
 		//
@@ -429,19 +475,19 @@ public class TelegramServiceImpl implements TelegramService {
 		return future;
 	}
 
-	private CompletableFuture<SendRaidAnswer> startNewRaidMessageFuture(Gym fullGym, String chatId,
+	private CompletableFuture<SendMessageAnswer> startNewRaidMessageFuture(Gym fullGym, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
 		return startNewMessageFuture(fullGym, null, chatId, eventWithSubscribers, possibleMessageIdToUpdate, null,
 				"raid");
 	}
 
-	private ProcessedRaids updateProcessedRaid(ProcessedRaids processedRaid, SendRaidAnswer answer) {
-		Set<GroupMessages> groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
+	private ProcessedRaids updateProcessedRaid(ProcessedRaids processedRaid, SendMessageAnswer answer) {
+		Set<SendMessages> groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
 
 		if (groupsRaidIsPosted == null) {
 			groupsRaidIsPosted = new HashSet<>();
 		}
-		GroupMessages e = new GroupMessages();
+		SendMessages e = new SendMessages();
 		Message mainMessageAnswer = answer.getMainMessageAnswer();
 		if (mainMessageAnswer != null) {
 			e.setGroupChatId(mainMessageAnswer.getChatId());
@@ -463,10 +509,37 @@ public class TelegramServiceImpl implements TelegramService {
 
 	}
 
-	private SendRaidAnswer getFutureAnswer(CompletableFuture<SendRaidAnswer> future) {
+	private ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessageAnswer answer) {
+		Set<SendMessages> chatsPokemonIsPosted = processedPokemon.getChatsPokemonIsPosted();
+
+		if (chatsPokemonIsPosted == null) {
+			chatsPokemonIsPosted = new HashSet<>();
+		}
+		SendMessages e = new SendMessages();
+		Message mainMessageAnswer = answer.getMainMessageAnswer();
+		if (mainMessageAnswer != null) {
+			e.setGroupChatId(mainMessageAnswer.getChatId());
+			e.setMessageId(mainMessageAnswer.getMessageId());
+		}
+		Message stickerAnswer = answer.getStickerAnswer();
+		if (stickerAnswer != null) {
+			e.setGroupChatId(stickerAnswer.getChatId());
+			e.setStickerId(stickerAnswer.getMessageId());
+		}
+		Message locationAnswer = answer.getLocationAnswer();
+		if (locationAnswer != null) {
+			e.setGroupChatId(locationAnswer.getChatId());
+			e.setLocationId(locationAnswer.getMessageId());
+		}
+		processedPokemon.addToChatsPokemonIsPosted(e);
+		processedPokemon = processedPokemonDAO.save(processedPokemon);
+		return processedPokemon;
+	}
+
+	private SendMessageAnswer getFutureAnswer(CompletableFuture<SendMessageAnswer> future) {
 		if (future != null) {
 			try {
-				SendRaidAnswer answer = future.get();
+				SendMessageAnswer answer = future.get();
 				if (answer != null && answer.getMainMessageAnswer() != null) {
 					Iterable<UserGroup> allUserGroups = userGroupRepository.findAll();
 					Map<Long, String> groups = new HashMap<>();
@@ -490,21 +563,20 @@ public class TelegramServiceImpl implements TelegramService {
 		return null;
 	}
 
-	private CompletableFuture<SendRaidAnswer> startNewMessageFuture(Gym gym, Long level, String chatId,
+	private CompletableFuture<SendMessageAnswer> startNewMessageFuture(Gym gym, Long level, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate,
 			PokemonWithSpawnpoint pokemon, String type) {
-		CompletableFuture<SendRaidAnswer> future = CompletableFuture.supplyAsync(() -> {
+		CompletableFuture<SendMessageAnswer> future = CompletableFuture.supplyAsync(() -> {
 			try {
 				if ("egg".equals(type)) {
 					return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(),
-							eventWithSubscribers,
-						possibleMessageIdToUpdate);
+							eventWithSubscribers, possibleMessageIdToUpdate);
 				} else if ("raid".equals(type)) {
 					return telegramSendMessagesService.sendRaidMessage(gym, chatId, eventWithSubscribers,
 							possibleMessageIdToUpdate);
 				} else if ("pokemon".equals(type)) {
 					logger.debug("Now start sending pokemon " + pokemon.getPokemonId());
-					return telegramSendMessagesService.sendMonMessage(pokemon, chatId);
+					return telegramSendMessagesService.sendMonMessage(pokemon, chatId, possibleMessageIdToUpdate);
 				}
 			} catch (FileNotFoundException | DecoderException e) {
 				logger.error(e.getMessage(), e);
@@ -524,7 +596,7 @@ public class TelegramServiceImpl implements TelegramService {
 		return future;
 	}
 
-	private CompletableFuture<SendRaidAnswer> startNewEggMessageFuture(Gym gym, Long level, String chatId,
+	private CompletableFuture<SendMessageAnswer> startNewEggMessageFuture(Gym gym, Long level, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate) {
 		return startNewMessageFuture(gym, level, chatId, eventWithSubscribers, possibleMessageIdToUpdate, null, "egg");
 	}

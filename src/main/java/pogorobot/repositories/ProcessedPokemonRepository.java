@@ -17,11 +17,14 @@
 package pogorobot.repositories;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 
 import pogorobot.entities.ProcessedPokemon;
 
 public interface ProcessedPokemonRepository extends CrudRepository<ProcessedPokemon, Serializable> {
+
+	List<ProcessedPokemon> findByEncounterId(String encounterId);
 
 }

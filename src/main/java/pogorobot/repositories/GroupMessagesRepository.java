@@ -20,8 +20,8 @@ import java.io.Serializable;
 
 import org.springframework.data.repository.CrudRepository;
 
-import pogorobot.entities.GroupMessages;
+import pogorobot.entities.SendMessages;
 
-public interface GroupMessagesRepository extends CrudRepository<GroupMessages, Serializable> {
+public interface GroupMessagesRepository extends CrudRepository<SendMessages, Serializable> {
 
 }

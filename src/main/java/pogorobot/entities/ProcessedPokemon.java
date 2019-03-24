@@ -16,55 +16,92 @@
 
 package pogorobot.entities;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
-import org.springframework.data.domain.Persistable;
+import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
 @Table(name = "\"ProcessedPokemon\"")
-public class ProcessedPokemon implements Persistable<String> {
+public class ProcessedPokemon extends AbstractPersistable<Long> {
+
+	private static final long serialVersionUID = 887237113173573779L;
+
+	@Column(length = 50)
+	String encounterId;
+
+	Long endTime;
+
+	@OneToMany(cascade = CascadeType.ALL)
+	Set<SendMessages> chatsPokemonIsPosted;
 
 	public ProcessedPokemon() {
 		this(null);
 	}
 
-	public ProcessedPokemon(String encounterId) {
+	public ProcessedPokemon(Long id) {
 		super();
-		this.id = encounterId;
+		setId(id);
 	}
 
-	private static final long serialVersionUID = 887237883173573779L;
+	public ProcessedPokemon(String encounterId, Long endTime) {
+		super();
+		this.encounterId = encounterId;
+		this.endTime = endTime;
+	}
 
-	@Id
-	@Column(length = 32)
-	String id;
 
-	// public String getEncounterId() {
-	// return id;
-	// }
-	//
-	// public void setEncounterId(String id) {
-	// this.encounterId = id;
-	// }
+	public Long getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Long endTime) {
+		this.endTime = endTime;
+	}
+
+	public Set<SendMessages> getChatsPokemonIsPosted() {
+		if (chatsPokemonIsPosted == null) {
+			chatsPokemonIsPosted = new HashSet<>();
+		}
+		return chatsPokemonIsPosted;
+	}
+
+	public void setChatsPokemonIsPosted(Set<SendMessages> chatsPokemonIsPosted) {
+		this.chatsPokemonIsPosted = chatsPokemonIsPosted;
+	}
+
+	public void setEncounterId(String pokemonId) {
+		this.encounterId = pokemonId;
+	}
+
+	public void addToChatsPokemonIsPosted(SendMessages group) {
+		if (group != null) {
+			getChatsPokemonIsPosted().add(group);
+			group.setOwningPokemon(this);
+		}
+	}
+
+	public boolean removeFromChatsPokemonIsPosted(SendMessages group) {
+		group.setOwningPokemon(null);
+		return getChatsPokemonIsPosted().remove(group);
+	}
+
 
 	@Override
 	public String toString() {
-		return "ProcessedPokemon [" + (id != null ? "id=" + id : "") + "]";
+		return "ProcessedPokemon [" + (encounterId != null ? "encounterId=" + encounterId + ", " : "")
+				+ (endTime != null ? "endTime=" + endTime + ", " : "")
+				+ (chatsPokemonIsPosted != null ? "chatsPokemonIsPosted=" + chatsPokemonIsPosted : "") + "]";
 	}
 
-	@Override
-	public String getId() {
-		return id;
-	}
-
-	@Override
-	@Transient
-	public boolean isNew() {
-		return id == null;
+	public String getEncounterId() {
+		return encounterId;
 	}
 
 }

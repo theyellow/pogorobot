@@ -30,7 +30,7 @@ import pogorobot.entities.Gym;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
-import pogorobot.telegram.util.SendRaidAnswer;
+import pogorobot.telegram.util.SendMessageAnswer;
 
 public interface TelegramSendMessagesService {
 
@@ -42,19 +42,19 @@ public interface TelegramSendMessagesService {
 
 	public boolean sendMessageToFilteredPeople(Filter filter, String message);
 
-	SendRaidAnswer sendEggMessage(String chatId, Gym fullGym, String string,
+	SendMessageAnswer sendEggMessage(String chatId, Gym fullGym, String string,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
-	SendRaidAnswer sendRaidMessage(Gym fullGym, String chatId, SortedSet<EventWithSubscribers> eventWithSubscribers,
+	SendMessageAnswer sendRaidMessage(Gym fullGym, String chatId, SortedSet<EventWithSubscribers> eventWithSubscribers,
 			Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
-	SendRaidAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId,
+	SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
-	SendRaidAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId)
+	SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
 	Message sendMessage(PartialBotApiMethod<Message> message);

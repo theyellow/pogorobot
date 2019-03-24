@@ -23,14 +23,17 @@ import javax.persistence.Table;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
 @Entity
-@Table(name = "\"GroupMessages\"")
-public class GroupMessages extends AbstractPersistable<Long> {
+@Table(name = "\"SendMessages\"")
+public class SendMessages extends AbstractPersistable<Long> {
 
 	private static final long serialVersionUID = 2140983079194139692L;
 
 	@ManyToOne
 	// @JoinColumn(name = "owningRaid")
 	private ProcessedRaids owningRaid;
+
+	@ManyToOne
+	private ProcessedPokemon owningPokemon;
 
 	private Long groupChatId;
 
@@ -46,6 +49,14 @@ public class GroupMessages extends AbstractPersistable<Long> {
 
 	public void setOwningRaid(ProcessedRaids owningRaid) {
 		this.owningRaid = owningRaid;
+	}
+
+	public ProcessedPokemon getOwningPokemon() {
+		return owningPokemon;
+	}
+
+	public void setOwningPokemon(ProcessedPokemon owningPokemon) {
+		this.owningPokemon = owningPokemon;
 	}
 
 	public Long getGroupChatId() {
