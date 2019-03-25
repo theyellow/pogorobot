@@ -76,7 +76,7 @@ public class PokemonServiceImpl implements PokemonService {
 		CriteriaQuery<ProcessedPokemon> retrieveProcessedMons = cb.createQuery(ProcessedPokemon.class);
 		retrieveProcessedMons.from(ProcessedPokemon.class);
 		List<ProcessedPokemon> processedPokemon = entityManager.createQuery(retrieveProcessedMons).getResultList();
-		List<Long> processedMons = processedPokemon.stream().map(processed -> processed.getId())
+		List<String> processedMons = processedPokemon.stream().map(processed -> processed.getEncounterId())
 				.collect(Collectors.toList());
 
 		int numberOfSavedPokemon = 0;
@@ -97,13 +97,14 @@ public class PokemonServiceImpl implements PokemonService {
 			// processedPokemonDAO.deleteById(mon);
 			// numberOfDeleted++;
 		}
-		for (Long mon : processedMons) {
-			processedPokemonDAO.deleteById(mon);
-			numberOfDeleted++;
-		}
+		// for (Long mon : processedMons) {
+		// processedPokemonDAO.deleteById(mon);
+		// numberOfDeleted++;
+		// }
 		stopWatch.stop();
 		long time = stopWatch.getTime(TimeUnit.SECONDS);
 		logger.info("Cleaning up processed Pokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
+		logger.info("Just a fake, no processedPokemon deleted on database");
 	}
 
 	// public void deletePokemon(String mon) {
