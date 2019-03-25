@@ -17,6 +17,7 @@
 package pogorobot.service;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -114,6 +115,7 @@ public class TelegramServiceImpl implements TelegramService {
 
 			List<ProcessedPokemon> processedPokemon = processedPokemonDAO.findByEncounterId(pokemon.getEncounterId());
 			ProcessedPokemon processedMon = null;
+			List<Long> updatedChats = new ArrayList<>();
 			if (processedPokemon == null) {
 				processedMon = processedPokemonDAO
 						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
@@ -128,15 +130,21 @@ public class TelegramServiceImpl implements TelegramService {
 						List<Set<SendMessages>> possibleMessageIdToUpdate = processedPokemon.stream()
 								.map(x -> x.getChatsPokemonIsPosted()).collect(Collectors.toList());
 						for (Set<SendMessages> set : possibleMessageIdToUpdate) {
-							set.stream().forEach(x -> updateMonsterMessage(pokemon, x, true));
+							set.stream().forEach(x -> {
+								SendMessageAnswer updateMonsterMessage = updateMonsterMessage(pokemon, x, true);
+								if (updateMonsterMessage != null) {
+									updatedChats.add(x.getGroupChatId());
+								}
+							});
 						}
-						return;
+						// return;
 					}
 				} else {
 					logger.debug("but it's no detail-scan");
 				}
 			}
 
+			// Dead code?
 			if (processedMon == null) {
 				processedMon = processedPokemonDAO
 						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
@@ -147,14 +155,19 @@ public class TelegramServiceImpl implements TelegramService {
 				if (user.isShowPokemonMessages()) {
 					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
 					Filter userFilter = user.getUserFilter();
-					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-							userFilter, deepScan, null);
-					SendMessageAnswer answer = getFutureAnswer(monsterFuture);
-					if (answer != null) {
-						logger.debug("Now we have future while sending to person :) The main-messageId is "
-								+ answer.getMainMessageAnswer().getMessageId());
-						updateProcessedMonster(processedMon, answer);
+					if (!updatedChats.contains(Long.valueOf(chatId))) {
+						CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
+								userFilter, deepScan, null);
+						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
+						if (answer != null) {
+							logger.debug("Now we have future while sending to person :) The main-messageId is "
+									+ answer.getMainMessageAnswer().getMessageId());
+							updateProcessedMonster(processedMon, answer);
+						}
+					} else {
+						logger.debug("Message was already posted (and perhaps edited), no reposting necessary");
 					}
+
 				}
 			}
 			// Workaround to get info about deep-scanning param to group-filters
@@ -165,15 +178,20 @@ public class TelegramServiceImpl implements TelegramService {
 			userGroupRepository.findAll().iterator().forEachRemaining(group -> {
 				String chatId = String.valueOf(group.getChatId());
 				Filter groupFilter = group.getGroupFilter();
-				CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-						groupFilter, onlyDeep, null);
-				if (monsterFuture != null) {
-					SendMessageAnswer answer = getFutureAnswer(monsterFuture);
-					if (answer != null) {
-						logger.debug("Now we have future while sending to group :) The main-message is "
-								+ answer.getMainMessageAnswer());
-						updateProcessedMonster(processedMonFinal, answer);
+
+				if (!updatedChats.contains(Long.valueOf(chatId))) {
+					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
+							groupFilter, onlyDeep, null);
+					if (monsterFuture != null) {
+						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
+						if (answer != null) {
+							logger.debug("Now we have future while sending to group :) The main-message is "
+									+ answer.getMainMessageAnswer());
+							updateProcessedMonster(processedMonFinal, answer);
+						}
 					}
+				} else {
+					logger.debug("Message was already posted (and perhaps edited), no reposting necessary");
 				}
 			});
 
@@ -182,7 +200,8 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 	}
 
-	private Boolean updateMonsterMessage(PokemonWithSpawnpoint pokemon, SendMessages sendMessage, boolean deepScan) {
+	private SendMessageAnswer updateMonsterMessage(PokemonWithSpawnpoint pokemon, SendMessages sendMessage,
+			boolean deepScan) {
 
 		logger.info(
 				"trigger updateMonsterMessage-editmessage future from triggerMonsterMessages for processed monster ");
@@ -197,7 +216,7 @@ public class TelegramServiceImpl implements TelegramService {
 		// updateProcessedMonster(processedPokemon, answer);
 		// }
 
-		return null;
+		return answer;
 	}
 
 	private CompletableFuture<SendMessageAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,

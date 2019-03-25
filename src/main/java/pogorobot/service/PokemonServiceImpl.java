@@ -104,7 +104,7 @@ public class PokemonServiceImpl implements PokemonService {
 		stopWatch.stop();
 		long time = stopWatch.getTime(TimeUnit.SECONDS);
 		logger.info("Cleaning up processed Pokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
-		logger.info("Just a fake, no processedPokemon deleted on database");
+		logger.info("Just a fake, no processedPokemon deleted on database - saved " + numberOfDeleted);
 	}
 
 	// public void deletePokemon(String mon) {
