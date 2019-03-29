@@ -144,7 +144,6 @@ public class TelegramServiceImpl implements TelegramService {
 				}
 			}
 
-			// Dead code?
 			if (processedMon == null) {
 				processedMon = processedPokemonDAO
 						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
@@ -180,6 +179,7 @@ public class TelegramServiceImpl implements TelegramService {
 				Filter groupFilter = group.getGroupFilter();
 
 				if (!updatedChats.contains(Long.valueOf(chatId))) {
+					logger.debug("Chat {} will be tested with monster encounter {}", chatId, pokemon.getEncounterId());
 					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
 							groupFilter, onlyDeep, null);
 					if (monsterFuture != null) {
@@ -188,7 +188,13 @@ public class TelegramServiceImpl implements TelegramService {
 							logger.debug("Now we have future while sending to group :) The main-message is "
 									+ answer.getMainMessageAnswer());
 							updateProcessedMonster(processedMonFinal, answer);
+						} else {
+							logger.debug("got no real answer for monster encounter {} in chat {}",
+									pokemon.getEncounterId(), chatId);
 						}
+					} else {
+						logger.debug("got no future for monster encounter {} in chat {}, filter didn't match?",
+								pokemon.getEncounterId(), chatId);
 					}
 				} else {
 					logger.debug("Message was already posted (and perhaps edited), no reposting necessary");
@@ -222,21 +228,21 @@ public class TelegramServiceImpl implements TelegramService {
 	private CompletableFuture<SendMessageAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
 			Filter filter, boolean onlyDeepScan, Integer possibleMessageIdToUpdate) {
 		Long id = filter.getId();
-		logger.debug("begin filter analyze for filter {}", id);
+		logger.debug("begin filter analyze of {}", id);
 		filter = filterDAO.findById(id).orElse(null);
 		if (filter == null) {
-			logger.warn("Could not find filter with id {}", id);
+			logger.warn("Could not find filter {}", id);
 			return null;
 		}
 		CompletableFuture<SendMessageAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
 		Double radiusPokemon = filter.getRadiusPokemon();
 		if (withIv) {
-			// logger.debug("Begin calculating iv");
+			logger.debug("ivs given, begin...");
 			Double minIV = filter.getMinIV();
 			Double maxIV = filter.getMaxIV();
 			if (minIV != null) {
-				logger.debug("begin analyze IV for filter {}", filter.getId());
+				logger.debug("begin analyze IV for {}", filter.getId());
 				Integer attack = Integer.valueOf(pokemon.getIndividualAttack());
 				Integer defense = Integer.valueOf(pokemon.getIndividualDefense());
 				Integer stamina = Integer.valueOf(pokemon.getIndividualStamina());
