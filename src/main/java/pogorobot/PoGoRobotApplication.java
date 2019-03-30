@@ -361,7 +361,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		return () -> {
 			try {
 				telegramSendMessagesService.removeGroupRaidMessage();
-				logger.info("Cleaned messages...");
+				logger.debug("Cleaned messages...");
 			} catch (TelegramApiException e) {
 				logger.error("Error while deleting messages...", e);
 			}

@@ -289,7 +289,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		SendSticker stickerMessage = forMonsters && showStickers || !forMonsters && showRaidStickers
 				? createStickerMessage(chatId, stickerUrl)
 				: null;
-		logger.info("Sticker-end: " + stickerUrl);
+		logger.debug("Sticker-end: " + stickerUrl);
 		BotApiMethod<? extends Serializable> message = null;
 		if (forMonsters) {
 			message = createMessageForChat(messageText, chatId, possibleMessageIdToUpdate);

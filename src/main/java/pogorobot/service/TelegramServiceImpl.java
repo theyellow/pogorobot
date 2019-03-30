@@ -367,7 +367,7 @@ public class TelegramServiceImpl implements TelegramService {
 					groupsRaidIsPosted = processedRaid.getGroupsRaidIsPosted();
 
 					// Needed trigger to initialize resultSet:
-					logger.info("There are " + groupsRaidIsPosted.size() + " chats where this raid is posted");
+					logger.debug("There are " + groupsRaidIsPosted.size() + " chats where this raid is posted");
 
 					for (SendMessages groupMessages : groupsRaidIsPosted) {
 						sendOnlyUpdate = true;

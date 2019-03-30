@@ -334,10 +334,10 @@ public class ConfigReaderImpl implements ConfigReader {
 		Map<String, List<Double>> resultContent = new HashMap<>();
 		parseGroupConfigFile("geofences.txt", x -> x).entrySet().stream().forEach(
 				geofenceEntry -> resultContent.put(geofenceEntry.getKey(), splitCoordinates(geofenceEntry.getValue())));
-		for (Entry<String, List<Double>> geofence2 : resultContent.entrySet()) {
+		for (Entry<String, List<Double>> geofenceRaw : resultContent.entrySet()) {
 			Geofence fence = new Geofence();
-			fence.setGeofenceName(geofence2.getKey());
-			fence.setPolygon(geofence2.getValue());
+			fence.setGeofenceName(geofenceRaw.getKey());
+			fence.setPolygon(geofenceRaw.getValue());
 			result.add(fence);
 		}
 		return result;
@@ -463,9 +463,9 @@ public class ConfigReaderImpl implements ConfigReader {
 	}
 
 	private <T> Function<Integer, Map<String, List<T>>> createMapPutter(Map<String, List<T>> result,
-			List<String> groupNames, List<List<T>> allIv) {
+			List<String> groupNames, List<List<T>> allValues) {
 		return x -> {
-			List<T> list = result.put(groupNames.get(x), allIv.get(x));
+			List<T> list = result.put(groupNames.get(x), allValues.get(x));
 			if (list == null) {
 				logger.debug("no values found for group " + groupNames.get(x));
 			}

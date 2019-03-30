@@ -377,7 +377,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	private String parseMonsterTemplate(PokemonWithSpawnpoint pokemon, String generated) {
 		// String regex = "\\{\\{(?<word>.*?)\\}\\}";
-		String regex = "\\{\\{(?<word>[A-Za-z]+)\\}\\}";
+		String regex = "\\{\\{(?<word>[A-Za-z0-9]+)\\}\\}";
 
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(generated);
@@ -390,8 +390,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	private String parseRaidTemplate(Gym gym, Integer weatherBoosted, String color,
-			String cleanedMessage) {
+	private String parseRaidTemplate(Gym gym, Integer weatherBoosted, String color, String cleanedMessage) {
 		// String regex = "\\{\\{(?<word>.*?)\\}\\}";
 		// String level = String.valueOf( gym.getRaid().getRaidLevel());
 		// String monsterName = getPokemonName(gym.getRaid().getPokemonId().toString());
@@ -403,15 +402,14 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		// String imageUrl = gym.getUrl();
 		// String googleLink = getGoogleUrl(latitude, longitude);
 		// String appleLink = getAppleLink(latitude, longitude);
-		String regex = "\\{\\{(?<word>[A-Za-z]+)\\}\\}";
+		String regex = "\\{\\{(?<word>[A-Za-z0-9]+)\\}\\}";
 
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(cleanedMessage);
 
 		String result = "<<default>>";
 		while (matcher.find()) {
-			result = matcher.replaceFirst(
-					getRaidValueOf(matcher.group("word"), gym, weatherBoosted, color));
+			result = matcher.replaceFirst(getRaidValueOf(matcher.group("word"), gym, weatherBoosted, color));
 			matcher = pattern.matcher(result);
 		}
 		return result;
@@ -501,37 +499,56 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 						result = Emoji.NONE.toString();
 						break;
 					}
-			} else if (StringUtils.isNotEmpty(pokemon.getIndividualAttack())) {
+			} else {
+				String individualAttack = pokemon.getIndividualAttack();
+				if (StringUtils.isNotEmpty(individualAttack)) {
 
-				if (placeholderString.equalsIgnoreCase("cp")) {
-					result = pokemon.getCp();
-				} else if (placeholderString.equalsIgnoreCase("ivDefense") || placeholderString.equalsIgnoreCase("def")
-						|| placeholderString.equalsIgnoreCase("defense")) {
+					int attack = Integer.parseInt(individualAttack);
+					String individualDefense = pokemon.getIndividualDefense();
 
-					String ivDefense = pokemon.getIndividualDefense();
-					result = ivDefense;
+					int defense = Integer.parseInt(individualDefense);
+					String individualStamina = pokemon.getIndividualStamina();
 
-				} else if (placeholderString.equalsIgnoreCase("iv")) {
-					int attack = Integer.parseInt(pokemon.getIndividualAttack());
-					int defense = Integer.parseInt(pokemon.getIndividualDefense());
-					int stamina = Integer.parseInt(pokemon.getIndividualStamina());
+					int stamina = Integer.parseInt(individualStamina);
 					double ivs = calculateIVs(attack, defense, stamina);
+
 					String ivString = Double.toString(ivs);
 					ivString = ivString.substring(0, ivString.indexOf(".") + 2);
-					result = ivString;
-				} else if (placeholderString.equalsIgnoreCase("ivAttack") || placeholderString.equalsIgnoreCase("atk")
-						|| placeholderString.equalsIgnoreCase("attack")) {
-					String ivAttack = pokemon.getIndividualAttack();
-					result = ivAttack;
-				} else if (placeholderString.equalsIgnoreCase("ivStamina") || placeholderString.equalsIgnoreCase("sta")
-						|| placeholderString.equalsIgnoreCase("stamina")) {
-					String ivStamina = pokemon.getIndividualStamina();
-					result = ivStamina;
-				}
 
-			} else {
-				logger.debug("Unknown configToken: " + placeholderString);
-				result = "";
+					if (placeholderString.equalsIgnoreCase("cp")) {
+						result = pokemon.getCp();
+					} else if (placeholderString.equalsIgnoreCase("ivDefense")
+							|| placeholderString.equalsIgnoreCase("def")
+							|| placeholderString.equalsIgnoreCase("defense")) {
+
+						String ivDefense = individualDefense;
+						result = ivDefense;
+
+					} else if (placeholderString.equalsIgnoreCase("iv")) {
+						result = ivString;
+					} else if (placeholderString.equalsIgnoreCase("ivAttack")
+							|| placeholderString.equalsIgnoreCase("atk")
+							|| placeholderString.equalsIgnoreCase("attack")) {
+						result = individualAttack;
+					} else if (placeholderString.equalsIgnoreCase("ivStamina")
+							|| placeholderString.equalsIgnoreCase("sta")
+							|| placeholderString.equalsIgnoreCase("stamina")) {
+						result = individualStamina;
+					} else if (placeholderString.equalsIgnoreCase("special100Emoji")) {
+						result = ivs >= 100D ? new StringBuffer().append(Emoji.HUNDRED_POINTS_SYMBOL).toString() : "";
+					} else if (placeholderString.equalsIgnoreCase("plus90DiamondEmoji")) {
+						result = ivs >= 90D ? new StringBuffer().append(Emoji.DIAMOND_WITH_DOT).toString() : "";
+					} else if (placeholderString.equalsIgnoreCase("plus90GemstoneEmoji")) {
+						result = ivs >= 90D ? new StringBuffer().append(Emoji.GEMSTONE).toString() : "";
+					} else {
+						logger.debug("Unknown configToken: " + placeholderString);
+						result = "";
+					}
+				} else {
+					// No iv and non-iv config token not found
+					logger.debug("Unknown (non-iv) configToken: " + placeholderString);
+					result = "";
+				}
 			}
 			return result;
 
@@ -539,8 +556,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return "<empty placeholder>";
 	}
 
-	private String getRaidValueOf(String string, Gym gym, Integer weatherBoosted,
-			String color) {
+	private String getRaidValueOf(String string, Gym gym, Integer weatherBoosted, String color) {
 		String level = String.valueOf(gym.getRaid().getRaidLevel());
 		String monsterName = getPokemonName(gym.getRaid().getPokemonId().toString());
 		String name = gym.getName();
