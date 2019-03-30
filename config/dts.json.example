@@ -1,6 +1,6 @@
 {
 	"monster": {
-		"text": "*#{{id}} {{name}} {{gender}}*, L {{level}}, {{cp}} WP, {{iv}}%, {{atk}} / {{def}} / {{sta}}. Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s {{weatherEmoji}} {{form}} {{costume}}",
+		"text": "{{special100Emoji}}{{plus90GemstoneEmoji}}*#{{id}} {{name}} {{gender}}*, L {{level}}, {{cp}} WP, {{iv}}%, {{atk}} / {{def}} / {{sta}}. Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s {{weatherEmoji}} {{form}} {{costume}}",
 		"color": "{{ivcolor}}",
 		"icon_url": "{{{imgurl}}}",
 		"description": "\n  [Google Maps]({{{mapurl}}})  {{globeEmoji}}   [Apple Maps]({{{applemap}}})"
