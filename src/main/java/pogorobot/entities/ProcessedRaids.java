@@ -24,6 +24,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -91,10 +92,16 @@ public class ProcessedRaids extends AbstractPersistable<Long> {
 		return getGroupsRaidIsPosted().remove(group);
 	}
 
+	@Transient
+	public boolean isSomewherePosted() {
+		return groupsRaidIsPosted != null && !groupsRaidIsPosted.isEmpty();
+	}
+
 	@Override
 	public String toString() {
 		return "ProcessedRaids [" + (gymId != null ? "gymId=" + gymId + ", " : "")
 				+ (endTime != null ? "endTime=" + endTime : "") + "]";
 	}
+
 
 }

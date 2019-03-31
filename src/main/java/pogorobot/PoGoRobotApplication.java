@@ -334,7 +334,8 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			taskScheduler = new ThreadPoolTaskScheduler();
 			taskScheduler.setPoolSize(5);
 			taskScheduler.initialize();
-			taskScheduler.schedule(getDeleteOldProcessedMonsTask(pokemonService), new CronTrigger("0 4 * * * *"));
+			// taskScheduler.schedule(getDeleteOldProcessedMonsTask(pokemonService), new
+			// CronTrigger("0 4 * * * *"));
 			taskScheduler.schedule(getDeleteOldGymMonsTask(gymService), new CronTrigger("0 18 * * * *"));
 			taskScheduler.schedule(getUpdateRaidBossListTask(raidBossRepository),
 					new CronTrigger("0 16 5,11,17,23 * * *"));

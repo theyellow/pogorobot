@@ -24,6 +24,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -90,6 +91,11 @@ public class ProcessedPokemon extends AbstractPersistable<Long> {
 	public boolean removeFromChatsPokemonIsPosted(SendMessages group) {
 		group.setOwningPokemon(null);
 		return getChatsPokemonIsPosted().remove(group);
+	}
+
+	@Transient
+	public boolean isSomewherePosted() {
+		return chatsPokemonIsPosted != null && !chatsPokemonIsPosted.isEmpty();
 	}
 
 

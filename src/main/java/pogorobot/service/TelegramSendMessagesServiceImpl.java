@@ -21,10 +21,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
+import java.util.concurrent.TimeUnit;
 
 import javax.transaction.Transactional;
 
 import org.apache.commons.codec.DecoderException;
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -444,6 +446,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		ProcessedRaids owningRaid = null;
 		ProcessedPokemon owningMon = null;
 		String errorsWhileDeleting = "";
+		StopWatch stopWatch = StopWatch.createStarted();
+
 		// Iterable<UserGroup> allUserGroups = userGroupRepository.findAll();
 		// Map<Long, String> groups = new HashMap<>();
 		// allUserGroups.forEach(x -> groups.put(x.getChatId(),
@@ -529,12 +533,57 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			}
 		}
 
+		// Delete old not posted processed pokemon:
+		List<Long> monsterToDelete = new ArrayList<>();
+		processedPokemonRepository.findAll().forEach(processedMonster -> {
+			if (!processedMonster.isSomewherePosted()) {
+				monsterToDelete.add(processedMonster.getId());
+			}
+		});
+		monsterToDelete.stream().forEach(id -> processedPokemonRepository.deleteById(id));
+		int size = monsterToDelete.size();
+		if (size > 0) {
+			logger.debug("Deleted {} processed monsters.", size);
+		}
+
+		// Delete old raid-events if time is over:
 		Iterable<RaidAtGymEvent> allEvents = raidAtGymEventRepository.findAll();
+		List<RaidAtGymEvent> deletedEvents = new ArrayList<>();
+		StringBuilder gymIdBuilder = new StringBuilder();
 		allEvents.forEach(raidEvent -> {
 			if (raidEvent.getEnd() < nowInSecons) {
 				eventWithSubscribersService.deleteEvent(raidEvent.getGymId());
+				deletedEvents.add(raidEvent);
+				gymIdBuilder.append(raidEvent.getGymId() + " ");
 			}
 		});
+		if (!deletedEvents.isEmpty()) {
+			String deletedEventRaids = gymIdBuilder.toString();
+			logger.debug("Deleted {} event at following gyms: {}", deletedEvents.size(), deletedEventRaids);
+		}
+
+		// Delete old not posted processed raids:
+		List<Long> raidsToDelete = new ArrayList<>();
+		processedRaidRepository.findAll().forEach(processedRaid -> {
+			if (!processedRaid.isSomewherePosted()) {
+				raidsToDelete.add(processedRaid.getId());
+			}
+		});
+		raidsToDelete.stream().forEach(id -> processedRaidRepository.deleteById(id));
+		size = raidsToDelete.size();
+		if (size > 0) {
+			logger.debug("Deleted {} processed raids.", size);
+		}
+
+		stopWatch.stop();
+		long time = stopWatch.getTime(TimeUnit.SECONDS);
+		if (time > 10) {
+			logger.warn("Slow database and message cleanup took {} seconds", time);
+		} else if (time > 5) {
+			logger.info("Database and message cleanup took {} seconds", time);
+		} else {
+			logger.debug("Fast database and message cleanup took {} seconds", time);
+		}
 	}
 
 	@Override
