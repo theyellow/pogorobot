@@ -256,18 +256,20 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (raidPokemon) {
 			Long pokemonId = raid.getPokemonId();
 			boolean isEgg = pokemonId == null || pokemonId <= 0L;
-			logger.info("Get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
+			logger.debug("Get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
 			stickerId = isEgg ? -1 * raid.getRaidLevel().intValue() : pokemonId.intValue();
 		} else {
-			logger.info("Get sticker for pokemon");
+			logger.debug("Get sticker for pokemon");
 			stickerId = pokemon.getPokemonId().intValue();
 		}
 
 		String gymId = fullGym == null ? null : fullGym.getGymId();
 		String messageText = "";
 		if (raidPokemon) {
-			messageText = telegramTextService.getRaidMessagePokemonText(fullGym)
-					+ telegramTextService.getParticipantsText(eventWithSubscribers);
+			String raidMessagePokemonText = telegramTextService.getRaidMessagePokemonText(fullGym);
+			String participantsText = telegramTextService.getParticipantsText(eventWithSubscribers);
+			messageText = raidMessagePokemonText + participantsText;
+			logger.debug("Created text for " + chatId + ": Raid: " + raidMessagePokemonText);
 		} else {
 			messageText = telegramTextService.createPokemonMessageWithIVText(pokemon);
 			String pokemonName = telegramTextService.getPokemonName(pokemon.getPokemonId().toString());

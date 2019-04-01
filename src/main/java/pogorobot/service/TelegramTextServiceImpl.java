@@ -229,10 +229,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	@Override
 	public String createDec() throws DecoderException {
 		if (PogoBot.getConfiguration().getAlternativeStickers()) {
-			logger.info("alternative stickers used");
+			logger.debug("alternative stickers used");
 			return new String(Hex.decodeHex(serialStringDh.toCharArray()));
 		} else {
-			logger.info("normal stickers used");
+			logger.debug("normal stickers used");
 			return new String(Hex.decodeHex(serialString.toCharArray()));
 		}
 	}
@@ -333,7 +333,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			if (templateText != null) {
 
 				String message = generateMonsterMessageFromTemplate(templateText, templateDescription, pokemon);
-				logger.info("Generated message from template: " + message);
+				logger.debug("Generated message from template: " + message);
 				if (message != null && !message.trim().isEmpty()) {
 					logger.debug("return generated message");
 					return message;
@@ -955,7 +955,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 						// pokemonName, formattedTime, weatherBoosted, form, gender, genderEmoji,
 						// costume, ivString,
 						// ivAttack, ivDefense, ivStamina, googleLink, appleLink);
-						logger.info("Generated message from template: " + message);
+						logger.debug("Generated message from template: " + message);
 						if (message != null && !message.trim().isEmpty()) {
 							logger.debug("return generated message");
 							return message;

@@ -16,6 +16,8 @@
 
 package pogorobot.events.rocketmap;
 
+import org.apache.commons.lang3.StringUtils;
+
 import pogorobot.entities.Gym;
 import pogorobot.events.EventMessage;
 
@@ -36,6 +38,8 @@ public class RocketmapGym implements EventMessage<Gym> {
 	private Long slots_available;
 	private Double lowest_pokemon_motivation;
 	private Long raid_active_until;
+	private String ex_raid_eligible;
+	private String sponsor_id;
 
 	public final String getGym_id() {
 		return gym_id;
@@ -157,6 +161,22 @@ public class RocketmapGym implements EventMessage<Gym> {
 		this.raid_active_until = raid_active_until;
 	}
 
+	public final String getEx_raid_eligible() {
+		return ex_raid_eligible;
+	}
+
+	public final void setEx_raid_eligible(String ex_raid_eligible) {
+		this.ex_raid_eligible = ex_raid_eligible;
+	}
+
+	public final String getSponsor_id() {
+		return sponsor_id;
+	}
+
+	public final void setSponsor_id(String sponsor_id) {
+		this.sponsor_id = sponsor_id;
+	}
+
 	@Override
 	public Gym transformToEntity() {
 		Gym gym = new Gym();
@@ -173,6 +193,8 @@ public class RocketmapGym implements EventMessage<Gym> {
 		gym.setRaidActiveUntil(raid_active_until);
 		gym.setUrl(url);
 		gym.setTeamId(team_id);
+		boolean exraidEglible = StringUtils.isNotEmpty(sponsor_id) || StringUtils.isNotEmpty(ex_raid_eligible);
+		gym.setExraidEglible(exraidEglible);
 		return gym;
 	}
 
@@ -192,8 +214,11 @@ public class RocketmapGym implements EventMessage<Gym> {
 				+ (slots_available != null ? "slots_available=" + slots_available + ", " : "")
 				+ (lowest_pokemon_motivation != null ? "lowest_pokemon_motivation=" + lowest_pokemon_motivation + ", "
 						: "")
-				+ (raid_active_until != null ? "raid_active_until=" + raid_active_until : "") + "]";
+				+ (raid_active_until != null ? "raid_active_until=" + raid_active_until + ", " : "")
+				+ (ex_raid_eligible != null ? "ex_raid_eligible=" + ex_raid_eligible + ", " : "")
+				+ (sponsor_id != null ? "sponsor_id=" + sponsor_id : "") + "]";
 	}
+
 
 
 }

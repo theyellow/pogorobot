@@ -53,6 +53,8 @@ public class Gym extends AbstractPersistable<Long> {
 	@Column(length=2048)
 	private String address;
 	
+	private Boolean exraidEglible;
+
 	@Embedded
 	private Raid raid;
 	
@@ -220,5 +222,13 @@ public class Gym extends AbstractPersistable<Long> {
 
 	public void setPokestop(Boolean pokestop) {
 		this.pokestop = pokestop;
+	}
+
+	public Boolean getExraidEglible() {
+		return exraidEglible;
+	}
+
+	public void setExraidEglible(Boolean exraidEglible) {
+		this.exraidEglible = exraidEglible;
 	}
 }
