@@ -451,7 +451,8 @@ public class TelegramServiceImpl implements TelegramService {
 
 		if ((filter.getRaidLevel() != null && filter.getRaidLevel() <= level)
 				|| (raidPokemon != null && raidPokemon.contains(pokemonId))
-				|| (filter.getAllExRaidsInArea() != null && filter.getAllExRaidsInArea() && gym.getExraidEglible())) {
+				|| (filter.getAllExRaidsInArea() != null && filter.getAllExRaidsInArea()
+						&& null != gym.getExraidEglible() && gym.getExraidEglible())) {
 			Double latitude = gym.getLatitude();
 			Double longitude = gym.getLongitude();
 			boolean gymCoordsGiven = latitude != null && longitude != null;
