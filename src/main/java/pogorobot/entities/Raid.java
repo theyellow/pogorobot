@@ -34,6 +34,8 @@ public class Raid {
 	// private Long cp;
 	private String move1;
 	private String move2;
+	private String ex_raid_eligible;
+	private String sponsor_id;
 
 	public Raid() {
 	}
@@ -116,6 +118,22 @@ public class Raid {
 
 	public void setMove2(String move2) {
 		this.move2 = move2;
+	}
+
+	public String getExRaidEligible() {
+		return ex_raid_eligible;
+	}
+
+	public void setExRaidEligible(String ex_raid_eligible) {
+		this.ex_raid_eligible = ex_raid_eligible;
+	}
+
+	public String getSponsorId() {
+		return sponsor_id;
+	}
+
+	public void setSponsorId(String sponsor_id) {
+		this.sponsor_id = sponsor_id;
 	}
 
 	@Override

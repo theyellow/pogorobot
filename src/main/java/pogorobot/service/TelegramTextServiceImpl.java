@@ -34,11 +34,13 @@ import java.util.stream.Collectors;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +74,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	private static final String MESSAGE_BOLD_OFF = "*";// "</b>";
 
-	private static final String LOGTAG = "TELEGRAM TEXT SERVICE";
+	private static final Marker LOGTAG = null; // "TELEGRAM TEXT SERVICE";
 
 	private String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e342f74656c656772616d";
 	private String serialStringDh = "2f2f2068747470733a2f2f6769746875622e636f6d2f506f676f64656e68656c6465722f737072697465732f626c6f622f6d61737465722f";
@@ -153,8 +155,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		try {
 			pokemonForms = jsonForms.getJSONObject(pokemonId);
 		} catch (JSONException ex) {
-			logger.error("Form \"" + form + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
+			if (!"0".equals(form)) {
+				logger.error("Form \"" + form + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
 					+ " -> send message to developer to update internal configuration.");
+			}
 		}
 		if (pokemonForms != null && pokemonForms.getString(form) != null) {
 			result = pokemonForms.getString(form);
@@ -247,7 +251,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String threeDigitFormattedMonId;
 		if (pokemonInt < 0) {
 			int level = pokemonInt * -1;
-			logger.info("Created url for egg level " + level);
+			logger.debug("Created url for egg level " + level);
 			return decUrl + "/eg" + "gs/" + level + ".we" + "bp";
 		}
 		threeDigitFormattedMonId = getThreeDigitFormattedPokemonId(pokemonInt);
@@ -467,8 +471,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				result = new StringBuffer().append(Emoji.EARTH_GLOBE_EUROPE_AFRICA).toString();
 			} else if (placeholderString.equalsIgnoreCase("form")) {
 				String form = pokemon.getForm();
-				if (form != null && !form.isEmpty() && !form.equals("0")) {
-					result = generateFormMessage(pokemon.getPokemonId().toString(), form);
+				if (form != null && !form.isEmpty()) {
+					result = !form.equals("0") ? "" : generateFormMessage(pokemon.getPokemonId().toString(), form);
 				}
 			} else if (placeholderString.equalsIgnoreCase("level")) {
 				// Hack, should be pokemon level but i don't want to change database atm
@@ -526,6 +530,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 					} else if (placeholderString.equalsIgnoreCase("iv")) {
 						result = ivString;
+					} else if (placeholderString.equalsIgnoreCase("quickMove")) {
+						result = getMoveName(pokemon.getMove1());
+					} else if (placeholderString.equalsIgnoreCase("chargeMove")) {
+						result = getMoveName(pokemon.getMove2());
 					} else if (placeholderString.equalsIgnoreCase("ivAttack")
 							|| placeholderString.equalsIgnoreCase("atk")
 							|| placeholderString.equalsIgnoreCase("attack")) {
@@ -565,6 +573,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String end = formatTimeFromSeconds(gym.getRaid().getEnd());
 		String quickmove = gym.getRaid().getMove1();
 		String chargemove = gym.getRaid().getMove2();
+		Boolean exraidGym = gym.getExraidEglible();
 		String movesString = getMovesString(quickmove, chargemove);
 		String lat = Double.toString(gym.getLatitude());
 		String lon = Double.toString(gym.getLongitude());
@@ -619,6 +628,12 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				result = new StringBuffer().append(Emoji.ROUND_PUSHPIN).toString();
 			} else if (string.equals("globeEmoji")) {
 				result = new StringBuffer().append(Emoji.EARTH_GLOBE_EUROPE_AFRICA).toString();
+			} else if (string.equals("exraidXflagEmoji")) {
+				result = getExraidEmoji(exraidGym, Emoji.CROSS_MARK);
+			} else if (string.equals("exraidFlagEmoji") || string.equals("exraidExclamationmarkEmoji")) {
+				result = getExraidEmoji(exraidGym, Emoji.HEAVY_EXCLAMATION_MARK_SYMBOL);
+			} else if (string.equals("exraidExclamationmarkWhiteEmoji")) {
+				result = getExraidEmoji(exraidGym, Emoji.WHITE_EXCLAMATION_MARK_ORNAMENT);
 			} else {
 				logger.debug("Unknown configToken: " + string);
 				result = "";
@@ -627,6 +642,16 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			return result;
 		}
 		return string;
+	}
+
+	private String getExraidEmoji(Boolean exraidGym, Emoji crossMark) {
+		String result;
+		if (null != exraidGym) {
+			result = exraidGym ? new StringBuffer().append(crossMark).toString() : Strings.EMPTY;
+		} else {
+			result = "";
+		}
+		return result;
 	}
 
 	private JSONObject getTemplateFromFile(MessageConfigElement element) throws IOException {

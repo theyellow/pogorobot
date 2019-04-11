@@ -41,4 +41,6 @@ public interface ConfigReader {
 
 	Map<MessageConfigElement, JSONObject> getMessageTemplate() throws IOException;
 
+	void updateGroupsWithExRaidFlags() throws IOException;
+
 }

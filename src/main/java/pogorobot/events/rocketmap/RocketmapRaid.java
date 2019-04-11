@@ -35,6 +35,24 @@ public class RocketmapRaid implements EventMessage<Raid> {
 	private String url;
 	private String move_1;
 	private String move_2;
+	private String ex_raid_eligible;
+	private String sponsor_id;
+
+	public String getEx_raid_eligible() {
+		return ex_raid_eligible;
+	}
+
+	public void setEx_raid_eligible(String ex_raid_eligible) {
+		this.ex_raid_eligible = ex_raid_eligible;
+	}
+
+	public String getSponsor_id() {
+		return sponsor_id;
+	}
+
+	public void setSponsor_id(String sponsor_id) {
+		this.sponsor_id = sponsor_id;
+	}
 
 	public final String getUrl() {
 		return url;
@@ -152,6 +170,8 @@ public class RocketmapRaid implements EventMessage<Raid> {
 		raid.setSpawn(spawn);
 		raid.setStart(start);
 		raid.setEnd(end);
+		raid.setExRaidEligible(ex_raid_eligible);
+		raid.setSponsorId(sponsor_id);
 		return raid;
 	}
 
@@ -163,7 +183,11 @@ public class RocketmapRaid implements EventMessage<Raid> {
 				+ (spawn != null ? "spawn=" + spawn + ", " : "") + (start != null ? "start=" + start + ", " : "")
 				+ (end != null ? "end=" + end + ", " : "") + (level != null ? "level=" + level + ", " : "")
 				+ (pokemon_id != null ? "pokemon_id=" + pokemon_id + ", " : "") + (cp != null ? "cp=" + cp + ", " : "")
-				+ (move_1 != null ? "move_1=" + move_1 + ", " : "") + (move_2 != null ? "move_2=" + move_2 : "") + "]";
+				+ (name != null ? "name=" + name + ", " : "") + (url != null ? "url=" + url + ", " : "")
+				+ (move_1 != null ? "move_1=" + move_1 + ", " : "") + (move_2 != null ? "move_2=" + move_2 + ", " : "")
+				+ (ex_raid_eligible != null ? "ex_raid_eligible=" + ex_raid_eligible + ", " : "")
+				+ (sponsor_id != null ? "sponsor_id=" + sponsor_id : "") + "]";
 	}
+
 
 }

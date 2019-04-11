@@ -149,6 +149,12 @@ public class ConfigReaderImpl implements ConfigReader {
 	}
 
 	@Override
+	public void updateGroupsWithExRaidFlags() throws IOException {
+		List<Filter> newFilters = getFiltersWithGroupExraidFlagFromFile();
+		updateFilterWithGroupsInternally(newFilters);
+	}
+
+	@Override
 	public void updateGroupFilterWithIV() throws IOException {
 		List<Filter> newFilters = getFiltersWithGroupIVFromFile();
 		updateFilterWithGroupsInternally(newFilters);
@@ -193,6 +199,11 @@ public class ConfigReaderImpl implements ConfigReader {
 					Integer raidLevel = newFilter.getRaidLevel();
 					if (null != raidLevel) {
 						installedFilter.setRaidLevel(raidLevel);
+					}
+
+					Boolean allRaidsOnXraidGym = newFilter.getAllExRaidsInArea();
+					if (null != allRaidsOnXraidGym) {
+						installedFilter.setAllExRaidsInArea(allRaidsOnXraidGym);
 					}
 
 					Set<Geofence> geofences = newFilter.getGeofences();
@@ -509,6 +520,25 @@ public class ConfigReaderImpl implements ConfigReader {
 		return result;
 	}
 
+	private List<Filter> getFiltersWithGroupExraidFlagFromFile() throws IOException {
+		List<Filter> result = new ArrayList<>();
+		String fileName = "groupxraidgymall.txt";
+		Map<String, List<Boolean>> groups = parseGroupConfigFile(fileName, x -> Boolean.valueOf(x.trim()));
+		for (Entry<String, List<Boolean>> groupRaidPokemon : groups.entrySet()) {
+			Filter filter = new Filter();
+			filter.setFilterType(FilterType.GROUP);
+			if (!CollectionUtils.isEmpty(groupRaidPokemon.getValue())) {
+				filter.setAllExRaidsInArea(groupRaidPokemon.getValue().get(0));
+			}
+			UserGroup group = new UserGroup();
+			group.setGroupName(groupRaidPokemon.getKey());
+			group.setGroupFilter(filter);
+			filter.setGroup(group);
+			result.add(filter);
+		}
+		return result;
+	}
+
 	private BufferedReader getBufferedFileReader(String fileName) {
 		BufferedReader bufferedReader = null;
 
@@ -533,7 +563,7 @@ public class ConfigReaderImpl implements ConfigReader {
 				logger.warn("No resource could be found for " + fileName + " ...");
 			}
 		}
-		if (bufferedReader != null) {
+		if (bufferedReader != null && !fileName.endsWith("dts.json")) {
 			logger.info("Get filereader for " + fileName + " ...");
 		}
 		return bufferedReader;

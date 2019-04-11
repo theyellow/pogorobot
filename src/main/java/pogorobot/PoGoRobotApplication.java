@@ -20,7 +20,6 @@ import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -144,6 +143,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		private long timestampGroupIvFile;
 		private long timestampGroupGeofencesFile;
 		private long timestampGroupChatIdFile;
+		private long timestampGroupXraidFile;
 		private long timestampGeofencesFile;
 
 		public GroupfilesTimestamps() {
@@ -154,6 +154,8 @@ public class PoGoRobotApplication implements ApplicationRunner {
 				timestampGroupRaidMonstersFile = Files
 						.getLastModifiedTime(Paths.get(relativePath, "groupraidmonsters.txt")).toMillis();
 				timestampGroupMonsterFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupmonsters.txt"))
+						.toMillis();
+				timestampGroupXraidFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupxraidgymall.txt"))
 						.toMillis();
 				timestampGroupIvFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupiv.txt")).toMillis();
 				timestampGroupGeofencesFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupgeofences.txt"))
@@ -176,6 +178,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			if (timestampGeofencesFile == o.timestampGeofencesFile &&
 				timestampGroupChatIdFile == o.timestampGroupChatIdFile &&
 				timestampGroupGeofencesFile == o.timestampGroupGeofencesFile &&
+				timestampGroupXraidFile == o.timestampGroupXraidFile &&
 				timestampGroupIvFile == o.timestampGroupIvFile &&
 				timestampGroupMonsterFile == o.timestampGroupMonsterFile &&
 				timestampGroupRaidMonstersFile == o.timestampGroupRaidMonstersFile &&
@@ -294,26 +297,6 @@ public class PoGoRobotApplication implements ApplicationRunner {
 					sentToAdmin = true;
 				}
 			}
-			if (!sentToAdmin) {
-				User admin = userService.createAdmin();
-				FilterService filterService = ctx.getBean(FilterService.class);
-				Filter userFilter = admin.getUserFilter();
-				if (userFilter == null) {
-					List<Integer> pokemon = new ArrayList<Integer>();
-					pokemon.add(133);
-					Double latitude = 48.743127;
-					Double longitude = 9.207476;
-					Double radius = 5.0;
-					userFilter = filterService.createFilter(null, pokemon, null, latitude, longitude, radius, 3);
-					userFilter = filterService.updateOrInsertFilter(userFilter);
-					userFilter.setOwner(admin);
-					admin.setUserFilter(userFilter);
-					admin.setRaidadmin(true);
-					admin = userService.updateOrInsertUser(admin);
-				}
-				sendStartMessage(ctx, admin);
-			}
-
 			ConfigReader configReader = ctx.getBean(ConfigReader.class);
 
 			loadConfiguration(configReader);
@@ -351,6 +334,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		groufileTimestamp = new GroupfilesTimestamps();
 		configReader.updateGeofences();
 		configReader.updateGroupsWithIds();
+		configReader.updateGroupsWithExRaidFlags();
 		configReader.updateGroupFiltersWithGeofences();
 		configReader.updateGroupFilterWithMons();
 		configReader.updateGroupFilterWithRaidMons();

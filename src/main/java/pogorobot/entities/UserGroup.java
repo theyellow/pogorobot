@@ -83,8 +83,7 @@ public class UserGroup extends AbstractPersistable<Long> {
 	public String toString() {
 		return "UserGroup [" + (groupName != null ? "groupName=" + groupName + ", " : "")
 				+ (chatId != null ? "chatId=" + chatId + ", " : "")
-				+ (picture != null ? "picture=" + picture + ", " : "")
-				+ (groupFilter != null ? "groupFilter=" + groupFilter : "") + "]";
+				+ (picture != null ? "picture=" + picture + ", " : "") + "]";
 	}
 
 }

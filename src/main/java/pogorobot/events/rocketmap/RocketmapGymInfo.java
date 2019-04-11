@@ -20,16 +20,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import pogorobot.entities.Gym;
 import pogorobot.entities.GymPokemon;
 import pogorobot.events.EventMessage;
 
 public class RocketmapGymInfo implements EventMessage<Gym> {
 
+	Logger logger = LoggerFactory.getLogger(RocketmapGymInfo.class);
+
 	private String id;
 	private String name;
 	private String description;
 	private String url;
+	private Boolean park;
+	private Boolean ex_raid_eligible;
 	private Double latitude;
 	private Double longitude;
 	private Long team;
@@ -41,6 +48,22 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 
 	public final void setId(String id) {
 		this.id = id;
+	}
+
+	public Boolean getPark() {
+		return park;
+	}
+
+	public void setPark(Boolean park) {
+		this.park = park;
+	}
+
+	public Boolean getEx_raid_eligible() {
+		return ex_raid_eligible;
+	}
+
+	public void setEx_raid_eligible(Boolean ex_raid_eligible) {
+		this.ex_raid_eligible = ex_raid_eligible;
 	}
 
 	public final String getName() {
@@ -107,6 +130,19 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 		gym.setLongitude(longitude);
 		gym.setName(name);
 		gym.setTeamId(team);
+
+		Boolean exraidEglible;
+		if (park != null) {
+			exraidEglible = park;
+		}
+		exraidEglible = ex_raid_eligible != null ? ex_raid_eligible : park;
+
+		if (exraidEglible != null) {
+			if (ex_raid_eligible) {
+				logger.info("exraid_eglible found in gym-info: {}", ex_raid_eligible);
+			}
+			gym.setExraidEglible(exraidEglible);
+		}
 		if (pokemon != null && pokemon.size() > 0) {
 			List<GymPokemon> pokemonList = pokemon.stream().map((x -> x.transformToEntity()))
 					.collect(Collectors.toList());
@@ -120,13 +156,17 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 
 	@Override
 	public String toString() {
-		return "RocketmapGymInfo [" + (id != null ? "id=" + id + ", " : "")
-				+ (name != null ? "name=" + name + ", " : "")
+		return "RocketmapGymInfo [" + (logger != null ? "logger=" + logger + ", " : "")
+				+ (id != null ? "id=" + id + ", " : "") + (name != null ? "name=" + name + ", " : "")
 				+ (description != null ? "description=" + description + ", " : "")
-				+ (url != null ? "url=" + url + ", " : "") + (latitude != null ? "latitude=" + latitude + ", " : "")
+				+ (url != null ? "url=" + url + ", " : "") + (park != null ? "park=" + park + ", " : "")
+				+ (ex_raid_eligible != null ? "ex_raid_eligible=" + ex_raid_eligible + ", " : "")
+				+ (latitude != null ? "latitude=" + latitude + ", " : "")
 				+ (longitude != null ? "longitude=" + longitude + ", " : "")
 				+ (team != null ? "team=" + team + ", " : "") + (pokemon != null ? "pokemon=" + pokemon : "") + "]";
 	}
+
+
 
 
 }

@@ -56,9 +56,14 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				RocketmapGym rocketmapGym = new RocketmapGym();
 				rocketmapGym.setGym_id(rocketmapRaid.getGym_id());
 				rocketmapGym.setName(rocketmapRaid.getName());
+				rocketmapGym.setMove_1(rocketmapRaid.getMove_1());
+				rocketmapGym.setMove_2(rocketmapRaid.getMove_2());
 				rocketmapGym.setUrl(rocketmapRaid.getUrl());
 				rocketmapGym.setLatitude(rocketmapRaid.getLatitude());
 				rocketmapGym.setLongitude(rocketmapRaid.getLongitude());
+				rocketmapGym.setEx_raid_eligible(rocketmapRaid.getEx_raid_eligible());
+				rocketmapGym.setSponsor_id(rocketmapRaid.getSponsor_id());
+				logger.debug(message.toString());
 				processContent(rocketmapGym);
 			}
 		} else if (message instanceof RocketmapEgg) {
@@ -70,17 +75,23 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				rocketmapGym.setUrl(rocketmapEgg.getUrl());
 				rocketmapGym.setLatitude(rocketmapEgg.getLatitude());
 				rocketmapGym.setLongitude(rocketmapEgg.getLongitude());
+				rocketmapGym.setEx_raid_eligible(rocketmapEgg.getExraid_eglible());
+				rocketmapGym.setSponsor_id(rocketmapEgg.getSponsor_id());
+				logger.debug(message.toString());
 				processContent(rocketmapGym);
 			}
 		}
+
 		if (entity instanceof Gym) {
 			gymService.updateOrInsertGym((Gym) entity);
+			logger.debug(message.toString());
 		} else if (entity instanceof RaidAtGymEvent) {
 			RaidAtGymEvent incomingRaid = (RaidAtGymEvent) entity;
 			if (incomingRaid.getGymId() != null) {
 				// gymService.updateOrInsertGymWithRaid(incomingRaid);
 				gymService.updateOrInsertGymWithRaid(incomingRaid);
 				telegramService.triggerRaidMessages(incomingRaid);
+				logger.debug(message.toString());
 			}
 		} else if (entity instanceof RaidWithGym) {
 			RaidWithGym raidWithGym = (RaidWithGym) entity;
@@ -88,6 +99,7 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				RaidAtGymEvent incomingRaid = new RaidAtGymEvent(raidWithGym);
 				gymService.updateOrInsertGymWithRaid(incomingRaid);
 				telegramService.triggerRaidMessages(incomingRaid);
+				logger.debug(message.toString());
 			}
 		} else if (entity instanceof EggWithGym) {
 			// logger.warn("Egg!!! RocketmapEgg!!! EggWithGym!!!\n"
@@ -98,6 +110,7 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				RaidAtGymEvent incomingRaid = new RaidAtGymEvent(eggWithGym);
 				gymService.updateOrInsertGymWithRaid(incomingRaid);
 				telegramService.triggerRaidMessages(incomingRaid);
+				logger.debug(message.toString());
 			}
 		} else if (entity instanceof PokemonWithSpawnpoint) {
 			pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
@@ -105,7 +118,8 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 		}
 
 		if (message instanceof RdmQuest) {
-			logger.debug("Quest found " + ((RdmQuest) message).toString());
+			logger.info("Quest found " + ((RdmQuest) message).toString());
+			logger.info(message.toString());
 		}
 		return message;
 	}

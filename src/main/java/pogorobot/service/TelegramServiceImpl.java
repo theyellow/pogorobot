@@ -110,9 +110,6 @@ public class TelegramServiceImpl implements TelegramService {
 		{
 			boolean deepScan = false;
 
-			// TODO: remove pokemon messages and find a way to identify: (encounterId
-			// possible?)
-
 			List<ProcessedPokemon> processedPokemon = processedPokemonDAO.findByEncounterId(pokemon.getEncounterId());
 			ProcessedPokemon processedMon = null;
 			List<Long> updatedChats = new ArrayList<>();
@@ -356,7 +353,7 @@ public class TelegramServiceImpl implements TelegramService {
 			boolean alreadyPosted = false;
 			if (processedRaids != null) {
 				boolean sendOnlyUpdate = false;
-				logger.info("Got event at gym that has " + processedRaids.size() + " entries");
+				logger.debug("Got event at gym that has " + processedRaids.size() + " entries");
 				for (ProcessedRaids processedRaid : processedRaids) {
 
 					Set<SendMessages> groupsRaidIsPosted = null;
@@ -452,30 +449,9 @@ public class TelegramServiceImpl implements TelegramService {
 		List<Integer> raidPokemon = filter.getRaidPokemon();
 		CompletableFuture<SendMessageAnswer> future = null;
 
-		// boolean sendOnlyUpdate = false;
-		// Set<SendMessages> chatsPokemonIsPosted = null;
-		// List<ProcessedRaids> processedGymIds =
-		// processedRaidRepository.findByGymId(gym.getGymId());
-		// if (!processedGymIds.isEmpty() && processedGymIds.size() == 1) {
-		// ProcessedRaids processedRaid = processedGymIds.get(0);
-		// chatsPokemonIsPosted = processedRaid.getGroupsRaidIsPosted();
-		// sendOnlyUpdate = true;
-		// for (SendMessages groupMessages : chatsPokemonIsPosted) {
-		// Long groupChatId = groupMessages.getGroupChatId();
-		// Integer messageId = groupMessages.getMessageId();
-		//
-		// // magic number: pokemonId -1 means "egg"
-		// boolean raidMessage = !(pokemonId == -1);
-		// if (raidMessage) {
-		// future = startNewRaidMessageFuture(gym, chatId, eventWithSubscribers);
-		// } else {
-		// future = startNewEggMessageFuture(gym, level, chatId, eventWithSubscribers);
-		// }
-		// }
-		// }
-
 		if ((filter.getRaidLevel() != null && filter.getRaidLevel() <= level)
-				|| (raidPokemon != null && raidPokemon.contains(pokemonId))) {
+				|| (raidPokemon != null && raidPokemon.contains(pokemonId))
+				|| (filter.getAllExRaidsInArea() != null && filter.getAllExRaidsInArea() && gym.getExraidEglible())) {
 			Double latitude = gym.getLatitude();
 			Double longitude = gym.getLongitude();
 			boolean gymCoordsGiven = latitude != null && longitude != null;

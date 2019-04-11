@@ -8,6 +8,7 @@
 /config/groupmonsters.txt
 /config/groupraidmonsters.txt
 /config/groupraidlevel.txt
+/config/groupxraidgymall.txt
 /logs/
 /*.log
 /*.log.1

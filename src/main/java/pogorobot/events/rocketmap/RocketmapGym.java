@@ -17,17 +17,23 @@
 package pogorobot.events.rocketmap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import pogorobot.entities.Gym;
 import pogorobot.events.EventMessage;
 
 public class RocketmapGym implements EventMessage<Gym> {
 
+	Logger logger = LoggerFactory.getLogger(RocketmapGym.class);
+
 	private String gym_id;
 	private Double latitude;
 	private Double longitude;
 	private Boolean enabled;
 	private Long team_id;
+	private String move_1;
+	private String move_2;
 	private String name;
 	private String description;
 	private String url;
@@ -129,6 +135,22 @@ public class RocketmapGym implements EventMessage<Gym> {
 		this.guard_pokemon_id = guard_pokemon_id;
 	}
 
+	public String getMove_1() {
+		return move_1;
+	}
+
+	public void setMove_1(String move_1) {
+		this.move_1 = move_1;
+	}
+
+	public String getMove_2() {
+		return move_2;
+	}
+
+	public void setMove_2(String move_2) {
+		this.move_2 = move_2;
+	}
+
 	public final Long getTotal_cp() {
 		return total_cp;
 	}
@@ -161,11 +183,11 @@ public class RocketmapGym implements EventMessage<Gym> {
 		this.raid_active_until = raid_active_until;
 	}
 
-	public final String getEx_raid_eligible() {
+	public String getEx_raid_eligible() {
 		return ex_raid_eligible;
 	}
 
-	public final void setEx_raid_eligible(String ex_raid_eligible) {
+	public void setEx_raid_eligible(String ex_raid_eligible) {
 		this.ex_raid_eligible = ex_raid_eligible;
 	}
 
@@ -193,18 +215,29 @@ public class RocketmapGym implements EventMessage<Gym> {
 		gym.setRaidActiveUntil(raid_active_until);
 		gym.setUrl(url);
 		gym.setTeamId(team_id);
-		boolean exraidEglible = StringUtils.isNotEmpty(sponsor_id) || StringUtils.isNotEmpty(ex_raid_eligible);
-		gym.setExraidEglible(exraidEglible);
+		boolean exraidEglibleExists = StringUtils.isNotEmpty(sponsor_id) || StringUtils.isNotEmpty(ex_raid_eligible);
+		if (exraidEglibleExists) {
+			if ("true".equals(ex_raid_eligible) || "true".equals(sponsor_id)) {
+				gym.setExraidEglible(true);
+			} else {
+				gym.setExraidEglible(false);
+			}
+			logger.info("Found something in exraid-tags: \nsponsor_id={}  | ex_raid_eligible={}", sponsor_id,
+					ex_raid_eligible);
+		}
 		return gym;
 	}
 
 	@Override
 	public String toString() {
-		return "RocketmapGym [" + (gym_id != null ? "gym_id=" + gym_id + ", " : "")
+		return "RocketmapGym [" + (logger != null ? "logger=" + logger + ", " : "")
+				+ (gym_id != null ? "gym_id=" + gym_id + ", " : "")
 				+ (latitude != null ? "latitude=" + latitude + ", " : "")
 				+ (longitude != null ? "longitude=" + longitude + ", " : "")
 				+ (enabled != null ? "enabled=" + enabled + ", " : "")
-				+ (team_id != null ? "team_id=" + team_id + ", " : "") + (name != null ? "name=" + name + ", " : "")
+				+ (team_id != null ? "team_id=" + team_id + ", " : "")
+				+ (move_1 != null ? "move_1=" + move_1 + ", " : "") + (move_2 != null ? "move_2=" + move_2 + ", " : "")
+				+ (name != null ? "name=" + name + ", " : "")
 				+ (description != null ? "description=" + description + ", " : "")
 				+ (url != null ? "url=" + url + ", " : "")
 				+ (occupied_since != null ? "occupied_since=" + occupied_since + ", " : "")
@@ -218,7 +251,5 @@ public class RocketmapGym implements EventMessage<Gym> {
 				+ (ex_raid_eligible != null ? "ex_raid_eligible=" + ex_raid_eligible + ", " : "")
 				+ (sponsor_id != null ? "sponsor_id=" + sponsor_id : "") + "]";
 	}
-
-
 
 }

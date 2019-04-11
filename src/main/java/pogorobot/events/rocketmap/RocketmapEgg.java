@@ -30,6 +30,8 @@ public class RocketmapEgg implements EventMessage<Raid> {
 	private Long end;
 	private Long level;
 	private Long pokemon_id;
+	private String exraid_eglible;
+	private String sponsor_id;
 	private String url;
 //	private Long cp;
 //	private String move_1;
@@ -140,6 +142,22 @@ public class RocketmapEgg implements EventMessage<Raid> {
 //		this.move_2 = move_2;
 //	}
 
+	public String getExraid_eglible() {
+		return exraid_eglible;
+	}
+
+	public void setExraid_eglible(String exraid_eglible) {
+		this.exraid_eglible = exraid_eglible;
+	}
+
+	public String getSponsor_id() {
+		return sponsor_id;
+	}
+
+	public void setSponsor_id(String sponsor_id) {
+		this.sponsor_id = sponsor_id;
+	}
+
 	@Override
 	public Raid transformToEntity() {
 		Raid egg = new EggWithGym(gym_id);
@@ -154,6 +172,8 @@ public class RocketmapEgg implements EventMessage<Raid> {
 		egg.setStart(start);
 		egg.setPokemonId(pokemon_id);
 		egg.setSpawn(spawn);
+		egg.setExRaidEligible(exraid_eglible);
+		egg.setSponsorId(sponsor_id);
 		return egg;
 	}
 

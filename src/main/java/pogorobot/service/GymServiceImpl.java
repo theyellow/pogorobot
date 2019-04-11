@@ -172,9 +172,12 @@ public class GymServiceImpl implements GymService {
 			if (gym.getRaid() != null) {
 				oldGym.setRaid(gym.getRaid());
 			}
-			// if (gym.getEgg() != null) {
-			// oldGym.setEgg(gym.getEgg());
-			// }
+			if (gym.getExraidEglible() != null) {
+				if (gym.getExraidEglible()) {
+					logger.info("Found exraid gym :)");
+				}
+				oldGym.setExraidEglible(gym.getExraidEglible());
+			}
 			if (oldGym.getAddress() == null || oldGym.getAddress().isEmpty()) {
 				// Reenable this (googlemaps-api update never done...)
 				// oldGym.setAddress(createAddressFromGeo(oldGym.getLatitude(),

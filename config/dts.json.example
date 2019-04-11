@@ -1,35 +1,28 @@
 {
 	"monster": {
-		"text": "{{special100Emoji}}{{plus90GemstoneEmoji}}*#{{id}} {{name}} {{gender}}*, L {{level}}, {{cp}} WP, {{iv}}%, {{atk}} / {{def}} / {{sta}}. Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s {{weatherEmoji}} {{form}} {{costume}}",
-		"color": "{{ivcolor}}",
+		"text": "{{special100Emoji}}{{plus90GemstoneEmoji}}*#{{id}} {{name}} {{gender}}*, L {{level}}, {{cp}} WP, {{iv}}%, {{atk}} / {{def}} / {{sta}}. Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s {{weatherEmoji}} {{quickMove}}/{{chargeMove}} {{form}} {{costume}}",
 		"icon_url": "{{{imgurl}}}",
 		"description": "\n  [Google Maps]({{{mapurl}}})  {{globeEmoji}}   [Apple Maps]({{{applemap}}})"
 	},
 	"monsterNoIv": {
-		"color": "{{color}}",
 		"text": "*#{{id}} {{name}} {{gender}}* Ende: {{time}}, {{clockEmoji}} Noch {{tthm}}m {{tths}}s ",
 		"icon_url": "{{{imgurl}}}",
 		"description": "\n  [Google Maps]({{{googlemap}}}) {{globeEmoji}} [Apple Maps]({{{applemap}}})"
 	},
 	"raid": {
-		"text": "*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}} \n[{{gymname}}]({{{imgurl}}}){{flagemoji}}",
+		"text": "{{exraidFlagEmoji}}*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}} \n[{{gymname}}]({{{imgurl}}}){{flagemoji}}",
 		"description": "\n{{globeEmoji}} [Google Maps]({{{mapurl}}})     {{pushpinEmoji}} [Apple Maps]({{{applemap}}})",
-		"color": "{{color}}",
-		"url": "{{{mapurl}}}",
 		"icon_url": "{{{imgurl}}}"
 	},
 	"egg": {
-		"text": "*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}}\n[{{gymname}}]({{{imgurl}}})",
+		"text": "{{exraidFlagEmoji}}*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}}\n[{{gymname}}]({{{imgurl}}})",
 		"description": "\n{{globeEmoji}} [Google Maps]({{{mapurl}}})     {{pushpinEmoji}} [Apple Maps]({{{applemap}}})",
-		"color": "{{color}}",
-		"url": "{{{mapurl}}}",
 		"icon_url": "{{{imgurl}}}"
 	},
 	"quest": {
 		"simple": {
 			"text": " {{questType}}, {{conditions}}, {{reward}} {{flagemoji}} {{lat}}, {{lon}} {{addr}",
 			"description": "[Google Maps]({{{mapurl}}}) | [Apple Maps]({{{applemap}}})",
-			"url": "{{{mapurl}}",
 			"icon_url": "{{{imgurl}}}"
 		},
 		"short": {

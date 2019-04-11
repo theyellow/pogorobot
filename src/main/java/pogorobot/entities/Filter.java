@@ -55,6 +55,8 @@ public class Filter extends AbstractPersistable<Long> {
 
 	private Boolean onlyWithIV;
 
+	private Boolean allExRaidsInArea;
+
 	private Integer minWP;
 	
 	private Double latitude;
@@ -120,6 +122,14 @@ public class Filter extends AbstractPersistable<Long> {
 		this.longitude = longitude;
 	}
 
+	public Boolean getAllExRaidsInArea() {
+		return allExRaidsInArea;
+	}
+
+	public void setAllExRaidsInArea(Boolean allExRaidsInArea) {
+		this.allExRaidsInArea = allExRaidsInArea;
+	}
+
 	public Double getRadius() {
 		return radius;
 	}
@@ -160,17 +170,21 @@ public class Filter extends AbstractPersistable<Long> {
 		this.filterType = filterType;
 	}
 
+
 	@Override
 	public String toString() {
 		return "Filter [" + (filterType != null ? "filterType=" + filterType + ", " : "")
-				+ (receivers != null ? "receivers=" + receivers + ", " : "")
-				+ (receiveFromGroups != null ? "groups=" + receiveFromGroups + ", " : "")
+				+ (owner != null ? "owner=" + owner + ", " : "") + (group != null ? "group=" + group + ", " : "")
+				+ (minIV != null ? "minIV=" + minIV + ", " : "") + (maxIV != null ? "maxIV=" + maxIV + ", " : "")
+				+ (allExRaidsInArea != null ? "allExRaidsInArea=" + allExRaidsInArea + ", " : "")
+				+ (minWP != null ? "minWP=" + minWP + ", " : "")
 				+ (latitude != null ? "latitude=" + latitude + ", " : "")
 				+ (longitude != null ? "longitude=" + longitude + ", " : "")
 				+ (radius != null ? "radius=" + radius + ", " : "")
-				+ (pokemons != null ? "pokemons=" + pokemons + ", " : "")
-				// + (gyms != null ? "gyms=" + gyms + ", " : "")
-				+ (gymPokemons != null ? "gymPokemons=" + gymPokemons : "") + "]";
+				+ (radiusPokemon != null ? "radiusPokemon=" + radiusPokemon + ", " : "")
+				+ (radiusRaids != null ? "radiusRaids=" + radiusRaids + ", " : "")
+				+ (radiusIV != null ? "radiusIV=" + radiusIV + ", " : "")
+				+ (raidLevel != null ? "raidLevel=" + raidLevel : "") + "]";
 	}
 
 	public User getOwner() {

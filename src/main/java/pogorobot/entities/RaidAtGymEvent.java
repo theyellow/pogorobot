@@ -68,6 +68,12 @@ public class RaidAtGymEvent {
 
 	private Long level;
 
+	private Long pokemonId;
+
+	private Double latitude;
+
+	private Double longitude;
+
 	public Long getLevel() {
 		return level;
 	}
@@ -75,14 +81,6 @@ public class RaidAtGymEvent {
 	public void setLevel(Long level) {
 		this.level = level;
 	}
-
-	private Long pokemonId;
-
-	// @Transient
-	private Double latitude;
-
-	// @Transient
-	private Double longitude;
 
 	public Double getLatitude() {
 		return latitude;

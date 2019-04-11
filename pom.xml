@@ -45,7 +45,7 @@
 		<!-- <jdbc.password>telegram</jdbc.password> -->
 
 		<pogoprotos.version>2.38.5</pogoprotos.version>
-		<protobuf-java.version>3.5.1</protobuf-java.version>
+		<protobuf-java.version>3.7.1</protobuf-java.version>
 		<telegrambots.version>4.1.2</telegrambots.version>
 		<telegrambots-extensions.version>4.1.2</telegrambots-extensions.version>
 		<jsoup.version>1.10.3</jsoup.version>
