@@ -114,8 +114,10 @@ public class TelegramServiceImpl implements TelegramService {
 			ProcessedPokemon processedMon = null;
 			List<Long> updatedChats = new ArrayList<>();
 			if (processedPokemon == null) {
-				processedMon = processedPokemonDAO
-						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
+				ProcessedPokemon newPokemon = new ProcessedPokemon();
+				newPokemon.setEncounterId(pokemon.getEncounterId());
+				newPokemon.setEndTime(pokemon.getDisappearTime());
+				processedMon = processedPokemonDAO.save(newPokemon);
 
 			} else {
 				logger.debug("pokemon already encountered with encounterId " + pokemon.getEncounterId() + " , pokemon: "
@@ -142,8 +144,10 @@ public class TelegramServiceImpl implements TelegramService {
 			}
 
 			if (processedMon == null) {
-				processedMon = processedPokemonDAO
-						.save(new ProcessedPokemon(pokemon.getEncounterId(), pokemon.getDisappearTime()));
+				ProcessedPokemon newPokemon = new ProcessedPokemon();
+				newPokemon.setEncounterId(pokemon.getEncounterId());
+				newPokemon.setEndTime(pokemon.getDisappearTime());
+				processedMon = processedPokemonDAO.save(newPokemon);
 			}
 
 			// Process all users:
@@ -450,9 +454,8 @@ public class TelegramServiceImpl implements TelegramService {
 		CompletableFuture<SendMessageAnswer> future = null;
 
 		if ((filter.getRaidLevel() != null && filter.getRaidLevel() <= level)
-				|| (raidPokemon != null && raidPokemon.contains(pokemonId))
-				|| (filter.getAllExRaidsInArea() != null && filter.getAllExRaidsInArea()
-						&& null != gym.getExraidEglible() && gym.getExraidEglible())) {
+				|| (raidPokemon != null && raidPokemon.contains(pokemonId)) || (filter.getAllExRaidsInArea() != null
+						&& filter.getAllExRaidsInArea() && null != gym.getExraidEglible() && gym.getExraidEglible())) {
 			Double latitude = gym.getLatitude();
 			Double longitude = gym.getLongitude();
 			boolean gymCoordsGiven = latitude != null && longitude != null;
