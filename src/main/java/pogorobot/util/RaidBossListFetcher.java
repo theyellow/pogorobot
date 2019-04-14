@@ -49,7 +49,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class RaidBossListFetcher {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public static void main(String[] args) {
 		RaidBossListFetcher rblf = new RaidBossListFetcher();

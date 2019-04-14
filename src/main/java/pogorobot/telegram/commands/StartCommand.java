@@ -47,7 +47,7 @@ public class StartCommand extends BotCommand {
 	@Autowired
 	private TelegramKeyboardService telegramKeyboardService;
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private static Logger logger = LoggerFactory.getLogger(StartCommand.class);
 
     public StartCommand() {
 		super("start", "Mit diesem Kommando wird der Bot neu gestartet (vorhandene Einstellungen bleiben erhalten)");

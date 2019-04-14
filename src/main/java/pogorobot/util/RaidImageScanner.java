@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RaidImageScanner {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public RaidImageScanner() {
 	}

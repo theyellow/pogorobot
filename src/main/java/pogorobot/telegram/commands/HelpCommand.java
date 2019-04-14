@@ -38,7 +38,7 @@ import pogorobot.service.UserService;
 @Component
 public class HelpCommand extends BotCommand {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	// private ICommandRegistry pogoBot;
 

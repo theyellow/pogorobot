@@ -73,7 +73,7 @@ import pogorobot.util.RaidImageScanner;
  */
 public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBot {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private UserService userService;

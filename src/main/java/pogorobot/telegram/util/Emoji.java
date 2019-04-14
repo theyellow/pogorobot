@@ -171,8 +171,8 @@ public enum Emoji {
 
 	TROPHY(null, '\uE131');
 
-    Character firstChar;
-    Character secondChar;
+	private Character firstChar;
+	private Character secondChar;
 
     Emoji(Character firstChar, Character secondChar) {
         this.firstChar = firstChar;

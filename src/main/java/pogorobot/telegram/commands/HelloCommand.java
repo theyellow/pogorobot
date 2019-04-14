@@ -40,7 +40,7 @@ import pogorobot.telegram.util.Emoji;
 @Component
 public class HelloCommand extends BotCommand {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private UserService userService;

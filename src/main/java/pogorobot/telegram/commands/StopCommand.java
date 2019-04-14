@@ -40,7 +40,7 @@ import pogorobot.service.UserService;
 @Component
 public class StopCommand extends BotCommand {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
 	private UserService userService;
