@@ -29,7 +29,7 @@ import pogorobot.events.EventMessage;
 
 public class RocketmapGymInfo implements EventMessage<Gym> {
 
-	Logger logger = LoggerFactory.getLogger(RocketmapGymInfo.class);
+	private Logger logger = LoggerFactory.getLogger(RocketmapGymInfo.class);
 
 	private String id;
 	private String name;

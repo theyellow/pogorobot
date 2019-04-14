@@ -47,6 +47,7 @@ public class PokemonServiceImpl implements PokemonService {
 	private static Logger logger = LoggerFactory.getLogger(PokemonService.class);
 
 	@PersistenceContext
+	@SuppressWarnings("squid:S3749")
 	private EntityManager entityManager;
 
 	@Autowired

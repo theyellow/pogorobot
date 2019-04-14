@@ -65,6 +65,7 @@ public class FilterServiceImpl implements FilterService {
 
 	private static Logger logger = LoggerFactory.getLogger(FilterService.class);
 
+	@SuppressWarnings("squid:S3749")
 	@PersistenceContext
 	private EntityManager entityManager;
 

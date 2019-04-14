@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -41,8 +40,8 @@ import pogorobot.repositories.SubscriberRepository;
 @Service("eventWithSubscribersService")
 public class EventWithSubscribersServiceImpl implements EventWithSubscribersService {
 
+	@SuppressWarnings("squid:S3749")
 	@PersistenceContext
-	@Inject
 	private EntityManager entityManager;
 
 	@Autowired

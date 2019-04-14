@@ -27,19 +27,19 @@ import pogorobot.events.EventMessage;
 		@JsonSubTypes.Type(value = QuestReward.class, name = "reward") })
 public class RdmQuest implements EventMessage<Quest> {
 
-	String pokestop_id;
-	String pokestop_name;
-	String template;
-	String pokestop_url;
-	QuestCondition conditions; // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
-	Double latitude;
-	Double longitude;
-	String type;
-	String target;
-	QuestReward rewards; // ":
+	private String pokestop_id;
+	private String pokestop_name;
+	private String template;
+	private String pokestop_url;
+	private QuestCondition conditions; // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
+	private Double latitude;
+	private Double longitude;
+	private String type;
+	private String target;
+	private QuestReward rewards; // ":
 					// [{"type":7,"info":{"shiny":false,"costume_id":0,"pokemon_id":25,"form_id":0,"gender_id":0}
 					// }],
-	Long updated;
+	private Long updated;
 
 
 	@Override

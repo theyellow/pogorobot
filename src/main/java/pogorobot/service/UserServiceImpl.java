@@ -40,6 +40,7 @@ import pogorobot.repositories.UserRepository;
 @Service("userService")
 public class UserServiceImpl implements UserService {
 
+	@SuppressWarnings("squid:S3749")
 	@PersistenceContext
 	private EntityManager entityManager;
 

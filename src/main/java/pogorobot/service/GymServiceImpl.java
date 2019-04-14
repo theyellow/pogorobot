@@ -63,6 +63,7 @@ public class GymServiceImpl implements GymService {
 
 	private static Logger logger = LoggerFactory.getLogger(GymService.class);
 
+	@SuppressWarnings("squid:S3749")
 	@PersistenceContext
 	private EntityManager entityManager;
 	

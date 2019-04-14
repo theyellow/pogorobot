@@ -38,7 +38,7 @@ public class WebhookServer {
 	@Autowired
 	private MessageContentProcessor messageContentProcessor;
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	// public HttpStatus readFromWebhook(@RequestBody String messages) {
 	// System.out.println(messages.toString());

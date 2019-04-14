@@ -25,19 +25,19 @@ import org.springframework.data.jpa.domain.AbstractPersistable;
 @Table(name = "\"Quest\"")
 public class Quest extends AbstractPersistable<Long> {
 
-	String pokestopId;
-	String pokestopName;
-	String template;
-	String pokestopUrl;
-	String conditions; // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
-	Double latitude;
-	Double longitude;
-	String type;
-	String target;
-	String rewards; // ":
+	private String pokestopId;
+	private String pokestopName;
+	private String template;
+	private String pokestopUrl;
+	private String conditions; // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
+	private Double latitude;
+	private Double longitude;
+	private String type;
+	private String target;
+	private String rewards; // ":
 					// [{"type":7,"info":{"shiny":false,"costume_id":0,"pokemon_id":25,"form_id":0,"gender_id":0}
 					// }],
-	Long updated;
+	private Long updated;
 
 	public String getTemplate() {
 		return template;

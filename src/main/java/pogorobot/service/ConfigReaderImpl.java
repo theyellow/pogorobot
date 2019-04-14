@@ -55,7 +55,7 @@ import pogorobot.repositories.UserGroupRepository;
 @Service("configReader")
 public class ConfigReaderImpl implements ConfigReader {
 
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	private static Logger logger = LoggerFactory.getLogger(ConfigReader.class);
 
 	@Autowired
 	private UserGroupRepository userGroupDAO;
