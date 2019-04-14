@@ -22,13 +22,13 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 
 public class SendMessageAnswer {
 
-	Message stickerAnswer;
+	private Message stickerAnswer;
 
-	Message mainMessageAnswer;
+	private Message mainMessageAnswer;
 
-	Message locationAnswer;
+	private Message locationAnswer;
 
-	Serializable eventAnswer;
+	private Serializable eventAnswer;
 
 	public final Serializable getEventAnswer() {
 		return eventAnswer;

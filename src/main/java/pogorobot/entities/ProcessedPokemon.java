@@ -35,12 +35,12 @@ public class ProcessedPokemon extends AbstractPersistable<Long> {
 	private static final long serialVersionUID = 887237113173573779L;
 
 	@Column(length = 50)
-	String encounterId;
+	private String encounterId;
 
-	Long endTime;
+	private Long endTime;
 
 	@OneToMany(cascade = CascadeType.ALL)
-	Set<SendMessages> chatsPokemonIsPosted;
+	private Set<SendMessages> chatsPokemonIsPosted;
 
 	// public ProcessedPokemon() {
 	// this(null);

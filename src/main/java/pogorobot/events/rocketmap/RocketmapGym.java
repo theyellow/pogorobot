@@ -25,7 +25,7 @@ import pogorobot.events.EventMessage;
 
 public class RocketmapGym implements EventMessage<Gym> {
 
-	Logger logger = LoggerFactory.getLogger(RocketmapGym.class);
+	private Logger logger = LoggerFactory.getLogger(RocketmapGym.class);
 
 	private String gym_id;
 	private Double latitude;

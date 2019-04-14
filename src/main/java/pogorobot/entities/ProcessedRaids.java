@@ -50,12 +50,12 @@ public class ProcessedRaids extends AbstractPersistable<Long> {
 	private static final long serialVersionUID = 887237883173573779L;
 
 	@Column(length = 50)
-	String gymId;
+	private String gymId;
 
-	Long endTime;
+	private Long endTime;
 
 	@OneToMany(cascade = CascadeType.ALL)
-	Set<SendMessages> groupsRaidIsPosted;
+	private Set<SendMessages> groupsRaidIsPosted;
 
 	public String getGymId() {
 		return gymId;
