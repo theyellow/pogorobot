@@ -76,12 +76,12 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	private static final Marker LOGTAG = null; // "TELEGRAM TEXT SERVICE";
 
-	private String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e342f74656c656772616d";
-	private String serialStringDh = "2f2f2068747470733a2f2f6769746875622e636f6d2f506f676f64656e68656c6465722f737072697465732f626c6f622f6d61737465722f";
+	private static String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e342f74656c656772616d";
+	private static String serialStringDh = "2f2f2068747470733a2f2f6769746875622e636f6d2f506f676f64656e68656c6465722f737072697465732f626c6f622f6d61737465722f";
 
-	private JSONObject jsonMoves;
+	private static JSONObject jsonMoves;
 
-	private JSONObject jsonPokemons;
+	private static JSONObject jsonPokemons;
 
 	@Autowired
 	private UserService userService;
@@ -89,9 +89,9 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	@Autowired
 	private ConfigReader configReader;
 
-	private JSONObject jsonBaseStats;
+	private static JSONObject jsonBaseStats;
 
-	private JSONObject jsonForms;
+	private static JSONObject jsonForms;
 
 	public String getPokemonNameFromProtobuf(String pokemon) {
 		if ("-1".equals(pokemon)) {
