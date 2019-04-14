@@ -64,10 +64,7 @@ public class Subscriber extends AbstractPersistable<Long> {
 		if (this == obj) {
 			return true;
 		}
-		// if (!super.equals(obj)) {
-		// return false;
-		// }
-		if (obj.getClass() != this.getClass()) {
+		if (obj == null || obj.getClass() != this.getClass()) {
 			return false;
 		}
 		Subscriber other = (Subscriber) obj;
