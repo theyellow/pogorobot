@@ -65,7 +65,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	// TODO: this has to be in properties-file!!!
 	private static final int NUMBER_OF_POKEMONS = 493;
 
-	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(TelegramMessageCreatorService.class);
 
 	@Autowired
 	private UserService userService;

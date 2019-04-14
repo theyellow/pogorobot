@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -41,6 +42,7 @@ import pogorobot.repositories.SubscriberRepository;
 public class EventWithSubscribersServiceImpl implements EventWithSubscribersService {
 
 	@PersistenceContext
+	@Inject
 	private EntityManager entityManager;
 
 	@Autowired

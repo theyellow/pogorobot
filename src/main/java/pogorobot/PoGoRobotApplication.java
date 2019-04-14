@@ -80,7 +80,7 @@ import pogorobot.util.RaidBossListFetcher;
 @EnableJpaRepositories(basePackages = "pogorobot")
 public class PoGoRobotApplication implements ApplicationRunner {
 
-	Logger logger = LoggerFactory.getLogger(PoGoRobotApplication.class);
+	private Logger logger = LoggerFactory.getLogger(PoGoRobotApplication.class);
 
 	// @Autowired
 	// @Qualifier("standard")

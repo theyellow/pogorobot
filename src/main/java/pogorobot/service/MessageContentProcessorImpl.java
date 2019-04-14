@@ -44,7 +44,7 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 	@Autowired
 	private TelegramService telegramService;
 
-	Logger logger = LoggerFactory.getLogger(this.getClass());
+	private static Logger logger = LoggerFactory.getLogger(MessageContentProcessor.class);
 
 	@Override
 	public <T> EventMessage<T> processContent(EventMessage<T> message) {

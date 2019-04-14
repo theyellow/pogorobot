@@ -15,8 +15,8 @@ public enum MessageConfigElement {
 	CONFIG_ELEMENT_QUEST_CANDY(Type.QUEST, "pokestop_candy");
 	// @formatter:on
 
-	String key;
-	String subkey;
+	private String key;
+	private String subkey;
 
 	MessageConfigElement(Type type, String subkey) {
 		this.key = type.getType();

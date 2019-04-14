@@ -67,7 +67,7 @@ public class TelegramServiceImpl implements TelegramService {
 
 	private static final String GOT_INTERRUPTED = "Got interrupted";
 
-	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(TelegramService.class);
 
 	@Autowired
 	private ProcessedPokemonRepository processedPokemonDAO;

@@ -44,7 +44,7 @@ import pogorobot.repositories.ProcessedPokemonRepository;
 @Service("pokemonService")
 public class PokemonServiceImpl implements PokemonService {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(PokemonService.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;

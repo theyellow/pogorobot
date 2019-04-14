@@ -67,7 +67,7 @@ import pogorobot.telegram.util.SendMessageAnswer;
 @Service("telegramSendMessagesService")
 public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesService {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(TelegramSendMessagesService.class);
 
 	@Autowired
 	private PogoBot pogoBot;

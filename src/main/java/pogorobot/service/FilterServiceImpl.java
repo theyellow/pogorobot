@@ -63,7 +63,7 @@ import pogorobot.telegram.util.Type;
 @Service("filterService")
 public class FilterServiceImpl implements FilterService {
 
-	private Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(FilterService.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;

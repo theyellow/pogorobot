@@ -155,7 +155,7 @@ public class UserServiceImpl implements UserService {
 		Root<User> from = query.from(User.class);
 		query = query.where(criteriaBuilder.equal(from.get("telegramId"), telegramId));
 		List<User> resultList = entityManager.createQuery(query).getResultList();
-		User user ;
+		User user;
 		if (resultList.size() == 0) {
 			user = createUser(null, telegramId);
 		} else {

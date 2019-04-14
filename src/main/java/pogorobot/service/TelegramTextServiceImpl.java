@@ -58,7 +58,7 @@ import pogorobot.telegram.util.Emoji;
 @Service("telegramTextService")
 public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(TelegramTextService.class);
 
 	private static final String MESSAGE_SPACE = " ";
 

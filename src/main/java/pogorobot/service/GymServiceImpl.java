@@ -61,7 +61,7 @@ import pogorobot.telegram.config.StandardConfiguration;
 @Service("gymService")
 public class GymServiceImpl implements GymService {
 
-	Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0]);
+	private static Logger logger = LoggerFactory.getLogger(GymService.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;
