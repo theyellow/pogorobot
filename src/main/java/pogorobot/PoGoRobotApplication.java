@@ -142,6 +142,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		private long timestampGroupMonsterFile;
 		private long timestampGroupIvFile;
 		private long timestampGroupGeofencesFile;
+		private long timestampGroupGeofencesFileIv;
+		private long timestampGroupGeofencesFileMonster;
+		private long timestampGroupGeofencesFileRaids;
 		private long timestampGroupChatIdFile;
 		private long timestampGroupXraidFile;
 		private long timestampGeofencesFile;
@@ -151,20 +154,79 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			try {
 				timestampGroupRaidLevelFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupraidlevel.txt"))
 						.toMillis();
+			} catch (IOException e) {
+				timestampGroupRaidLevelFile = 0;
+				logger.error("Couldn't retrieve timestamps for raid level at " + relativePath);
+			}
+			try {
 				timestampGroupRaidMonstersFile = Files
 						.getLastModifiedTime(Paths.get(relativePath, "groupraidmonsters.txt")).toMillis();
+			} catch (IOException e) {
+				timestampGroupRaidMonstersFile = 0;
+				logger.error("Couldn't retrieve timestamps for raid monsters at " + relativePath);
+			}
+			try {
 				timestampGroupMonsterFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupmonsters.txt"))
 						.toMillis();
+			} catch (IOException e) {
+				timestampGroupMonsterFile = 0;
+				logger.error("Couldn't retrieve timestamps for monsters settings at " + relativePath);
+			}
+			try {
 				timestampGroupXraidFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupxraidgymall.txt"))
 						.toMillis();
+			} catch (IOException e) {
+				timestampGroupXraidFile = 0;
+				logger.error("Couldn't retrieve timestamps of exraidgyms settings at " + relativePath);
+			}
+			try {
 				timestampGroupIvFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupiv.txt")).toMillis();
+			} catch (IOException e) {
+				timestampGroupIvFile = 0;
+				logger.error("Couldn't retrieve timestamps monster iv settings at " + relativePath);
+			}
+			try {
 				timestampGroupGeofencesFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupgeofences.txt"))
 						.toMillis();
+			} catch (IOException e) {
+				timestampGroupGeofencesFile = 0;
+				logger.info("Couldn't retrieve timestamps for geofence legacy settings at " + relativePath);
+			}
+			try {
 				timestampGroupChatIdFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupchatid.txt"))
 						.toMillis();
+			} catch (IOException e) {
+				timestampGroupChatIdFile = 0;
+				logger.error("Couldn't retrieve timestamps for chat id settings at " + relativePath);
+			}
+			try {
 				timestampGeofencesFile = Files.getLastModifiedTime(Paths.get(relativePath, "geofences.txt")).toMillis();
 			} catch (IOException e) {
-				logger.error("Couldn't retrieve timestamps from " + relativePath);
+				timestampGeofencesFile = 0;
+				logger.error("Couldn't retrieve timestamps for geofences at " + relativePath);
+			}
+			try {
+				timestampGroupGeofencesFileIv = Files
+						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesiv.txt")).toMillis();
+			} catch (IOException e) {
+				timestampGroupGeofencesFileIv = 0;
+				logger.error("Couldn't retrieve timestamps for individul iv geofences settings at " + relativePath);
+			}
+			try {
+				timestampGroupGeofencesFileMonster = Files
+						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesmonsters.txt")).toMillis();
+			} catch (IOException e) {
+				timestampGroupGeofencesFileMonster = 0;
+				logger.error(
+						"Couldn't retrieve timestamps for individul monster geofences settings at " + relativePath);
+			}
+			try {
+				timestampGroupGeofencesFileRaids = Files
+						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesraids.txt")).toMillis();
+
+			} catch (IOException e) {
+				timestampGroupGeofencesFileRaids = 0;
+				logger.error("Couldn't retrieve timestamps for special raid geofences settings at " + relativePath);
 			}
 
 		}
@@ -178,6 +240,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			if (timestampGeofencesFile == o.timestampGeofencesFile &&
 				timestampGroupChatIdFile == o.timestampGroupChatIdFile &&
 				timestampGroupGeofencesFile == o.timestampGroupGeofencesFile &&
+				timestampGroupGeofencesFileIv == o.timestampGroupGeofencesFileIv &&
+				timestampGroupGeofencesFileMonster == o.timestampGroupGeofencesFileMonster &&
+				timestampGroupGeofencesFileRaids == o.timestampGroupGeofencesFileRaids &&
 				timestampGroupXraidFile == o.timestampGroupXraidFile &&
 				timestampGroupIvFile == o.timestampGroupIvFile &&
 				timestampGroupMonsterFile == o.timestampGroupMonsterFile &&

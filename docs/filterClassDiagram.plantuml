@@ -1,0 +1,194 @@
+@startuml
+class Filter [[java:pogorobot.entities.Filter]] {
+	-{static}long serialVersionUID
+	-FilterType filterType
+	-Double minIV
+	-Double maxIV
+	-Boolean onlyWithIV
+	-Boolean allExRaidsInArea
+	-Integer minWP
+	-Double latitude
+	-Double longitude
+	-Double radius
+	-Double radiusPokemon
+	-Double radiusRaids
+	-Double radiusIV
+	-List<Integer> pokemons
+	-List<Integer> gymPokemons
+	-List<Integer> raidPokemon
+	-Integer raidLevel
+	+Filter()
+	+Filter(Long id)
+	+Double getLatitude()
+	+void setLatitude(Double latitude)
+	+Double getLongitude()
+	+void setLongitude(Double longitude)
+	+Boolean getAllExRaidsInArea()
+	+void setAllExRaidsInArea(Boolean allExRaidsInArea)
+	+Double getRadius()
+	+void setRadius(Double radius)
+	+List<Integer> getPokemons()
+	+void setPokemons(List<Integer> pokemons)
+	+List<Integer> getGymPokemons()
+	+void setGymPokemons(List<Integer> gymPokemons)
+	+FilterType getFilterType()
+	+void setFilterType(FilterType filterType)
+	+String toString()
+	+User getOwner()
+	+void setOwner(User owner)
+	+List<User> getReceivers()
+	+void setReceivers(List<User> receivers)
+	+UserGroup getGroup()
+	+void setGroup(UserGroup group)
+	+List<UserGroup> getReceiveFromGroups()
+	+void setReceiveFromGroups(List<UserGroup> receiveFromGroups)
+	+List<Integer> getRaidPokemon()
+	+void setRaidPokemon(List<Integer> raidPokemon)
+	+Integer getRaidLevel()
+	+void setRaidLevel(Integer raidLevel)
+	+Set<Geofence> getGeofences()
+	+void setGeofences(Set<Geofence> geofences)
+	+Set<Geofence> getRaidGeofences()
+	+void setRaidGeofences(Set<Geofence> raidGeofences)
+	+Double getMinIV()
+	+void setMinIV(Double minIV)
+	+Integer getMinWP()
+	+void setMinWP(Integer minWP)
+	+Boolean getOnlyWithIV()
+	+void setOnlyWithIV(Boolean onlyWithIV)
+	+Double getRadiusPokemon()
+	+void setRadiusPokemon(Double radiusPokemon)
+	+Double getRadiusRaids()
+	+void setRadiusRaids(Double radiusRaids)
+	+Double getRadiusIV()
+	+void setRadiusIV(Double radiusIV)
+	+Set<Geofence> getIvGeofences()
+	+void setIvGeofences(Set<Geofence> ivGeofences)
+	+Double getMaxIV()
+	+void setMaxIV(Double maxIV)
+}
+class User [[java:pogorobot.entities.User]] {
+}
+Filter --> "1" User : owner
+class UserGroup [[java:pogorobot.entities.UserGroup]] {
+}
+Filter --> "1" UserGroup : group
+class User [[java:pogorobot.entities.User]] {
+}
+Filter --> "*" User : receivers
+class UserGroup [[java:pogorobot.entities.UserGroup]] {
+}
+Filter --> "*" UserGroup : receiveFromGroups
+class Geofence [[java:pogorobot.entities.Geofence]] {
+}
+Filter --> "*" Geofence : geofences
+class Geofence [[java:pogorobot.entities.Geofence]] {
+}
+Filter --> "*" Geofence : raidGeofences
+class Geofence [[java:pogorobot.entities.Geofence]] {
+}
+Filter --> "*" Geofence : ivGeofences
+class "AbstractPersistable<Long>" as AbstractPersistable_Long_ {
+}
+AbstractPersistable_Long_ <|-- Filter
+class Geofence [[java:pogorobot.entities.Geofence]] {
+	-{static}long serialVersionUID
+	-List<Double> polygon
+	-String geofenceName
+	+Geofence()
+	+Geofence(Long id)
+	+String getGeofenceName()
+	+void setGeofenceName(String geofenceName)
+	+List<Double> getPolygon()
+	+void setPolygon(List<Double> polygon)
+}
+class "AbstractPersistable<Long>" as AbstractPersistable_Long_ {
+}
+AbstractPersistable_Long_ <|-- Geofence
+class User [[java:pogorobot.entities.User]] {
+	-{static}long serialVersionUID
+	-String telegramId
+	-String chatId
+	-String telegramName
+	-boolean telegramActive
+	-String name
+	-String ingameName
+	-Long trainerLevel
+	-boolean payed
+	-boolean showPokemonMessages
+	-boolean showRaidMessages
+	-boolean admin
+	-boolean raidadmin
+	-boolean superadmin
+	+int hashCode()
+	+boolean equals(Object obj)
+	+User()
+	+User(Long id)
+	+String getTelegramId()
+	+void setTelegramId(String telegramId)
+	+String getName()
+	+void setName(String name)
+	+String getIngameName()
+	+void setIngameName(String ingameName)
+	+Long getTrainerLevel()
+	+void setTrainerLevel(Long trainerLevel)
+	+List<Filter> getFilters()
+	+void setFilters(List<Filter> filters)
+	+boolean isPayed()
+	+void setPayed(boolean payed)
+	+boolean isAdmin()
+	+void setAdmin(boolean admin)
+	+boolean isRaidadmin()
+	+void setRaidadmin(boolean raidadmin)
+	+boolean isSuperadmin()
+	+void setSuperadmin(boolean superadmin)
+	+List<UserGroup> getGroups()
+	+void setGroups(List<UserGroup> groups)
+	+String toString()
+	+String getTelegramName()
+	+void setTelegramName(String telegramName)
+	+Filter getUserFilter()
+	+void setUserFilter(Filter userFilter)
+	+boolean isTelegramActive()
+	+void setTelegramActive(boolean telegramActive)
+	+boolean isShowPokemonMessages()
+	+void setShowPokemonMessages(boolean showPokemonMessages)
+	+boolean isShowRaidMessages()
+	+void setShowRaidMessages(boolean showRaidMessages)
+	+String getChatId()
+	+void setChatId(String chatId)
+}
+class Filter [[java:POGOProtos.Enums.FilterOuterClass$Filter]] {
+}
+User --> "1" Filter : userFilter
+class Filter [[java:POGOProtos.Enums.FilterOuterClass$Filter]] {
+}
+User --> "*" Filter : filters
+class UserGroup [[java:pogorobot.entities.UserGroup]] {
+}
+User --> "*" UserGroup : groups
+class "AbstractPersistable<Long>" as AbstractPersistable_Long_ {
+}
+AbstractPersistable_Long_ <|-- User
+class UserGroup [[java:pogorobot.entities.UserGroup]] {
+	-{static}long serialVersionUID
+	-String groupName
+	-Long chatId
+	-String picture
+	+String getGroupName()
+	+void setGroupName(String groupName)
+	+String getPicture()
+	+void setPicture(String picture)
+	+Filter getGroupFilter()
+	+void setGroupFilter(Filter groupFilter)
+	+Long getChatId()
+	+void setChatId(Long chatId)
+	+String toString()
+}
+class Filter [[java:POGOProtos.Enums.FilterOuterClass$Filter]] {
+}
+UserGroup --> "1" Filter : groupFilter
+class "AbstractPersistable<Long>" as AbstractPersistable_Long_ {
+}
+AbstractPersistable_Long_ <|-- UserGroup
+@enduml

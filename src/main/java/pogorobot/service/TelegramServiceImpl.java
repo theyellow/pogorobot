@@ -59,7 +59,6 @@ import pogorobot.repositories.ProcessedRaidRepository;
 import pogorobot.repositories.RaidAtGymEventRepository;
 import pogorobot.repositories.UserGroupRepository;
 import pogorobot.telegram.util.SendMessageAnswer;
-import pogorobot.telegram.util.Type;
 
 @Service("telegramService")
 public class TelegramServiceImpl implements TelegramService {
@@ -262,19 +261,21 @@ public class TelegramServiceImpl implements TelegramService {
 					if (radiusIV != null && radiusPokemon != null && radiusIV < radiusPokemon) {
 						radiusIV = radiusPokemon;
 					}
-					boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude,
-							radiusIV);
-					if (nearby
-							|| filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
-									Type.IV)
-							|| filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
-									Type.POKEMON)) {
-
+					// boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude,
+					// latitude, longitude,
+					// radiusIV);
+					if (filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radiusIV)
+							|| filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude,
+									filter.getIvGeofences())
+					// || filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude,
+					// filter.getGeofences())
+					) {
 						logger.debug("start creating new future to send mon {} to {}", pokemon.getPokemonId(), chatId);
 						monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
 						return monsterFuture;
 					} else {
-						logger.info("pokemon {} isn't nearby or in a chosen area for filter {}", pokemon.getPokemonId(),
+						logger.info("pokemon {} isn't nearby or in a chosen iv area for filter {}",
+								pokemon.getPokemonId(),
 								filter.getId());
 					}
 				} else {
@@ -288,7 +289,7 @@ public class TelegramServiceImpl implements TelegramService {
 			logger.debug("no iv scanning for filter {} because no iv given for pokemon {} at spawnpoint {}",
 					filter.getId(), pokemon.getPokemonId(), pokemon.getSpawnpointId());
 		}
-		if (!onlyDeepScan && filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
+		if (filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
 			logger.debug("begin of pokemon-search by area/nearby");
 			if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
 				logger.debug("only-iv filtering stops sending message to {}", chatId);
@@ -302,24 +303,27 @@ public class TelegramServiceImpl implements TelegramService {
 
 			logger.debug("begin looking for nearby or geofence");
 			boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radius);
-			if (nearby || filterService.isPointInOneGeofenceOfFilterByType(monLatitude, monLongitude, filter,
-					Type.POKEMON)) {
-
+			if (nearby || filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude, filter.getGeofences())) {
 				logger.debug("pokemon {} will be send to {}", pokemon.getPokemonId(), chatId);
 				monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
 				return monsterFuture;
 			}
-		} else {
-			String msg = "no nearby- or area-search for filter " + filter.getId() + " because ";
-
-			if (onlyDeepScan && filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
-				msg += " a deep inspection (pokemon 'spawned 2nd time' with iv-details) of iv was happening";
-				monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
-			} else {
-				msg += " pokemon " + pokemon.getPokemonId() + " is not in list";
-			}
-			logger.debug(msg);
 		}
+		// else {
+		// String msg = "no nearby- or area-search for filter " + filter.getId() + "
+		// because ";
+		//
+		// if (onlyDeepScan &&
+		// filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
+		// msg += " a deep inspection (pokemon 'spawned 2nd time' with iv-details) of iv
+		// was happening";
+		// monsterFuture = startSendMonsterFuture(pokemon, chatId,
+		// possibleMessageIdToUpdate);
+		// } else {
+		// msg += " pokemon " + pokemon.getPokemonId() + " is not in list";
+		// }
+		// logger.debug(msg);
+		// }
 		return monsterFuture;
 	}
 
@@ -462,7 +466,7 @@ public class TelegramServiceImpl implements TelegramService {
 			boolean geoGiven = filter.getRadius() != null && filter.getLatitude() != null
 					&& filter.getLongitude() != null && filter.getRadiusRaids() != null;
 			boolean pointInOneGeofence = gymCoordsGiven
-					? filterService.isPointInOneGeofenceOfFilterByType(latitude, longitude, filter, Type.RAID)
+					? filterService.isPointInOneOfManyGeofences(latitude, longitude, filter.getRaidGeofences())
 					: false;
 			if (pointInOneGeofence || (gymCoordsGiven && geoGiven && filterService.isDistanceNearby(latitude, longitude,
 					filter.getLatitude(), filter.getLongitude(), filter.getRadiusRaids()))) {

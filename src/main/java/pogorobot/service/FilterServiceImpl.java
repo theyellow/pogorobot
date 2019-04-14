@@ -423,6 +423,7 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
+	@Deprecated
 	public boolean isPointInOneGeofenceOfFilterByType(double latitude, double longitude, Filter filter,
 			Type pokemonFence) {
 		Set<Geofence> geofences = null;

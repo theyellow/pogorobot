@@ -42,20 +42,20 @@ public class ProcessedPokemon extends AbstractPersistable<Long> {
 	@OneToMany(cascade = CascadeType.ALL)
 	Set<SendMessages> chatsPokemonIsPosted;
 
-	public ProcessedPokemon() {
-		this(null);
-	}
-
-	public ProcessedPokemon(Long id) {
-		super();
-		setId(id);
-	}
-
-	public ProcessedPokemon(String encounterId, Long endTime) {
-		super();
-		this.encounterId = encounterId;
-		this.endTime = endTime;
-	}
+	// public ProcessedPokemon() {
+	// this(null);
+	// }
+	//
+	// public ProcessedPokemon(Long id) {
+	// super();
+	// setId(id);
+	// }
+	//
+	// public ProcessedPokemon(String encounterId, Long endTime) {
+	// super();
+	// this.encounterId = encounterId;
+	// this.endTime = endTime;
+	// }
 
 
 	public Long getEndTime() {
