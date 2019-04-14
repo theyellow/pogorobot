@@ -46,7 +46,7 @@ public class User extends AbstractPersistable<Long> {
 		if (super.equals(obj)) {
 			return true;
 		}
-		if (!(obj instanceof User)) {
+		if (obj.getClass() != this.getClass()) {
 			return false;
 		}
 		User other = (User) obj;

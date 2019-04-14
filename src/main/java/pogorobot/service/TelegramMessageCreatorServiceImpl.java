@@ -499,31 +499,19 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 				if (radius == null) {
 					radius = 0.5;
 				}
-				if (!radius.equals(Double.valueOf(maxDistance))) {
-					filterService.setUserIvRadius(telegramId, maxDistance);
-				} else {
-					return null;
-				}
+				filterService.setUserIvRadius(telegramId, maxDistance);
 			} else if ("mon".equalsIgnoreCase(type)) {
 				Double radius = user.getUserFilter().getRadiusPokemon();
 				if (radius == null) {
 					radius = 0.5;
 				}
-				if (!radius.equals(Double.valueOf(maxDistance))) {
-					filterService.setUserPokemonRadius(telegramId, maxDistance);
-				} else {
-					return null;
-				}
+				filterService.setUserPokemonRadius(telegramId, maxDistance);
 			} else if ("raid".equalsIgnoreCase(type)) {
 				Double radius = user.getUserFilter().getRadiusRaids();
 				if (radius == null) {
 					radius = 0.5;
 				}
-				if (!radius.equals(Double.valueOf(maxDistance))) {
-					filterService.setUserRaidRadius(telegramId, maxDistance);
-				} else {
-					return null;
-				}
+				filterService.setUserRaidRadius(telegramId, maxDistance);
 			}
 		}
 		EditMessageText message = new EditMessageText();
@@ -693,9 +681,9 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		result = "100";
 		Double minIV = filter.getMinIV();
 		if (minIV != null) {
-			if (minIV.equals(93.0)) {
+			if (minIV.compareTo(93.0d) == 0) {
 				result = Double.toString(minIV);
-			} else if (minIV.equals(101.0)) {
+			} else if (minIV.compareTo(100.1d) > 0) {
 				result = "kein Minimum definiert";
 			} else {
 				minIV++;

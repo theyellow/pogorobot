@@ -260,39 +260,39 @@ public class ConfigReaderImpl implements ConfigReader {
 
 	@Override
 	public void updateGroupFiltersWithGeofences() throws IOException {
-		String fileName = "groupgeofences.txt";
+		// String fileName = "groupgeofences.txt";
 		String fileNameIV = "groupgeofencesiv.txt";
 		String fileNamePokemon = "groupgeofencesmonsters.txt";
 		String fileNameRaid = "groupgeofencesraids.txt";
-		Map<String, List<String>> groupIds = parseGroupIdFile(fileName);
+		// Map<String, List<String>> groupIds = parseGroupIdFile(fileName);
 		Map<String, List<String>> groupIdsIvs = parseGroupIdFile(fileNameIV);
 		Map<String, List<String>> groupIdsPokemon = parseGroupIdFile(fileNamePokemon);
 		Map<String, List<String>> groupIdsRaid = parseGroupIdFile(fileNameRaid);
-		if (groupIdsPokemon == null) {
-			if (groupIdsIvs != null) {
-				groupIdsPokemon = groupIdsIvs;
-			} else if (groupIds != null) {
-				groupIdsPokemon = groupIds;
-			} else {
-				logger.warn("No geofences for monsters!");
-			}
-		}
-		if (groupIdsRaid == null) {
-			if (groupIds != null) {
-				groupIdsRaid = groupIds;
-			} else {
-				logger.warn("No geofences for raids!");
-			}
-		}
-		if (groupIdsIvs == null) {
-			if (groupIdsPokemon != null) {
-				groupIdsIvs = groupIdsPokemon;
-			} else if (groupIds != null) {
-				groupIdsIvs = groupIds;
-			} else {
-				logger.warn("No geofences for ivs!");
-			}
-		}
+		// if (groupIdsPokemon == null) {
+		// if (groupIdsIvs != null) {
+		// groupIdsPokemon = groupIdsIvs;
+		// } else if (groupIds != null) {
+		// groupIdsPokemon = groupIds;
+		// } else {
+		// logger.warn("No geofences for monsters!");
+		// }
+		// }
+		// if (groupIdsRaid == null) {
+		// if (groupIds != null) {
+		// groupIdsRaid = groupIds;
+		// } else {
+		// logger.warn("No geofences for raids!");
+		// }
+		// }
+		// if (groupIdsIvs == null) {
+		// if (groupIdsPokemon != null) {
+		// groupIdsIvs = groupIdsPokemon;
+		// } else if (groupIds != null) {
+		// groupIdsIvs = groupIds;
+		// } else {
+		// logger.warn("No geofences for ivs!");
+		// }
+		// }
 		List<Geofence> existingFences = new ArrayList<>();
 		geofenceDAO.findAll().forEach(x -> existingFences.add(x));
 		List<Filter> groupFilters = filterService.getFiltersByType(FilterType.GROUP);
