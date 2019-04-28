@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+
+	<include file="db-initial-mysql.changelog.xml" relativeToChangelogFile="true"/> 
+	
+	<!-- set sequence -->
+	<changeSet author="ben" id="1555860578714-52">
+		<insert tableName="hibernate_sequence">
+	        <column name="sequence_name" value="hibernate_sequence"/>
+	        <column name="next_val" value="600"/>
+	    </insert>
+	</changeSet>
+	
+</databaseChangeLog> 

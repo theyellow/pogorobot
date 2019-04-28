@@ -1,0 +1,797 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+	xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+	xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+	<changeSet author="ben (generated)" id="1555773217196-1">
+		<createSequence sequenceName="hibernate_sequence" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-2">
+		<createTable tableName="EventWithSubscribers">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="EventWithSubscribers_pkey" />
+			</column>
+			<column name="time" type="VARCHAR(255)" />
+			<column name="raid_id" type="VARCHAR(64)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-3">
+		<createTable tableName="EventWithSubscribers_Subscriber">
+			<column name="EventWithSubscribers_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="EventWithSubscribers_Subscriber_pkey" />
+			</column>
+			<column name="subscribers_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="EventWithSubscribers_Subscriber_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-4">
+		<createTable tableName="Filter">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="Filter_pkey" />
+			</column>
+			<column name="filtertype" type="INTEGER" />
+			<column name="latitude" type="FLOAT8" />
+			<column name="longitude" type="FLOAT8" />
+			<column name="maxiv" type="FLOAT8" />
+			<column name="miniv" type="FLOAT8" />
+			<column name="minwp" type="INTEGER" />
+			<column name="onlywithiv" type="BOOLEAN" />
+			<column name="radius" type="FLOAT8" />
+			<column name="radiusiv" type="FLOAT8" />
+			<column name="radiuspokemon" type="FLOAT8" />
+			<column name="radiusraids" type="FLOAT8" />
+			<column name="raidlevel" type="INTEGER" />
+			<column name="allexraidsinarea" type="BOOLEAN" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-5">
+		<createTable tableName="FilterExraid">
+			<column name="chatid" type="VARCHAR(255)" />
+			<column name="gym_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="FilterExraid_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-6">
+		<createTable tableName="Filter_User">
+			<column name="Filter_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="receivers_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-7">
+		<createTable tableName="Filter_UserGroup">
+			<column name="Filter_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="receiveFromGroups_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-8">
+		<createTable tableName="Filter_gymPokemons">
+			<column name="Filter_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="gympokemons" type="INTEGER" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-9">
+		<createTable tableName="Filter_pokemons">
+			<column name="Filter_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="pokemons" type="INTEGER" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-10">
+		<createTable tableName="Filter_raidPokemon">
+			<column name="Filter_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="raidpokemon" type="INTEGER" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-11">
+		<createTable tableName="Geofence">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="Geofence_pkey" />
+			</column>
+			<column name="geofencename" type="VARCHAR(255)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-12">
+		<createTable tableName="Geofence_polygon">
+			<column name="Geofence_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="Geofence_polygon_pkey" />
+			</column>
+			<column name="polygon" type="FLOAT8" />
+			<column name="polygon_order" type="INTEGER">
+				<constraints primaryKey="true"
+					primaryKeyName="Geofence_polygon_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-13">
+		<createTable tableName="GroupMessages">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="GroupMessages_pkey" />
+			</column>
+			<column name="groupchatid" type="BIGINT" />
+			<column name="locationid" type="INTEGER" />
+			<column name="messageid" type="INTEGER" />
+			<column name="stickerid" type="INTEGER" />
+			<column name="owningRaid_id" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-14">
+		<createTable tableName="Gym">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true" primaryKeyName="Gym_pkey" />
+			</column>
+			<column name="address" type="VARCHAR(2048)" />
+			<column name="description" type="VARCHAR(2048)" />
+			<column name="enabled" type="BOOLEAN" />
+			<column name="gymid" type="VARCHAR(64)" />
+			<column name="lastmodified" type="BIGINT" />
+			<column name="latitude" type="FLOAT8" />
+			<column name="longitude" type="FLOAT8" />
+			<column name="name" type="VARCHAR(512)" />
+			<column name="occupiedsince" type="BIGINT" />
+			<column name="pokestop" type="BOOLEAN" />
+			<column name="end" type="BIGINT" />
+			<column name="move1" type="VARCHAR(255)" />
+			<column name="move2" type="VARCHAR(255)" />
+			<column name="pokemonid" type="BIGINT" />
+			<column name="raidlevel" type="BIGINT" />
+			<column name="spawn" type="BIGINT" />
+			<column name="start" type="BIGINT" />
+			<column name="raidactiveuntil" type="BIGINT" />
+			<column name="slotsavailable" type="BIGINT" />
+			<column name="teamid" type="BIGINT" />
+			<column name="url" type="VARCHAR(2048)" />
+			<column name="exraideglible" type="BOOLEAN" />
+			<column name="ex_raid_eligible" type="VARCHAR(255)" />
+			<column name="sponsor_id" type="VARCHAR(255)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-15">
+		<createTable tableName="GymPokemon">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="GymPokemon_pkey" />
+			</column>
+			<column name="pokemonid" type="BIGINT" />
+			<column name="trainerlevel" type="BIGINT" />
+			<column name="trainername" type="VARCHAR(255)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-16">
+		<createTable tableName="Gym_GymPokemon">
+			<column name="Gym_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="pokemon_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-17">
+		<createTable tableName="PokemonWithSpawnpoint">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="PokemonWithSpawnpoint_pkey" />
+			</column>
+			<column name="costumeid" type="VARCHAR(255)" />
+			<column name="cp" type="VARCHAR(255)" />
+			<column name="cpmultiplier" type="FLOAT8" />
+			<column name="disappeartime" type="BIGINT" />
+			<column name="encounterid" type="VARCHAR(255)" />
+			<column name="form" type="VARCHAR(255)" />
+			<column name="gender" type="BIGINT" />
+			<column name="height" type="FLOAT8" />
+			<column name="individualattack" type="VARCHAR(255)" />
+			<column name="individualdefense" type="VARCHAR(255)" />
+			<column name="individualstamina" type="VARCHAR(255)" />
+			<column name="lastmodified" type="BIGINT" />
+			<column name="latitude" type="FLOAT8" />
+			<column name="longitude" type="FLOAT8" />
+			<column name="move1" type="VARCHAR(255)" />
+			<column name="move2" type="VARCHAR(255)" />
+			<column name="playerlevel" type="BIGINT" />
+			<column name="pokemonid" type="BIGINT" />
+			<column name="secondsuntildespawn" type="BIGINT" />
+			<column name="spawnend" type="BIGINT" />
+			<column name="spawnstart" type="BIGINT" />
+			<column name="spawnpointid" type="VARCHAR(255)" />
+			<column name="timeuntilhidden_ms" type="BIGINT" />
+			<column name="verified" type="BOOLEAN" />
+			<column name="weatherboosted" type="INTEGER" />
+			<column name="weight" type="FLOAT8" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-18">
+		<createTable tableName="PossibleRaidPokemon">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="PossibleRaidPokemon_pkey" />
+			</column>
+			<column name="level" type="INTEGER" />
+			<column name="pokemonid" type="INTEGER" />
+			<column name="type" type="VARCHAR(255)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-19">
+		<createTable tableName="ProcessedPokemon">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="ProcessedPokemon_pkey" />
+			</column>
+			<column name="endtime" type="BIGINT" />
+			<column name="pokemonid" type="VARCHAR(50)" />
+			<column name="encounterid" type="VARCHAR(50)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-20">
+		<createTable tableName="ProcessedPokemon_SendMessages">
+			<column name="ProcessedPokemon_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="ProcessedPokemon_SendMessages_pkey" />
+			</column>
+			<column name="chatsPokemonIsPosted_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="ProcessedPokemon_SendMessages_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-21">
+		<createTable tableName="ProcessedRaids">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="ProcessedRaids_pkey" />
+			</column>
+			<column name="endtime" type="BIGINT" />
+			<column name="gymid" type="VARCHAR(50)" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-22">
+		<createTable tableName="ProcessedRaids_SendMessages">
+			<column name="ProcessedRaids_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="ProcessedRaids_SendMessages_pkey" />
+			</column>
+			<column name="groupsRaidIsPosted_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="ProcessedRaids_SendMessages_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-23">
+		<createTable tableName="Quest">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="Quest_pkey" />
+			</column>
+			<column name="conditions" type="VARCHAR(255)" />
+			<column name="latitude" type="FLOAT8" />
+			<column name="longitude" type="FLOAT8" />
+			<column name="pokestopid" type="VARCHAR(255)" />
+			<column name="pokestopname" type="VARCHAR(255)" />
+			<column name="pokestopurl" type="VARCHAR(255)" />
+			<column name="rewards" type="VARCHAR(255)" />
+			<column name="target" type="VARCHAR(255)" />
+			<column name="template" type="VARCHAR(255)" />
+			<column name="type" type="VARCHAR(255)" />
+			<column name="updated" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-24">
+		<createTable tableName="RaidAtGymEvent">
+			<column name="id" type="VARCHAR(64)">
+				<constraints primaryKey="true"
+					primaryKeyName="RaidAtGymEvent_pkey" />
+			</column>
+			<column name="end" type="BIGINT" />
+			<column name="gymid" type="VARCHAR(64)" />
+			<column name="latitude" type="FLOAT8" />
+			<column name="level" type="BIGINT" />
+			<column name="longitude" type="FLOAT8" />
+			<column name="pokemonid" type="BIGINT" />
+			<column name="start" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-25">
+		<createTable
+			tableName="RaidAtGymEvent_EventWithSubscribers">
+			<column name="RaidAtGymEvent_id" type="VARCHAR(64)">
+				<constraints primaryKey="true"
+					primaryKeyName="RaidAtGymEvent_EventWithSubscribers_pkey" />
+			</column>
+			<column name="eventsWithSubscribers_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="RaidAtGymEvent_EventWithSubscribers_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-26">
+		<createTable tableName="SendMessages">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="SendMessages_pkey" />
+			</column>
+			<column name="groupchatid" type="BIGINT" />
+			<column name="locationid" type="INTEGER" />
+			<column name="messageid" type="INTEGER" />
+			<column name="stickerid" type="INTEGER" />
+			<column name="owningPokemon_id" type="BIGINT" />
+			<column name="owningRaid_id" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-27">
+		<createTable tableName="Subscriber">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="Subscriber_pkey" />
+			</column>
+			<column name="additionalparticipants" type="INTEGER" />
+			<column name="subscriber_id" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-28">
+		<createTable tableName="User">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="User_pkey" />
+			</column>
+			<column name="admin" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="chatid" type="VARCHAR(255)" />
+			<column name="ingamename" type="VARCHAR(255)" />
+			<column name="name" type="VARCHAR(255)" />
+			<column name="payed" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="raidadmin" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="showpokemonmessages" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="showraidmessages" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="superadmin" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="telegramactive" type="BOOLEAN">
+				<constraints nullable="false" />
+			</column>
+			<column name="telegramid" type="VARCHAR(255)" />
+			<column name="telegramname" type="VARCHAR(255)" />
+			<column name="trainerlevel" type="BIGINT" />
+			<column name="userFilter_id" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-29">
+		<createTable tableName="UserGroup">
+			<column name="id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="UserGroup_pkey" />
+			</column>
+			<column name="chatid" type="BIGINT" />
+			<column name="groupname" type="VARCHAR(255)" />
+			<column name="picture" type="VARCHAR(255)" />
+			<column name="groupFilter_id" type="BIGINT" />
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-30">
+		<createTable tableName="User_Filter">
+			<column name="User_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="filters_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-31">
+		<createTable tableName="User_UserGroup">
+			<column name="User_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+			<column name="groups_id" type="BIGINT">
+				<constraints nullable="false" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-32">
+		<createTable tableName="filter_geofences_iv">
+			<column name="Filter_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="filter_geofences_iv_pkey" />
+			</column>
+			<column name="ivGeofences_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="filter_geofences_iv_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-33">
+		<createTable tableName="filter_geofences_mon">
+			<column name="Filter_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="filter_geofences_mon_pkey" />
+			</column>
+			<column name="geofences_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="filter_geofences_mon_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-34">
+		<createTable tableName="filter_geofences_raid">
+			<column name="Filter_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="filter_geofences_raid_pkey" />
+			</column>
+			<column name="raidGeofences_id" type="BIGINT">
+				<constraints primaryKey="true"
+					primaryKeyName="filter_geofences_raid_pkey" />
+			</column>
+		</createTable>
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-35">
+		<addUniqueConstraint
+			columnNames="eventsWithSubscribers_id"
+			constraintName="uk_1fsa7o8s5kwk3cgs0hkiy6udx"
+			tableName="RaidAtGymEvent_EventWithSubscribers" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-36">
+		<addUniqueConstraint columnNames="spawnpointid"
+			constraintName="uk_3p3jqj59to0cmrv34f3q7acdg"
+			tableName="PokemonWithSpawnpoint" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-37">
+		<addUniqueConstraint columnNames="groups_id"
+			constraintName="uk_6neited82m4m1h64p7dn6n24g"
+			tableName="User_UserGroup" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-38">
+		<addUniqueConstraint
+			columnNames="chatsPokemonIsPosted_id"
+			constraintName="uk_db7dbi3io5vlyuwubrtwgjee0"
+			tableName="ProcessedPokemon_SendMessages" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-39">
+		<addUniqueConstraint columnNames="groupname"
+			constraintName="uk_f6x7vpmw83jptft2toy0wsfk6" tableName="UserGroup" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-40">
+		<addUniqueConstraint columnNames="telegramid"
+			constraintName="uk_fjsvqydlqdvko5ri5bpu0fwa2" tableName="User" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-41">
+		<addUniqueConstraint columnNames="pokemon_id"
+			constraintName="uk_h4mmi2yf2mkol7i0ko6a119sb"
+			tableName="Gym_GymPokemon" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-42">
+		<addUniqueConstraint
+			columnNames="receiveFromGroups_id"
+			constraintName="uk_ljynxqs0sgij7sway78y3xjnc"
+			tableName="Filter_UserGroup" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-43">
+		<addUniqueConstraint columnNames="filters_id"
+			constraintName="uk_n357e8pqg66y19dxn1uvapm40" tableName="User_Filter" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-44">
+		<addUniqueConstraint
+			columnNames="groupsRaidIsPosted_id"
+			constraintName="uk_pa0b095jt06h86yd3hr8ianeh"
+			tableName="ProcessedRaids_SendMessages" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-45">
+		<addUniqueConstraint columnNames="receivers_id"
+			constraintName="uk_tj4eol0ew476gxmepn19ofeii" tableName="Filter_User" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-46">
+		<addForeignKeyConstraint
+			baseColumnNames="subscriber_id" baseTableName="Subscriber"
+			constraintName="fk11smu4nacc28wtut5qv8gvjd3" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="User" validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-47">
+		<addForeignKeyConstraint
+			baseColumnNames="EventWithSubscribers_id"
+			baseTableName="EventWithSubscribers_Subscriber"
+			constraintName="fk3ql13fyxaplakiw57qhealdwi" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="EventWithSubscribers"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-48">
+		<addForeignKeyConstraint
+			baseColumnNames="groupsRaidIsPosted_id"
+			baseTableName="ProcessedRaids_SendMessages"
+			constraintName="fk5ei61wue5gtodxjmti7w31dp8" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="SendMessages"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-49">
+		<addForeignKeyConstraint
+			baseColumnNames="filters_id" baseTableName="User_Filter"
+			constraintName="fk5ijstidcklx81mbkw12pni3ql" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-50">
+		<addForeignKeyConstraint
+			baseColumnNames="RaidAtGymEvent_id"
+			baseTableName="RaidAtGymEvent_EventWithSubscribers"
+			constraintName="fk5jv7171bam2ck2urt05ym4gil" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="RaidAtGymEvent"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-51">
+		<addForeignKeyConstraint
+			baseColumnNames="raid_id" baseTableName="EventWithSubscribers"
+			constraintName="fk7e4os1wehmwxgnraekx3f4s91" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="RaidAtGymEvent"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-52">
+		<addForeignKeyConstraint
+			baseColumnNames="owningPokemon_id" baseTableName="SendMessages"
+			constraintName="fk7gygcfvekimctj9nh5rltv7rb" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="ProcessedPokemon"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-53">
+		<addForeignKeyConstraint
+			baseColumnNames="Gym_id" baseTableName="Gym_GymPokemon"
+			constraintName="fk7w5rmaugmrw6np9ajou7si8sg" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Gym" validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-54">
+		<addForeignKeyConstraint
+			baseColumnNames="userFilter_id" baseTableName="User"
+			constraintName="fkbcllwfmhj273gjrxx8p4p6cy5" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-55">
+		<addForeignKeyConstraint
+			baseColumnNames="Geofence_id" baseTableName="Geofence_polygon"
+			constraintName="fkbdx7pj0jsyphf3spkxoj7f1rm" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Geofence"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-56">
+		<addForeignKeyConstraint
+			baseColumnNames="User_id" baseTableName="User_Filter"
+			constraintName="fkbgf84d1qc6xe289dhj2i4joaa" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="User" validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-57">
+		<addForeignKeyConstraint
+			baseColumnNames="ProcessedRaids_id"
+			baseTableName="ProcessedRaids_SendMessages"
+			constraintName="fkd75eb9yfncpfyxode5as75dk4" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="ProcessedRaids"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-58">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="Filter_pokemons"
+			constraintName="fkdh8ek11yl026lyqfenodn37td" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-59">
+		<addForeignKeyConstraint
+			baseColumnNames="receiveFromGroups_id"
+			baseTableName="Filter_UserGroup"
+			constraintName="fke3fbny9invybpuu2frw8u7p7y" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="UserGroup"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-60">
+		<addForeignKeyConstraint
+			baseColumnNames="pokemon_id" baseTableName="Gym_GymPokemon"
+			constraintName="fkeai07yyjkxwo9wl37bcj3ji9s" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="GymPokemon"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-61">
+		<addForeignKeyConstraint
+			baseColumnNames="ivGeofences_id" baseTableName="filter_geofences_iv"
+			constraintName="fkebs2i7i1rfwdtnvepv2j153at" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Geofence"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-62">
+		<addForeignKeyConstraint
+			baseColumnNames="raidGeofences_id"
+			baseTableName="filter_geofences_raid"
+			constraintName="fkfxqx09bj8np1m2osrdnp2d39a" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Geofence"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-63">
+		<addForeignKeyConstraint
+			baseColumnNames="receivers_id" baseTableName="Filter_User"
+			constraintName="fkg54w2n0onx5wjhbjyd7e2sfds" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="User" validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-64">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="Filter_User"
+			constraintName="fkj0r20ep9ikl7ggs8bj8l4deys" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-65">
+		<addForeignKeyConstraint
+			baseColumnNames="subscribers_id"
+			baseTableName="EventWithSubscribers_Subscriber"
+			constraintName="fkjoru8bth6x7lw3wi42yjobixb" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Subscriber"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-66">
+		<addForeignKeyConstraint
+			baseColumnNames="owningRaid_id" baseTableName="SendMessages"
+			constraintName="fkjq2firjvkm8e6ik0jv04f5avo" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="ProcessedRaids"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-67">
+		<addForeignKeyConstraint
+			baseColumnNames="eventsWithSubscribers_id"
+			baseTableName="RaidAtGymEvent_EventWithSubscribers"
+			constraintName="fkka8ws7hk303da5jsec1fhvv1o" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="EventWithSubscribers"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-68">
+		<addForeignKeyConstraint
+			baseColumnNames="User_id" baseTableName="User_UserGroup"
+			constraintName="fkkit4furg4wpieddihiuwh6qx1" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="User" validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-69">
+		<addForeignKeyConstraint
+			baseColumnNames="geofences_id" baseTableName="filter_geofences_mon"
+			constraintName="fkkul5wtjphqxdo5u3d38brfvpn" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Geofence"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-70">
+		<addForeignKeyConstraint
+			baseColumnNames="groups_id" baseTableName="User_UserGroup"
+			constraintName="fkl7vlu1dudqlqp6eocdon1ywuq" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="UserGroup"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-71">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="Filter_UserGroup"
+			constraintName="fklfcrlf58vfcv7dh2xoub6730r" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-72">
+		<addForeignKeyConstraint
+			baseColumnNames="ProcessedPokemon_id"
+			baseTableName="ProcessedPokemon_SendMessages"
+			constraintName="fklqocms1nxqgwmt8s0e8kxkwj6" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="ProcessedPokemon"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-73">
+		<addForeignKeyConstraint
+			baseColumnNames="groupFilter_id" baseTableName="UserGroup"
+			constraintName="fkmd6661htktkolgwqe3fpqjpko" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-74">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="Filter_gymPokemons"
+			constraintName="fkpvnmeup3u6ll8cit9qf6v8otg" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-75">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="filter_geofences_iv"
+			constraintName="fkr1i0bykru7geivb1vtrqi6cwp" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-76">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="filter_geofences_mon"
+			constraintName="fkre36p4tjnmns5f7hhvomljpnf" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-77">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="Filter_raidPokemon"
+			constraintName="fks98ab26qnk67uvlpto4dr79bg" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-78">
+		<addForeignKeyConstraint
+			baseColumnNames="Filter_id" baseTableName="filter_geofences_raid"
+			constraintName="fksv9lyax6wpq6wpxe7523dfndb" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Filter"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-79">
+		<addForeignKeyConstraint
+			baseColumnNames="chatsPokemonIsPosted_id"
+			baseTableName="ProcessedPokemon_SendMessages"
+			constraintName="fkt43mwxww2wepwrxx70b8oewbn" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="SendMessages"
+			validate="true" />
+	</changeSet>
+	<changeSet author="ben (generated)" id="1555773217196-80">
+		<addForeignKeyConstraint
+			baseColumnNames="gym_id" baseTableName="FilterExraid"
+			constraintName="fktrhqcbpe6ga9iu8p5oc1pc782" deferrable="false"
+			initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION"
+			referencedColumnNames="id" referencedTableName="Gym" validate="true" />
+	</changeSet>
+</databaseChangeLog>
