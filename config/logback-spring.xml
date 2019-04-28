@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="15 seconds">
+    
+    <property name="LOGS" value="./logs" />
+    
+    <appender name="Console"
+        class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{yyyy_MM_dd HH:mm:ss} %highlight(%-5level) %logger{0} - %msg%n%throwable
+            </Pattern>
+        </layout>
+    </appender>
+    
+    <appender name="RollingFile"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/pogorobot.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder
+            class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{yyyy_MM_dd HH:mm:ss} %p %logger{0} - %msg%n%throwable</Pattern>
+        </encoder>
+        
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/pogorobot-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <timeBasedFileNamingAndTriggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+    
+    <appender name="RollingFileDebug"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/pogorobot-debug.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <encoder
+            class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{yyyy_MM_dd HH:mm:ss} %p %logger{0} - %msg%n%throwable</Pattern>
+        </encoder>
+        
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/pogorobot-debug-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>30MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+    
+    <appender name="RollingFileDebugIv"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/pogorobot-iv.csv</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+        <encoder
+            class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%msg%n%throwable</Pattern>
+        </encoder>
+        
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>${LOGS}/archived/pogorobot-iv-%d{yyyy-MM-dd}.%i.csv.gz</fileNamePattern>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+    
+    <!-- LOG everything at INFO level -->
+    <root level="INFO">
+        <appender-ref ref="RollingFileDebug" />
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </root>
+    
+    
+    <!-- LOG "pogorobot*" at TRACE level -->
+    <logger name="pogorobot" level="trace" additivity="false">
+        <appender-ref ref="RollingFileDebug" />
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </logger>
+    
+    <!-- LOG for iv - analytics -->
+    <logger name="iv" level="DEBUG" additivity="false">
+        <appender-ref ref="RollingFileDebugIv"/>
+    </logger>
+    
+    
+</configuration>
