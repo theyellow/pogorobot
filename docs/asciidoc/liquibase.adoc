@@ -1,0 +1,49 @@
+# Overview of development
+
+You can either use mysql or postgresql for production and standard development environment, but you will need both for development *on database changes (this means changes in classes `pogorobot.entities.<EntityClassName>`). You'll have to generate db diff - scripts for both databases.*
+
+## Create and integrate database diff - scripts while development
+
+Creating these scripts needs some setup:
+
+Integrating db diff -scripts should be generated for mysql and postgresql, so you'll need both on your dev machine in order to make database changes (means 'db diff-scripts').
+
+It will work if you have 2 databases with user/pw `telegram` (respectively for mysql and postgresql):
+
+- `telegramdb` - your working 'production' database
+- `telegramdb-dev` - your development database
+
+The calls for generating diff-scripts is:
+
+For postgresql:
+
+
+`mvn process-test-resources -Pdb-diff-postgresql` 
+
+For mysql:
+
+`mvn process-test-resources -Pdb-diff-mysql`
+
+Each call generates a liquibase-changelog xml-file in `src/main/resources/liquibase/datadir/` folder, each with a pattern like:  _db-<db-type>-<YY-MM-dd-HHmm>.changelog.xml_
+
+
+## Update database with mvn
+
+This shouldn't be done on production, for development (with according setup to mysql/postgresql development) you drop tables and generate new ones.
+
+My entities change while development is not ready for production:
+
+Just run 
+
+`mvn process-resources -P mysql-settings,db-diff-mysql`
+
+or
+
+`mvn process-resources -P postgres-settings,db-diff-postgres`
+
+for generating new database with tables matching to your entities. 
+
+## Update database while starting (automatic db managment) 
+
+This is done with a spring bean always at startup of application. It will use database-settings of _config/botconfig.properties_ , and it will use in the jar integrated db-upate-scripts according to your database-setup (mysql or postgresql).
+
