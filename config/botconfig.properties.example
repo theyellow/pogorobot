@@ -17,14 +17,14 @@ standard.bottoken=123456789:AAAA-xxxxxxxxxxxxxxxxxxxxxxxx
 
 # mysql
 standard.hibernate-dialect=org.hibernate.dialect.MySQL5Dialect
-standard.jdbcurl=jdbc:mysql://localhost:3306/telegramdb
+standard.jdbcurl=jdbc:mysql://localhost:3306/telegramdb?serverTimezone=Europe/Berlin
 standard.controllerdbclass=com.mysql.jdbc.Driver
 
 # database user and password
 standard.user=<your-db-user>
 standard.password=<your-db-secret>
 
-# to generate new database structure set to true
+# to generate new database structure while development set to true
 standard.generateDdl=false
 
 # Duration of raids (if it's changing like before)
