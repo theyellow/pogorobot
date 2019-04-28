@@ -170,7 +170,9 @@ public class RocketmapRaid implements EventMessage<Raid> {
 		raid.setSpawn(spawn);
 		raid.setStart(start);
 		raid.setEnd(end);
-		raid.setExRaidEligible(ex_raid_eligible);
+		if (ex_raid_eligible != null) {
+			// raid.setExRaidEligible(ex_raid_eligible);
+		}
 		raid.setSponsorId(sponsor_id);
 		return raid;
 	}

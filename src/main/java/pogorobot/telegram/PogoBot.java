@@ -25,6 +25,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -598,8 +601,22 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	private void handleSignupRaidEvent(CallbackQuery callbackquery, String[] data) {
-		EditMessageText editMessage = telegramHandlerService.getSignupRaidDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		List<EditMessageText> editMessages = telegramHandlerService.getSignupRaidDialog(callbackquery, data);
+		if (editMessages != null && editMessages.size() > 0) {
+			Long delay = 0L;
+			ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
+			for (EditMessageText editMessage : editMessages) {
+				Runnable updater = () -> executeBotApiMethod(editMessage);
+				// run this task after 5 seconds, nonblock for task3
+				ses.schedule(updater, delay, TimeUnit.MILLISECONDS);
+				delay += 3334;
+			}
+			// editMessages.stream().forEach(editMessage -> {
+			// Runnable updater = () -> executeBotApiMethod(editMessage);
+			// //run this task after 5 seconds, nonblock for task3
+			// ses.schedule(updater, delay, TimeUnit.MILLISECONDS);
+			// });
+		}
 	}
 
 	private void handleConfirmRaidAtGym(CallbackQuery callbackquery, String[] data) {

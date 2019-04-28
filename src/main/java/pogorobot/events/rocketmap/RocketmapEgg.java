@@ -172,7 +172,9 @@ public class RocketmapEgg implements EventMessage<Raid> {
 		egg.setStart(start);
 		egg.setPokemonId(pokemon_id);
 		egg.setSpawn(spawn);
-		egg.setExRaidEligible(exraid_eglible);
+		if (exraid_eglible != null) {
+			// egg.setExRaidEligible(exraid_eglible);
+		}
 		egg.setSponsorId(sponsor_id);
 		return egg;
 	}

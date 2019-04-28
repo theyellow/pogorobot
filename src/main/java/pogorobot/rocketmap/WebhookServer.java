@@ -52,7 +52,7 @@ public class WebhookServer {
 	@ResponseBody
 	public HttpStatus readFromWebhook(@RequestBody List<RocketmapEvent<EventMessage<?>>> messages) {
 		messages.stream().map((event) -> event.getMessage()).forEach((message) -> {
-			logger.debug("Message: " + message.toString());
+			logger.debug("message: " + message.toString());
 			processContent(message);
 		});
 		return HttpStatus.OK;

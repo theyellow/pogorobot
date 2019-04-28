@@ -87,9 +87,9 @@ public class ProcessedRaids extends AbstractPersistable<Long> {
 		}
 	}
 
-	public boolean removeFromGroupsRaidIsPosted(SendMessages group) {
-		group.setOwningRaid(null);
-		return getGroupsRaidIsPosted().remove(group);
+	public boolean removeFromGroupsRaidIsPosted(SendMessages sendMessages) {
+		sendMessages.setOwningRaid(null);
+		return getGroupsRaidIsPosted().remove(sendMessages);
 	}
 
 	@Transient

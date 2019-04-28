@@ -17,6 +17,7 @@
 package pogorobot.service;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -72,6 +73,6 @@ public interface TelegramMessageCreatorService {
 
 	EditMessageText getChooseShareRaidDialog(CallbackQuery callbackQuery, String[] data, IncomingManualRaid manualRaid);
 
-	EditMessageText getSignupRaidDialog(CallbackQuery callbackquery, String[] data);
+	List<EditMessageText> getSignupRaidDialog(CallbackQuery callbackquery, String[] data);
 
 }

@@ -88,9 +88,9 @@ public class ProcessedPokemon extends AbstractPersistable<Long> {
 		}
 	}
 
-	public boolean removeFromChatsPokemonIsPosted(SendMessages group) {
-		group.setOwningPokemon(null);
-		return getChatsPokemonIsPosted().remove(group);
+	public boolean removeFromChatsPokemonIsPosted(SendMessages sendMessage) {
+		sendMessage.setOwningPokemon(null);
+		return getChatsPokemonIsPosted().remove(sendMessage);
 	}
 
 	@Transient

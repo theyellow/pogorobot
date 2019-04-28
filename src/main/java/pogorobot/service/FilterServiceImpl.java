@@ -300,6 +300,7 @@ public class FilterServiceImpl implements FilterService {
 	public Filter setUserMinIv(Long telegramId, String minIv) {
 		User user = userService.getOrCreateUser(telegramId.toString());
 		user.getUserFilter().setMinIV(Double.valueOf(minIv));
+		user.setShowPokemonMessages(true);
 		user = userService.updateOrInsertUser(user);
 		return user.getUserFilter();
 	}

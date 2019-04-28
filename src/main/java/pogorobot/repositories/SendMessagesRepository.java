@@ -17,11 +17,14 @@
 package pogorobot.repositories;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
 
 import pogorobot.entities.SendMessages;
 
-public interface GroupMessagesRepository extends CrudRepository<SendMessages, Serializable> {
+public interface SendMessagesRepository extends CrudRepository<SendMessages, Serializable> {
+
+	public List<SendMessages> findByGroupChatId(Long groupchatId);
 
 }

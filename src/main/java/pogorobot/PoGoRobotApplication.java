@@ -34,6 +34,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
@@ -54,6 +55,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
+import liquibase.integration.spring.SpringLiquibase;
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
 import pogorobot.entities.PossibleRaidPokemon;
@@ -210,7 +212,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesiv.txt")).toMillis();
 			} catch (IOException e) {
 				timestampGroupGeofencesFileIv = 0;
-				logger.error("Couldn't retrieve timestamps for individul iv geofences settings at " + relativePath);
+				logger.error("Couldn't retrieve timestamps for individual iv geofences settings at " + relativePath);
 			}
 			try {
 				timestampGroupGeofencesFileMonster = Files
@@ -218,7 +220,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			} catch (IOException e) {
 				timestampGroupGeofencesFileMonster = 0;
 				logger.error(
-						"Couldn't retrieve timestamps for individul monster geofences settings at " + relativePath);
+						"Couldn't retrieve timestamps for individual monster geofences settings at " + relativePath);
 			}
 			try {
 				timestampGroupGeofencesFileRaids = Files
@@ -410,7 +412,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 	private Runnable getDeleteOldGymsTask(TelegramSendMessagesService telegramSendMessagesService) {
 		return () -> {
 			try {
-				telegramSendMessagesService.removeGroupRaidMessage();
+				telegramSendMessagesService.cleanupSendMessage();
 				logger.debug("Cleaned messages...");
 			} catch (TelegramApiException e) {
 				logger.error("Error while deleting messages...", e);
@@ -440,6 +442,48 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		dataSource.setDebugUnreturnedConnectionStackTraces(true);
 
 		return dataSource;
+	}
+
+	@Bean
+	public LiquibaseProperties liquibaseProperties(ApplicationContext ctx) {
+		LiquibaseProperties result = new LiquibaseProperties();
+
+		StandardConfiguration standardConfiguration = BeanFactoryAnnotationUtils
+				.qualifiedBeanOfType(ctx.getAutowireCapableBeanFactory(), StandardConfiguration.class, "standard");
+
+		if (!standardConfiguration.isGenerateDdl()) {
+			// production mode: "generateDdl" is set to false
+			logger.info("'production-mode' database generation");
+			String dbType = standardConfiguration.getJdbcUrl().contains("mysql") ? "mysql" : "postgresql";
+			result.setChangeLog("classpath:/liquibase/datadir/db." + dbType + ".changelog.xml");
+		} else {
+			logger.info("'develop-mode' database generation with hbm2ddl will be done later");
+			result.setEnabled(false);
+		}
+
+		return result;
+	}
+	// @EnableConfigurationProperties(LiquibaseProperties.class))
+	// LiquibaseProperties properties;
+
+	@Bean
+	public SpringLiquibase liquibase(ApplicationContext ctx) {
+		SpringLiquibase liquibase = new SpringLiquibase();
+		LiquibaseProperties properties = ctx.getBean(LiquibaseProperties.class);
+
+		DataSource dataSource = ctx.getBean(DataSource.class);
+
+		// properties.setChangeLog("classpath:/db/changelog/db.changelog-master.xml");
+		boolean enabled = properties.isEnabled();
+		if (enabled) {
+			liquibase.setChangeLog(properties.getChangeLog());
+			liquibase.setContexts(properties.getContexts());
+			liquibase.setDataSource(dataSource);
+			liquibase.setDefaultSchema(properties.getDefaultSchema());
+			liquibase.setDropFirst(properties.isDropFirst());
+		}
+		liquibase.setShouldRun(enabled);
+		return liquibase;
 	}
 
 	@Bean

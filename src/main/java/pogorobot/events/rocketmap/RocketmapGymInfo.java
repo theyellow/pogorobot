@@ -139,7 +139,7 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 
 		if (exraidEglible != null) {
 			if (ex_raid_eligible) {
-				logger.info("exraid_eglible found in gym-info: {}", ex_raid_eligible);
+				logger.debug("exraid_eglible found in gym-info: {}", ex_raid_eligible);
 			}
 			gym.setExraidEglible(exraidEglible);
 		}

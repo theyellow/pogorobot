@@ -56,10 +56,10 @@ import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
-import pogorobot.repositories.GroupMessagesRepository;
 import pogorobot.repositories.ProcessedPokemonRepository;
 import pogorobot.repositories.ProcessedRaidRepository;
 import pogorobot.repositories.RaidAtGymEventRepository;
+import pogorobot.repositories.SendMessagesRepository;
 import pogorobot.repositories.UserRepository;
 import pogorobot.telegram.PogoBot;
 import pogorobot.telegram.util.SendMessageAnswer;
@@ -76,7 +76,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	private TelegramTextService telegramTextService;
 
 	@Autowired
-	private GroupMessagesRepository groupMessagesRepository;
+	private SendMessagesRepository sendMessagesRepository;
 
 	@Autowired
 	private RaidAtGymEventRepository raidAtGymEventRepository;
@@ -161,13 +161,13 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			if (e instanceof TelegramApiRequestException) {
 				TelegramApiRequestException x = (TelegramApiRequestException) e;
 				logger.error(
-						"ErrorCode " + x.getErrorCode() + " - "
+						"errorCode " + x.getErrorCode() + " - "
 								+ (x.getApiResponse() != null ? x.getApiResponse() : x.getMessage())
-								+ (x.getParameters() != null ? " - Parameter: " + x.getParameters().toString() : ""),
+								+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
 						x.getCause());
 			} else if (e instanceof TelegramApiValidationException) {
 				TelegramApiValidationException x = (TelegramApiValidationException) e;
-				logger.error("Method: " + x.getMethod() + " - " + x.getObject() + " - Error: " + x.toString(),
+				logger.error("method: " + x.getMethod() + " - " + x.getObject() + " - error: " + x.toString(),
 						x.getCause());
 			} else {
 				logger.error("Unknown error: ", e);
@@ -240,7 +240,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		} else if (pokemon != null && fullGym == null) {
 			raidPokemon = false;
 		} else {
-			logger.warn("Tried to send mon-message without mon or gym...");
+			logger.warn("tried to send mon-message without mon or gym...");
 			return null;
 		}
 
@@ -256,10 +256,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (raidPokemon) {
 			Long pokemonId = raid.getPokemonId();
 			boolean isEgg = pokemonId == null || pokemonId <= 0L;
-			logger.debug("Get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
+			logger.debug("get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
 			stickerId = isEgg ? -1 * raid.getRaidLevel().intValue() : pokemonId.intValue();
 		} else {
-			logger.debug("Get sticker for pokemon");
+			logger.debug("get sticker for pokemon");
 			stickerId = pokemon.getPokemonId().intValue();
 		}
 
@@ -293,7 +293,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		SendSticker stickerMessage = forMonsters && showStickers || !forMonsters && showRaidStickers
 				? createStickerMessage(chatId, stickerUrl)
 				: null;
-		logger.debug("Sticker-end: " + stickerUrl);
+		logger.debug("sticker-end: " + stickerUrl);
 		BotApiMethod<? extends Serializable> message = null;
 		if (forMonsters) {
 			message = createMessageForChat(messageText, chatId, possibleMessageIdToUpdate);
@@ -336,7 +336,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			} else if (message instanceof EditMessageText) {
 				((EditMessageText) message).enableWebPagePreview();
 			} else {
-				logger.info("Couldn't disable webpage-preview for " + message.toString());
+				logger.info("couldn't disable webpage-preview for " + message.toString());
 			}
 		} else {
 			if (message instanceof SendMessage) {
@@ -344,7 +344,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			} else if (message instanceof EditMessageText) {
 				((EditMessageText) message).disableWebPagePreview();
 			} else {
-				logger.info("Couldn't disable webpage-preview for " + message.toString());
+				logger.info("couldn't disable webpage-preview for " + message.toString());
 			}
 
 		}
@@ -355,12 +355,12 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (possibleMessageIdToUpdate != null && possibleMessageIdToUpdate != 0) {
 			EditMessageText messageForChat = updateMessageForChat(pokemonFound, chatId, possibleMessageIdToUpdate);
 			messageForChat.enableMarkdown(true);
-			logger.debug("Created edit message for " + chatId + " with messageIdToUpdate " + possibleMessageIdToUpdate);
+			logger.debug("created edit message for " + chatId + " with messageIdToUpdate " + possibleMessageIdToUpdate);
 			return messageForChat;
 		} else {
 			SendMessage message = new SendMessage(chatId, pokemonFound);
 			message.enableMarkdown(true);
-			logger.debug("Created new message for " + chatId);
+			logger.debug("created new message for " + chatId);
 			return message;
 		}
 	}
@@ -442,9 +442,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 	@Override
 	@Transactional
-	public void removeGroupRaidMessage() throws TelegramApiException {
+	public void cleanupSendMessage() throws TelegramApiException {
 		long nowInSecons = System.currentTimeMillis() / 1000;
-		Iterable<SendMessages> all = groupMessagesRepository.findAll();
+		Iterable<SendMessages> all = sendMessagesRepository.findAll();
 		ProcessedRaids owningRaid = null;
 		ProcessedPokemon owningMon = null;
 		String errorsWhileDeleting = "";
@@ -454,82 +454,82 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		// Map<Long, String> groups = new HashMap<>();
 		// allUserGroups.forEach(x -> groups.put(x.getChatId(),
 		// x.getGroupName().toString()));
-		for (SendMessages groupMessages : all) {
-			owningRaid = groupMessages.getOwningRaid();
-			owningMon = groupMessages.getOwningPokemon();
+		for (SendMessages sendMessages : all) {
+			owningRaid = sendMessages.getOwningRaid();
+			owningMon = sendMessages.getOwningPokemon();
 			Long endTime = null;
 			if (owningRaid != null) {
 				endTime = owningRaid.getEndTime();
 			} else if (owningMon != null) {
 				endTime = owningMon.getEndTime();
 			} else {
-				logger.warn("There is no owning raid or monster for the message " + groupMessages.toString());
+				logger.warn("there is no owning raid or monster for the message " + sendMessages.toString());
 				return;
 			}
 			if (nowInSecons > endTime) {
 				if (owningRaid != null) {
 					owningRaid = processedRaidRepository.findById(owningRaid.getId()).orElse(null);
 					if (owningRaid == null) {
-						logger.warn("Could not find owning raid in table");
+						logger.warn("could not find owning raid in table");
 						continue;
 					}
-					owningRaid.removeFromGroupsRaidIsPosted(groupMessages);
+					owningRaid.removeFromGroupsRaidIsPosted(sendMessages);
 					processedRaidRepository.save(owningRaid);
 				} else if (owningMon != null) {
 					owningMon = processedPokemonRepository.findById(owningMon.getId()).orElse(null);
 					if (owningMon == null) {
-						logger.warn("Could not find owning monster in table");
+						logger.warn("could not find owning monster in table");
 						continue;
 					}
-					owningMon.removeFromChatsPokemonIsPosted(groupMessages);
+					owningMon.removeFromChatsPokemonIsPosted(sendMessages);
 					processedPokemonRepository.save(owningMon);
 				}
-				Long groupChatId = groupMessages.getGroupChatId();
+				Long chatId = sendMessages.getGroupChatId();
 				boolean success = true;
 				TelegramApiException possibleException = null;
-				if (groupChatId != null && groupChatId < 0) {
+				if (chatId != null && chatId < 0) {
 					try {
-						Integer locationId = groupMessages.getLocationId();
-						deleteMessage(groupChatId, locationId);
+						Integer locationId = sendMessages.getLocationId();
+						deleteMessage(chatId, locationId);
 					} catch (TelegramApiException e) {
 						possibleException = e;
-						errorsWhileDeleting += ("Location " + groupMessages.getLocationId() + " in chat " + groupChatId
+						errorsWhileDeleting += ("location " + sendMessages.getLocationId() + " in chat " + chatId
 								+ "\n  -> " + e.toString() + "\n");
 						// success = false;
 					}
 					try {
-						Integer stickerId = groupMessages.getStickerId();
-						deleteMessage(groupChatId, stickerId);
+						Integer stickerId = sendMessages.getStickerId();
+						deleteMessage(chatId, stickerId);
 					} catch (TelegramApiException e) {
 						possibleException = e;
-						errorsWhileDeleting += ("Sticker " + groupMessages.getStickerId() + " in chat " + groupChatId
+						errorsWhileDeleting += ("sticker " + sendMessages.getStickerId() + " in chat " + chatId
 								+ "\n  -> " + e.toString() + "\n");
 						// success = false;
 					}
 					try {
-						Integer messageId = groupMessages.getMessageId();
-						deleteMessage(groupChatId, messageId);
+						Integer messageId = sendMessages.getMessageId();
+						deleteMessage(chatId, messageId);
 					} catch (TelegramApiException e) {
 						possibleException = e;
-						errorsWhileDeleting += ("Message " + groupMessages.getMessageId() + " in chat " + groupChatId
+						errorsWhileDeleting += ("message " + sendMessages.getMessageId() + " in chat " + chatId
 								+ "\n  -> " + e.toString() + "\n");
 						success = false;
 					}
 				}
 				// eventWithSubscribersService.deleteEvent(owningRaid.getGymId());
-				groupMessagesRepository.delete(groupMessages);
+				sendMessagesRepository.delete(sendMessages);
 				if (!success) {
 					logger.warn(errorsWhileDeleting
-							+ "Some standard messages in chats couldn't be deleted, thrown Exception is: "
+							+ "some standard messages in chats couldn't be deleted, thrown Exception is: "
 							+ possibleException.getMessage());
 					// TODO: what kind of error handling is best here? (We also want to dele
 					// throw possibleException;
 				} else {
-					logger.info("Deleted message, difference is " + (nowInSecons - endTime) / 60 + " minutes");
+					logger.info("deleted message, difference is " + (nowInSecons - endTime) / 60 + " minutes");
 				}
 
 				if (possibleException != null) {
-					logger.warn("Some messages in chats couldn't be deleted, thrown Exception was: "
+					logger.warn("some messages in chats couldn't be deleted, thrown Exception was: "
 							+ possibleException.getMessage());
 				}
 			}
@@ -545,7 +545,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		monsterToDelete.stream().forEach(id -> processedPokemonRepository.deleteById(id));
 		int size = monsterToDelete.size();
 		if (size > 0) {
-			logger.debug("Deleted {} processed monsters.", size);
+			logger.debug("deleted {} processed monsters.", size);
 		}
 
 		// Delete old raid-events if time is over:
@@ -561,7 +561,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		});
 		if (!deletedEvents.isEmpty()) {
 			String deletedEventRaids = gymIdBuilder.toString();
-			logger.debug("Deleted {} event at following gyms: {}", deletedEvents.size(), deletedEventRaids);
+			logger.debug("deleted {} event at following gyms: {}", deletedEvents.size(), deletedEventRaids);
 		}
 
 		// Delete old not posted processed raids:
@@ -574,17 +574,17 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		raidsToDelete.stream().forEach(id -> processedRaidRepository.deleteById(id));
 		size = raidsToDelete.size();
 		if (size > 0) {
-			logger.debug("Deleted {} processed raids.", size);
+			logger.debug("deleted {} processed raids.", size);
 		}
 
 		stopWatch.stop();
 		long time = stopWatch.getTime(TimeUnit.SECONDS);
 		if (time > 10) {
-			logger.warn("Slow database and message cleanup took {} seconds", time);
+			logger.warn("slow database and message cleanup took {} seconds", time);
 		} else if (time > 5) {
-			logger.info("Database and message cleanup took {} seconds", time);
+			logger.info("database and message cleanup took {} seconds", time);
 		} else {
-			logger.debug("Fast database and message cleanup took {} seconds", time);
+			logger.debug("fast database and message cleanup took {} seconds", time);
 		}
 	}
 
@@ -595,10 +595,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			deleteMessage = new DeleteMessage(groupChatId, messageId);
 			try {
 				pogoBot.execute(deleteMessage);
-				logger.info("Deleted message " + messageId + " in chat '" + groupChatId + "'");
+				logger.info("deleted message " + messageId + " in chat '" + groupChatId + "'");
 			} catch (TelegramApiException e) {
-				logger.error("Delete message " + messageId + " failed in chat: '" + groupChatId + "'", e.getCause());
-				logger.error("Message: " + e.getMessage(), e);
+				logger.error("delete message " + messageId + " failed in chat: '" + groupChatId + "'", e.getCause());
+				logger.error("message: " + e.getMessage(), e);
 				throw e;
 			}
 		}

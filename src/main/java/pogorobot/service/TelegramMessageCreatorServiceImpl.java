@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,11 +53,14 @@ import pogorobot.PoGoRobotApplication.RaidBossListUpdater;
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.Gym;
+import pogorobot.entities.SendMessages;
 import pogorobot.entities.Subscriber;
 import pogorobot.entities.User;
 import pogorobot.events.telegrambot.IncomingManualRaid;
 import pogorobot.repositories.PossibleRaidPokemonRepository;
+import pogorobot.repositories.ProcessedRaidRepository;
 import pogorobot.repositories.RaidAtGymEventRepository;
+import pogorobot.repositories.SendMessagesRepository;
 import pogorobot.telegram.util.Emoji;
 import pogorobot.telegram.util.Type;
 
@@ -69,6 +74,9 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private ProcessedElementsService processedElementsService;
 
 	@Autowired
 	private FilterService filterService;
@@ -90,6 +98,12 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 
 	@Autowired
 	private EventWithSubscribersService eventWithSubscribersService;
+
+	@Autowired
+	private SendMessagesRepository sendMessagesRepository;
+
+	@Autowired
+	private ProcessedRaidRepository processedRaidRepository;
 
 	@Autowired
 	private RaidBossListUpdater raidBossListUpdater;
@@ -425,8 +439,8 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 						+ "\nEs werden Raids ab *Level " + user.getUserFilter().getRaidLevel()
 						+ ".* angezeigt.\n*Raids im Filter konfigurieren:* ");
 			} else {
-				echoMessage.setText(
-						"*Du hast Raids im Moment deaktiviert. Zum Aktivieren den Button unten verwenden.*");
+				echoMessage
+						.setText("*Du hast Raids im Moment deaktiviert. Zum Aktivieren den Button unten verwenden.*");
 			}
 			echoMessage.setReplyMarkup(telegramKeyboardService.getRaidSettingKeyboard(showRaidsActiceForUser));
 		} else if (inputText.equalsIgnoreCase("Raid hinzufügen")) {
@@ -889,10 +903,11 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	}
 
 	@Override
-	public EditMessageText getSignupRaidDialog(CallbackQuery callbackQuery, String[] data) {
+	public List<EditMessageText> getSignupRaidDialog(CallbackQuery callbackQuery, String[] data) {
 		Message message = callbackQuery.getMessage();
-		Integer messageId = message.getMessageId();
+		Integer originalMessageId = message.getMessageId();
 		Chat chat = message.getChat();
+		Long callbackOriginChatId = callbackQuery.getMessage().getChatId();
 		Integer fromId;
 		if (chat.isUserChat()) {
 			fromId = chat.getId().intValue();
@@ -922,20 +937,8 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		// Attention: Action starts here
 		modifyEvent(commandOrGymId, user, gymId, time);
 
+		List<EditMessageText> messages = getUpdateRaidMessages(gymId, callbackOriginChatId);
 		// event.getGymId()
-		String pokemonText = telegramTextService.getRaidMessagePokemonText(gymService.getGym(gymId));
-		// eventsWithSubscribers.stream().forEach(x -> x.getTime().equals(time));;
-
-		SortedSet<EventWithSubscribers> eventsWithSubscribers = eventWithSubscribersService
-				.getSubscribersForRaid(gymId);
-		String participantsText = telegramTextService.getParticipantsText(eventsWithSubscribers);
-		EditMessageText editMessage = new EditMessageText();
-		editMessage.setText(pokemonText + participantsText);
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
-		editMessage.enableMarkdown(true);
-		editMessage.setMessageId(messageId);
-		editMessage.disableWebPagePreview();
-		editMessage.setReplyMarkup(telegramKeyboardService.getRaidSignupKeyboard(eventsWithSubscribers, gymId));
 		// LocalDate date = LocalDate.ofYearDay(LocalDate.now().get(ChronoField.YEAR),
 		// Integer.valueOf(dayOfYear));
 		// editMessage.setText(telegramTextService.getShareRaid(eggOrRaid, time,
@@ -944,9 +947,131 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		// editMessage.setReplyMarkup(
 		// telegramKeyboardService.getShareRaidKeyboard(eggOrRaid, internalGymId,
 		// pokemonOrLevel, time, date));
-		return editMessage;
+		return messages;
 	}
 
+	public List<EditMessageText> getUpdateRaidMessages(String gymId, Long callbackOriginChatId) {
+		List<SendMessages> postedMessagesForGymId = processedElementsService.retrievePostedMessagesForGymId(gymId);
+
+		List<EditMessageText> result = new ArrayList<>();
+
+		// for later manipulation of result list
+		List<EditMessageText> tempResult = new ArrayList<>();
+
+		for (SendMessages sendMessage : postedMessagesForGymId) {
+			String pokemonText = telegramTextService.getRaidMessagePokemonText(gymService.getGym(gymId));
+			// eventsWithSubscribers.stream().forEach(x -> x.getTime().equals(time));;
+
+			SortedSet<EventWithSubscribers> eventWithSubscribers = eventWithSubscribersService
+					.getSubscribersForRaid(gymId);
+			String participantsText = telegramTextService.getParticipantsText(eventWithSubscribers);
+			EditMessageText editMessage = new EditMessageText();
+			editMessage.setText(pokemonText + participantsText);
+			editMessage.setChatId(sendMessage.getGroupChatId());
+			editMessage.enableMarkdown(true);
+			editMessage.setMessageId(sendMessage.getMessageId());
+			editMessage.disableWebPagePreview();
+			editMessage.setReplyMarkup(telegramKeyboardService.getRaidSignupKeyboard(eventWithSubscribers, gymId));
+
+			// we want to update first the origin chat of this update, so manipulation of
+			// order of list follows:
+			if (sendMessage.getGroupChatId().equals(callbackOriginChatId)) {
+				result.add(editMessage);
+			} else {
+				tempResult.add(editMessage);
+			}
+
+		}
+
+		// now first element is in result, the others are in tempResult
+		for (EditMessageText editMessageText : tempResult) {
+			result.add(editMessageText);
+		}
+
+		// List<ProcessedRaids> processedRaids =
+		// processedRaidRepository.findByGymId(gymId);
+		// boolean alreadyPosted = false;
+
+		// 1st we look if it was already posted, so we need to update instead of
+		// resend..
+		// if (processedRaids != null) {
+		// boolean sendOnlyUpdate = false;
+		// logger.info("there are " + processedRaids.size() + " raid(s) to update");
+			// logger.debug("got event at gym that has " + processedRaids.size() + "
+			// entries");
+		// for (ProcessedRaids processedRaid : processedRaids) {
+
+		// Set<SendMessages> sendMessages = null;
+				// List<ProcessedRaids> processedGymIds =
+				// processedRaidRepository.findByGymId(gym.getGymId());
+				// if (!processedGymIds.isEmpty() && processedGymIds.size() == 1) {
+				// ProcessedRaids processedRaid = processedGymIds.get(0);
+		// sendMessages = processedRaid.getGroupsRaidIsPosted();
+
+				// Needed trigger to initialize resultSet:
+		// logger.info("there are " + sendMessages.size() + " chats where this raid is
+		// updated");
+				// logger.debug("there are " + sendMessages.size() + " chats where this raid is
+				// posted");
+
+				// List<ProcessedRaids> processedRaids =
+				// processedRaidRepository.findByGymId(gymId);
+
+				// if (processedRaids != null) {
+			// Needed trigger to initialize resultSet:
+
+				// boolean sendOnlyUpdate = false;
+				// logger.debug("there are " + processedRaids.size() + " raid(s) to update");
+
+				// for (ProcessedRaids processedRaid : processedRaids) {
+
+				// }
+				// processedRaids.forEach(processedRaid -> {
+				// if (gymId.equals(processedRaid.getGymId())) {
+				// ProcessedRaids loadedProcessedRaid =
+				// processedRaidRepository.findById(processedRaid.getId()).get();
+
+				// Set<SendMessages> sendMessages = null;
+				// sendMessages = processedRaid.getGroupsRaidIsPosted();
+				// Set<SendMessages> sendMessages = loadedProcessedRaid.getGroupsRaidIsPosted();
+
+				// if (sendMessages != null) {
+				// Needed trigger to initialize resultSet:
+				// logger.debug("there are " + sendMessages.size() + " chats where this raid is
+				// updated");
+
+		// for (SendMessages sendMessage : sendMessages) {
+		// sendOnlyUpdate = true;
+		// String pokemonText =
+		// telegramTextService.getRaidMessagePokemonText(gymService.getGym(gymId));
+		// // eventsWithSubscribers.stream().forEach(x -> x.getTime().equals(time));;
+		//
+		// SortedSet<EventWithSubscribers> eventWithSubscribers =
+		// eventWithSubscribersService
+		// .getSubscribersForRaid(gymId);
+		// String participantsText =
+		// telegramTextService.getParticipantsText(eventWithSubscribers);
+		// EditMessageText editMessage = new EditMessageText();
+		// editMessage.setText(pokemonText + participantsText);
+		// editMessage.setChatId(sendMessage.getGroupChatId());
+		// editMessage.enableMarkdown(true);
+		// editMessage.setMessageId(sendMessage.getMessageId());
+		// editMessage.disableWebPagePreview();
+		// editMessage
+		// .setReplyMarkup(telegramKeyboardService.getRaidSignupKeyboard(eventWithSubscribers,
+		// gymId));
+		// messages.add(editMessage);
+		// }
+				// }
+				// }
+				// EditMessageText editMessage = getUpdateRaidEditMessage(originalMessageId,
+				// callbackOriginChatId, gymId);
+		// }
+		// }
+		return result;
+	}
+
+	@Transactional
 	private void modifyEvent(String commandOrGymId, User user, String gymId, String time) {
 
 		// Gym fullGym = gymService.getGym(gymId);
@@ -972,7 +1097,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 				}
 				// TODO: Where is save now?
 				// if (users.contains(user)) {
-					// eventWithSubscribersRepository.save(x);
+				// eventWithSubscribersRepository.save(x);
 				// }
 
 			}

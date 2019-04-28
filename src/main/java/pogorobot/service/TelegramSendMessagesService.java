@@ -50,6 +50,10 @@ public interface TelegramSendMessagesService {
 			Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
+	/**
+	 * method should not be used, there are no events for monster-meetings
+	 */
+	@Deprecated
 	SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
@@ -59,7 +63,7 @@ public interface TelegramSendMessagesService {
 
 	Message sendMessage(PartialBotApiMethod<Message> message);
 
-	void removeGroupRaidMessage() throws TelegramApiException;
+	void cleanupSendMessage() throws TelegramApiException;
 	// String getPokemonName(String pokemon);
 	//
 	// JSONObject getJsonPokemons();

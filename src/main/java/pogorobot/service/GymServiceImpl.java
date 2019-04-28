@@ -97,12 +97,12 @@ public class GymServiceImpl implements GymService {
 		List<Gym> resultList = entityManager.createQuery(gymCriteria).getResultList();
 
 		if (resultList.isEmpty()) {
-			logger.info("New gym/stop found");
+			logger.info("new gym/stop found");
 			entityManager.persist(gym);
 		} else {
 			Gym oldGym = null;
 			if (resultList.size() > 1) {
-				logger.warn("Found " + resultList.size()
+				logger.warn("found " + resultList.size()
 						+ " gyms/stops at this location! Delete unneccessary gyms on database - i'll try to guess the best match for updating on database");
 				List<Gym> filteredStream = resultList.stream()
 						.filter(x -> !(x.getGymId() == null && x.getName() == null)).collect(Collectors.toList());
@@ -114,14 +114,14 @@ public class GymServiceImpl implements GymService {
 				} else {
 					int bestGuessedCount = filteredStream.size();
 					if (bestGuessedCount > 1) {
-						logger.warn("Found " + bestGuessedCount + " potential matches: "
+						logger.warn("found " + bestGuessedCount + " potential matches: "
 								+ filteredStream);
 					}
 					oldGym = filteredStream.get(0);
 					logger.warn("Take match with id " + oldGym.getId());
 				}
 			} else {
-				logger.debug("Found a gym/stop at that location, going to update it");
+				logger.debug("found a gym/stop at that location, going to update it");
 				oldGym = resultList.get(0);
 			}
 
@@ -175,7 +175,7 @@ public class GymServiceImpl implements GymService {
 			}
 			if (gym.getExraidEglible() != null) {
 				if (gym.getExraidEglible()) {
-					logger.info("Found exraid gym :)");
+					logger.debug("found exraid gym :)");
 				}
 				oldGym.setExraidEglible(gym.getExraidEglible());
 			}
@@ -240,13 +240,13 @@ public class GymServiceImpl implements GymService {
 			String id = raidEvent.getId() != null ? raidEvent.getId() : raidEvent.getGymId();
 			raidEvent.setId(id);
 			eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
-			logger.info("Persist new raid with id " + id + " and " + eventsWithSubscribers.size() + " event-slots.");
+			logger.info("persist new raid with id " + id + " and " + eventsWithSubscribers.size() + " event-slots.");
 			eventsWithSubscribers.stream().forEach(x -> entityManager.persist(x));
 			entityManager.persist(raidEvent);
 		} else {
 			RaidAtGymEvent oldEvent = resultList.get(0);
 			if (!oldEvent.hasEventWithSubscribers()) {
-				logger.info("Old event set is empty, use new one (and initialize if not existing)");
+				logger.info("old event set is empty, use new one (and initialize if not existing)");
 				eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
 				oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
 			}
@@ -297,12 +297,12 @@ public class GymServiceImpl implements GymService {
 				if (i == 2) {
 					break;
 				}
-				System.out.println("Adress: " + geocodingResult.formattedAddress);
+				logger.info("adress: " + geocodingResult.formattedAddress);
 				result += geocodingResult.formattedAddress != null ?  geocodingResult.formattedAddress + " " : result + " ";
 			}
 		} catch (ApiException | InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
-				logger.error("Interrupted while creating geoAdress", e);
+				logger.error("interrupted while creating geoAdress", e);
 				Thread.currentThread().interrupt();
 			}
 		}
@@ -330,7 +330,7 @@ public class GymServiceImpl implements GymService {
 				raid.setEnd(raid.getStart() + RAID_DURATION * 60);
 			}
 		} else {
-			logger.warn("Couldn't update start/end of raid -> both are null!");
+			logger.warn("couldn't update start/end of raid -> both are null!");
 		}
 
 		// later we use this 'magic number' -1 in sendRaidIfFiltersMatch(...) in
@@ -356,7 +356,7 @@ public class GymServiceImpl implements GymService {
 		// hope this will work...
 		RaidAtGymEvent updatedOrInsertedRaidWithGymEvent = updateOrInsertRaidWithGymEvent(raidAtGymEvent);
 		if (null == updatedOrInsertedRaidWithGymEvent) {
-			logger.warn("Couldn't update/insert RaidAtGymEvent " + raidAtGymEvent.toString());
+			logger.warn("couldn't update/insert RaidAtGymEvent " + raidAtGymEvent.toString());
 		}
 		return gym;
 	}
@@ -396,7 +396,7 @@ public class GymServiceImpl implements GymService {
 			numberOfSavedPokemon = numberOfSavedPokemon + monsInGym.size();
 		}
 		StopWatch stopwatch = StopWatch.createStarted();
-		logger.info("Cleaning up old GymPokemon - to delete: " + allGymMonIds.size() + ", to save: "
+		logger.info("cleaning up old GymPokemon - to delete: " + allGymMonIds.size() + ", to save: "
 				+ numberOfSavedPokemon);
 		int numberOfDeleted = 0;
 		for (Long mon : allGymMonIds) {
@@ -408,7 +408,7 @@ public class GymServiceImpl implements GymService {
 		long ending = stopwatch.getTime(TimeUnit.MILLISECONDS) % 100;
 
 		logger.info(
-				"Cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + seconds + "," + ending
+				"cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + seconds + "," + ending
 						+ " secs");
 	}
 
