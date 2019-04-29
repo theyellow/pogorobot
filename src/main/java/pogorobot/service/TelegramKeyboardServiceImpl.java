@@ -262,7 +262,6 @@ public class TelegramKeyboardServiceImpl implements TelegramKeyboardService {
 		InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
 		List<List<InlineKeyboardButton>> keyboardArray = new ArrayList<>();
 
-		// 1st row
 		List<InlineKeyboardButton> keyboardRow = new ArrayList<>();
 		for (int i = 1; i <= 5; i++) {
 			InlineKeyboardButton levelButton = new InlineKeyboardButton();
@@ -270,6 +269,13 @@ public class TelegramKeyboardServiceImpl implements TelegramKeyboardService {
 			levelButton.setCallbackData(command + SPACE + i + SPACE + dayOfYear);
 			keyboardRow.add(levelButton);
 		}
+
+		// level '-' means 'no raids by level, so it is in filter-settings level 6 ;)
+		InlineKeyboardButton levelButton = new InlineKeyboardButton();
+		levelButton.setText("-");
+		levelButton.setCallbackData(command + SPACE + "6" + SPACE + dayOfYear);
+		keyboardRow.add(levelButton);
+
 		keyboardArray.add(keyboardRow);
 
 		keyboard.setKeyboard(keyboardArray);

@@ -355,9 +355,17 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		editMessage.setChatId(message.getChatId());
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(message.getMessageId());
-		editMessage.setText(
-				"*Bisher hast du folgende Raids ausgewählt:*\n" + filteredPokemon + "\nEs werden Raids ab *Level "
-						+ user.getUserFilter().getRaidLevel() + ".* angezeigt.\nRaid zum Filter hinzufügen: ");
+		Filter filter = user.getUserFilter();
+
+		String text = "Zusätzlich werden ";
+		if (filter.getRaidLevel() == null || filter.getRaidLevel() > 5) {
+			text += "*keine weiteren Raids* angezeigt.\n";
+
+		} else {
+			text += "Raids ab *Level " + filter.getRaidLevel() + "* angezeigt.";
+		}
+		editMessage.setText("*Bisher hast du folgende Raids ausgewählt:*\n" + filteredPokemon + "\n" + text
+				+ "\nRaid zum Filter hinzufügen: ");
 		editMessage
 				.setReplyMarkup(telegramKeyboardService.getRaidSettingKeyboard(isShowRaidsActiceForUser(telegramId)));
 		return editMessage;
@@ -435,9 +443,16 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 			String filteredPokemon = getFilteredRaidPokemonForUser(telegramId);
 			boolean showRaidsActiceForUser = isShowRaidsActiceForUser(telegramId);
 			if (showRaidsActiceForUser) {
-				echoMessage.setText("*Bisher hast du folgende Raids ausgewählt:*\n" + filteredPokemon
-						+ "\nEs werden Raids ab *Level " + user.getUserFilter().getRaidLevel()
-						+ ".* angezeigt.\n*Raids im Filter konfigurieren:* ");
+				Integer raidLevel = user.getUserFilter().getRaidLevel();
+				String text = "*Bisher hast du folgende Raids ausgewählt:*\n" + filteredPokemon + "\nEs werden ";
+				if (raidLevel == null || raidLevel > 5) {
+					text += "*keine weiteren Raids";
+				} else {
+					text += "Raids ab *Level " + raidLevel;
+
+				}
+				text += "* angezeigt.";
+				echoMessage.setText(text + "* \nRaids im Filter konfigurieren:* ");
 			} else {
 				echoMessage
 						.setText("*Du hast Raids im Moment deaktiviert. Zum Aktivieren den Button unten verwenden.*");
@@ -546,12 +561,15 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		if (data.length > 1) {
 			String level = data[1];
 			User user = userService.getOrCreateUser(telegramId.toString());
-			String raidLevel = user.getUserFilter().getRaidLevel() == null ? "keins"
+			String raidLevel = user.getUserFilter().getRaidLevel() == null || user.getUserFilter().getRaidLevel() > 5
+					? "keins"
 					: user.getUserFilter().getRaidLevel().toString();
 			if (level.equals(raidLevel)) {
+				// no need to do anything, so return null
 				return null;
+			} else {
+				filterService.setUserRaidLevel(telegramId, level);
 			}
-			filterService.setUserRaidLevel(telegramId, level);
 		}
 		EditMessageText message = new EditMessageText();
 		message.setChatId(telegramId);
@@ -684,7 +702,8 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		String result = "";
 		User user = userService.getOrCreateUser(telegramId.toString());
 		Filter filter = user.getUserFilter();
-		result = filter.getRaidLevel() == null ? "5" : Integer.toString(filter.getRaidLevel());
+		result = filter.getRaidLevel() == null || filter.getRaidLevel() > 5 ? "keins"
+				: Integer.toString(filter.getRaidLevel());
 		return result;
 	}
 
