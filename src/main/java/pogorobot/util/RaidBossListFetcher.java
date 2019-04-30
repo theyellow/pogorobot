@@ -74,7 +74,7 @@ public class RaidBossListFetcher {
 				final HtmlPage startPage = webClient.getPage(url);
 				DomElement raidbosstable = startPage.getElementById("raid-boss-table");
 				try {
-					TimeUnit.SECONDS.sleep(8);
+					TimeUnit.SECONDS.sleep(12);
 				} catch (InterruptedException e) {
 					logger.warn("Got interrupted");
 					Thread.currentThread().interrupt();
@@ -148,8 +148,8 @@ public class RaidBossListFetcher {
 		long startTimeMillis = System.currentTimeMillis();
 		try {
 			xmCreator.start();
-			// wait 60 s for timeout
-			xmCreator.join(1000 * 60L);
+			// wait 120 s for timeout
+			xmCreator.join(1000 * 120L);
 		} catch (InterruptedException e) {
 			logger.warn("XmlCreator-thread got interrupted");
 			Thread.currentThread().interrupt();

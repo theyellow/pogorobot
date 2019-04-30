@@ -193,26 +193,32 @@ public class TelegramServiceImpl implements TelegramService {
 			});
 
 			// Special logging for iv
-			String individualAttack = pokemon.getIndividualAttack();
-			String individualDefense = pokemon.getIndividualDefense();
-			String individualStamina = pokemon.getIndividualStamina();
-			boolean ivsGiven = individualAttack != null && individualDefense != null && individualStamina != null
-					&& !individualAttack.isEmpty() && !individualDefense.isEmpty() && !individualStamina.isEmpty();
-			if (ivsGiven) {
-				Double ivs = telegramTextService.calculateIVs(Integer.valueOf(individualAttack),
-						Integer.valueOf(individualDefense), Integer.valueOf(individualStamina));
-
-				if (ivs != null) {
-					Logger ivLogger = LoggerFactory.getLogger("iv");
-					Date now = new Date();
-					DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss Z");
-					ivLogger.debug("{},{},{},{},{}", dateFormat.format(now), ivs.toString().substring(0, 4),
-							pokemon.getPokemonId(), pokemon.getLatitude(), pokemon.getLongitude());
-				}
-			}
+			logIvs(pokemon);
 
 		} else {
 			logger.debug("No mon-id found");
+		}
+	}
+
+	private void logIvs(PokemonWithSpawnpoint pokemon) {
+		String individualAttack = pokemon.getIndividualAttack();
+		String individualDefense = pokemon.getIndividualDefense();
+		String individualStamina = pokemon.getIndividualStamina();
+		boolean ivsGiven = individualAttack != null && individualDefense != null && individualStamina != null
+				&& !individualAttack.isEmpty() && !individualDefense.isEmpty() && !individualStamina.isEmpty();
+		if (ivsGiven) {
+			Double ivs = telegramTextService.calculateIVs(Integer.valueOf(individualAttack),
+					Integer.valueOf(individualDefense), Integer.valueOf(individualStamina));
+
+			if (ivs != null) {
+				Logger ivLogger = LoggerFactory.getLogger("iv");
+				Date now = new Date();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd; HH:mm:ss");
+				String ivString = ivs.toString() + "0";
+				ivString = ivString.substring(0, ivString.indexOf(".") + 2);
+				ivLogger.debug("{}; {}; {}; {}; {}", dateFormat.format(now), ivString, pokemon.getPokemonId(),
+						pokemon.getLatitude(), pokemon.getLongitude());
+			}
 		}
 	}
 

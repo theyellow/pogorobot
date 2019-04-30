@@ -411,9 +411,18 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(cleanedMessage);
 
-		String result = "<<default>>";
+		String result = "";
 		while (matcher.find()) {
-			result = matcher.replaceFirst(getRaidValueOf(matcher.group("word"), gym, weatherBoosted, color));
+			String placeholder = matcher.group("word");
+			if (placeholder == null) {
+				placeholder = "";
+			}
+			result = matcher.replaceFirst(getRaidValueOf(placeholder, gym, weatherBoosted, color));
+			if ("".equals(placeholder)) {
+				logger.warn(
+						"there is an error in raid template in dts.json, find the difference - original message:{}\nparsed message: {}",
+						cleanedMessage, result);
+			}
 			matcher = pattern.matcher(result);
 		}
 		return result;
