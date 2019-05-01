@@ -487,7 +487,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				Long chatId = sendMessages.getGroupChatId();
 				boolean success = true;
 				TelegramApiException possibleException = null;
-				if (chatId != null && chatId < 0) {
+				// Before (always!):
+				// if (chatId != null && chatId < 0) {
+				// Now try to delete all:
+				if (chatId != null && chatId != 0) {
 					try {
 						Integer locationId = sendMessages.getLocationId();
 						deleteMessage(chatId, locationId);
