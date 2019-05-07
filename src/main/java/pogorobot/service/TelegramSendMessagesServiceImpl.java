@@ -442,7 +442,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 	@Override
 	@Transactional
-	public void cleanupSendMessage() throws TelegramApiException {
+	public void cleanupSendMessage() {
 		long nowInSecons = System.currentTimeMillis() / 1000;
 		Iterable<SendMessages> all = sendMessagesRepository.findAll();
 		ProcessedRaids owningRaid = null;
@@ -464,7 +464,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				endTime = owningMon.getEndTime();
 			} else {
 				logger.warn("there is no owning raid or monster for the message " + sendMessages.toString());
-				return;
+				continue;
 			}
 			if (nowInSecons > endTime) {
 				if (owningRaid != null) {

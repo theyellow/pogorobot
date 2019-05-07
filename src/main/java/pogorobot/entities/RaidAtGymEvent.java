@@ -215,7 +215,12 @@ public class RaidAtGymEvent {
 
 		SortedSet<String> result = new TreeSet<>();
 		ZoneId systemDefault = ZoneId.systemDefault();
-		LocalDateTime endTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(getEnd()), systemDefault);
+		Long end = getEnd();
+		if (end == null) {
+			//That is an error and should be logged!!!
+			end = nowInSeconds;
+		}
+		LocalDateTime endTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(end), systemDefault);
 		DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendValue(ChronoField.HOUR_OF_DAY)
 				.appendLiteral(":").appendValue(ChronoField.MINUTE_OF_HOUR, 2).toFormatter();
 
