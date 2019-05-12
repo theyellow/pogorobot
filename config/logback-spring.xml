@@ -100,6 +100,12 @@
         <appender-ref ref="Console" />
     </logger>
     
+    <logger name="com.gargoylesoftware" level="error">
+        <appender-ref ref="RollingFileDebug" />
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </logger>
+    
     <!-- LOG for iv - analytics -->
     <logger name="iv" level="DEBUG" additivity="false">
         <appender-ref ref="RollingFileDebugIv"/>

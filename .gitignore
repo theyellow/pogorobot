@@ -9,6 +9,9 @@
 /config/groupraidmonsters.txt
 /config/groupraidlevel.txt
 /config/groupxraidgymall.txt
+/screenshots/
+/output/
+/src/main/java/pogorobot/tests/
 /logs/
 /*.log
 /*.log.1

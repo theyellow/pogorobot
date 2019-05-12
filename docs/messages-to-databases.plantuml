@@ -1,0 +1,30 @@
+@startuml
+
+title "Messages - Webhook - database"
+
+actor Input
+boundary "WebhookServer" as Webhook
+control "Pokemon Service" as PokemonService
+control "Raid Service" as RaidService
+control "Egg Service" as EggService
+entity PokemonWithSpawnpoint
+entity RaidAtGym
+entity EggAtGym
+database database
+
+Input -> Webhook : incoming json message
+Webhook --> database : transform every incoming message to java entity and write to database
+Webhook -> PokemonWithSpawnpoint : transform to java entity 
+PokemonWithSpawnpoint -> database : To database
+Webhook -> PokemonService : triggerPokemonMessage
+PokemonService <-> database: from/to database
+Webhook -> RaidAtGym : transform to java entity
+RaidAtGym -> database: To database
+Webhook -> RaidService : triggerRaidMessage
+RaidService <-> database: from/to database
+Webhook -> EggAtGym : transform to java entity
+EggAtGym -> database: To database
+Webhook -> EggService : triggerEggMessage
+EggService <-> database: from/to database
+
+@enduml
