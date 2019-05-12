@@ -11,7 +11,7 @@ cache:
 deploy:
   - 
     on:
-      all_branches: false
+      all_branches: true
     provider: bintray
     skip_cleanup: true
     file: bintray-descriptor.json
