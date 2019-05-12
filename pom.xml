@@ -22,6 +22,7 @@
 	</parent>
 
 	<properties>
+		<project-name>${project.name}</project-name>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
@@ -234,34 +235,36 @@
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 			</resource>
+			<resource>
+				<directory>${basedir}</directory>
+				<includes>
+					<include>bintray-descriptor.json</include>
+				</includes>
+				<filtering>true</filtering>
+				<targetPath>target/</targetPath>
+			</resource>
 		</resources>
-
+		<filters><filter>bintray-descriptor.json</filter></filters>
+		
 		<plugins>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<!-- <version>3.1.0</version> -->
-				<inherited>false</inherited>
-				<configuration>
-					<outputDirectory>${basedir}/target</outputDirectory>
-					<resources>
-						<resource>
-							<directory>${basedir}</directory>
-							<include>bintray-descriptor.json</include>
-							<filtering>true</filtering>
-						</resource>
-					</resources>
-				</configuration>
-				<executions>
-					<execution>
-						<id>copy-resources</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			
+<!-- 			<plugin> -->
+<!-- 				<artifactId>maven-resources-plugin</artifactId> -->
+<!-- 				<inherited>false</inherited> -->
+<!-- 				<configuration> -->
+<!-- 					<outputDirectory>${basedir}/target</outputDirectory> -->
+<!-- 					<resources> -->
+<!-- 						<resource> -->
+<!-- 							<directory>${basedir}</directory> -->
+<!-- 							<include>bintray-descriptor.json</include> -->
+<!-- 							<filtering>true</filtering> -->
+<!-- 						</resource> -->
+<!-- 					</resources> -->
+<!-- 					<nonFilteredFileExtensions> -->
+<!-- 						<nonFilteredFileExtension>json</nonFilteredFileExtension> -->
+<!-- 					</nonFilteredFileExtensions> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
+
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
