@@ -9,4 +9,4 @@ else
 VERSION='1.0.10'
 fi
 
-screen -S telegram-bot -d -m java -XX:+HeapDumpOnOutOfMemoryError -Xmx800m -Dext.properties.dir=file:$PWD/config -jar pogorobot-$VERSION-exec.jar
+screen -S telegram-bot -d -m java -Xmx800m -Dext.properties.dir=file:$PWD/config -jar pogorobot-$VERSION-exec.jar
