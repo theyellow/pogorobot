@@ -14,6 +14,8 @@ In private mode, users can manually select in telegram what and where they want 
 
 There is no need for external webservers, but you need java and a database (at the moment only mysql-build exists, submit an issue if you would like to have postgres or h2).
 
+[Go to releases](https://github.com/theyellow/pogorobot/releases)
+
 [Short installation instructions for hosting your bot](https://github.com/theyellow/pogorobot/wiki/Short-installation-and-usage-guide)
 
 [Telegram for help](https://t.me/pogorobot_users)
