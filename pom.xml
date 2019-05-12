@@ -629,10 +629,11 @@
 		</license>
 	</licenses>
 
+	<!-- SCM configuration to GitHub Repo -->
 	<scm>
-		<connection>scm:git:git://github.com/theyellow/pogorobot.git</connection>
-		<developerConnection>scm:git:ssh://github.com:theyellow/pogorobot.git</developerConnection>
-		<url>http://github.com/theyellow/pogorobot/tree/master</url>
+		<connection>scm:git:git@github.com:theyellow/pogorobot.git</connection>
+		<developerConnection>scm:git:git@github.com:theyellow/pogorobot.git</developerConnection>
+		<url>scm:git:git@github.com:theyellow/pogorobot.git</url>
 	</scm>
 
 </project>
