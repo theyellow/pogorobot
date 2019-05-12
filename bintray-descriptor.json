@@ -1,6 +1,6 @@
 {
     "package": {
-        "name": "pogorobot",
+        "name": "${project.name}",
         "repo": "repo",
         "subject": "theyellow",
         "desc": "I was pushed completely automatically",
@@ -13,7 +13,9 @@
     },
 
     "version": {
-        "name": "latest"
+        "name": "${project.name}-${project.version}",
+    	"released": "${maven.build.timestamp}",
+   		"vcs_tag": "${project.name}-${project.version}"
     },
 
     "files":
