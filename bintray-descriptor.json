@@ -18,7 +18,7 @@
 
     "files":
         [
-        {"includePattern": "target/target-repo/(.*)", "uploadPattern": "./$1"}
+        {"includePattern": "target/target-repo/(.*)", "excludePattern": ".*/*-SNAPSHOT/.*", "uploadPattern": "./$1"}
         ],
     "matrixParams": {
         "override": 1 },
