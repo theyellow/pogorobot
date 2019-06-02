@@ -132,14 +132,14 @@
       "036": "Geschwindigkeit"
     },
     "412": {
-      "118": "Pflanze",
-      "119": "Sandig",
-      "120": "Müll"
+      "118": "Pflanzenumhang",
+      "119": "Sandumhgang",
+      "120": "Lumpenumhang"
     },
     "413": {
-      "087": "Pflanze",
-      "088": "Sandig",
-      "089": "Müll"
+      "087": "Pflanzenumhang",
+      "088": "Sandumhgang",
+      "089": "Lumpenumhang"
     },
     "421": {
       "094": "Bedeckt",
@@ -155,14 +155,14 @@
     },
     "479": {
       "081": "Normal",
-      "082": "Frost",
-      "083": "Ventilator",
-      "084": "M\u00E4hen",
-      "085": "Waschen",
-      "086": "Hitze"
+      "082": "Frost-Rotom",
+      "083": "Kühl-Rotom",
+      "084": "Schneide-Rotom",
+      "085": "Wasch-Rotom",
+      "086": "Hitze-Rotom"
     },
     "487": {
-      "090": "Ge\u00E4ndert",
+      "090": "Wandelform",
       "091": "Ursprung"
     },
     "492": {
@@ -176,7 +176,7 @@
       "103": "Gift",
       "104": "Boden",
       "105": "Stein",
-      "106": "K\u00e4fer",
+      "106": "Käfer",
       "107": "Geist",
       "108": "Stahl",
       "109": "Feuer",
