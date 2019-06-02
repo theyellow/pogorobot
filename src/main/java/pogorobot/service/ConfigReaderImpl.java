@@ -48,9 +48,10 @@ import pogorobot.entities.FilterType;
 import pogorobot.entities.Geofence;
 import pogorobot.entities.MessageConfigElement;
 import pogorobot.entities.UserGroup;
-import pogorobot.repositories.FilterRepository;
-import pogorobot.repositories.GeofenceRepository;
-import pogorobot.repositories.UserGroupRepository;
+import pogorobot.service.db.FilterService;
+import pogorobot.service.db.repositories.FilterRepository;
+import pogorobot.service.db.repositories.GeofenceRepository;
+import pogorobot.service.db.repositories.UserGroupRepository;
 
 @Service("configReader")
 public class ConfigReaderImpl implements ConfigReader {

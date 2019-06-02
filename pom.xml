@@ -241,16 +241,17 @@
 					<include>bintray-descriptor.json</include>
 				</includes>
 				<filtering>true</filtering>
-				<targetPath>target/</targetPath>
+				<targetPath>${basedir}/target/</targetPath>
 			</resource>
 		</resources>
 		<filters><filter>bintray-descriptor.json</filter></filters>
 		
 		<plugins>
-<!-- 			<plugin> -->
-<!-- 				<artifactId>maven-resources-plugin</artifactId> -->
-<!-- 				<inherited>false</inherited> -->
-<!-- 				<configuration> -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<inherited>false</inherited>
+				<configuration>
+<!-- 					<escapeString>\</escapeString> -->
 <!-- 					<outputDirectory>${basedir}/target</outputDirectory> -->
 <!-- 					<resources> -->
 <!-- 						<resource> -->
@@ -262,8 +263,8 @@
 <!-- 					<nonFilteredFileExtensions> -->
 <!-- 						<nonFilteredFileExtension>json</nonFilteredFileExtension> -->
 <!-- 					</nonFilteredFileExtensions> -->
-<!-- 				</configuration> -->
-<!-- 			</plugin> -->
+				</configuration>
+			</plugin>
 
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

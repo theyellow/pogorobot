@@ -52,6 +52,8 @@ import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.Raid;
 import pogorobot.entities.Subscriber;
 import pogorobot.entities.User;
+import pogorobot.service.db.GymService;
+import pogorobot.service.db.UserService;
 import pogorobot.telegram.PogoBot;
 import pogorobot.telegram.util.Emoji;
 

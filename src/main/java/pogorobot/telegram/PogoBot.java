@@ -63,7 +63,7 @@ import pogorobot.events.telegrambot.IncomingManualRaid;
 import pogorobot.service.MessageContentProcessor;
 import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.TelegramMessageCreatorService;
-import pogorobot.service.UserService;
+import pogorobot.service.db.UserService;
 import pogorobot.telegram.config.Configuration;
 import pogorobot.telegram.util.Emoji;
 import pogorobot.telegram.util.Type;

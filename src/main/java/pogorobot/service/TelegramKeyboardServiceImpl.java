@@ -41,7 +41,8 @@ import pogorobot.entities.Geofence;
 import pogorobot.entities.Gym;
 import pogorobot.entities.PossibleRaidPokemon;
 import pogorobot.entities.User;
-import pogorobot.repositories.PossibleRaidPokemonRepository;
+import pogorobot.service.db.FilterService;
+import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
 import pogorobot.telegram.util.Emoji;
 import pogorobot.telegram.util.Type;
 

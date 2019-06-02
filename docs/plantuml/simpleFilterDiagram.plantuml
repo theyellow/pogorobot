@@ -1,0 +1,65 @@
+@startuml
+
+title Simple filter diagram
+
+
+package Channels <<groupchatid.txt>> {
+    object channels
+}
+
+package Filter <<other group*.txt>> {
+    object channel
+    package PokemonByNumberSettings <<different pokemon settings>> {
+		object filterPokemonByNumber
+	    object pokemonNumber
+	    object geofencesPokemon
+    }
+    package PokemonIvSettings <<different iv settings>> {
+	    object filterPokemonIv
+	    object geofencesPokemonIv
+	    object pokemonMinIv
+	    object pokemonMaxIv
+    }
+    package RaidSettings <<different raid settings>> {
+	    object filterRaids
+	    object geofencesRaids
+	    object raidLevel
+	    object raidbossPokemon
+	    object showAllRaidsOnExraidGym
+    }
+}
+
+package Geofences <<geofences.txt>> {
+    object geofence1
+    object geofence2
+    object geofence3
+}
+
+channel : id
+geofencesPokemon : {geofence1, geofence2}
+geofencesPokemonIv : {geofence1, geofence2, geofence3}
+geofencesRaids : {geofence2, geofence3}
+
+channel <|-up- channels : 1...n
+filterPokemonByNumber <|-up- channel : 1:1
+filterPokemonIv <|-up- channel : 1:1
+filterRaids <|-up- channel : 1:1
+geofence1 *-up- geofencesPokemonIv
+geofence2 *-up- geofencesPokemonIv
+geofence3 *-up- geofencesPokemonIv
+geofence1 *-up- geofencesPokemon
+geofence2 *-up- geofencesPokemon
+geofence2 *-up- geofencesRaids
+geofence3 *-up- geofencesRaids
+filterPokemonByNumber --> geofencesPokemon : 1...n
+filterPokemonByNumber --> pokemonNumber : 1...n
+filterPokemonIv --> geofencesPokemonIv : 1...n
+filterPokemonIv --> pokemonMinIv : 1:1
+filterPokemonIv --> pokemonMaxIv : 1:1
+filterRaids --> geofencesRaids : 1...n
+filterRaids --> raidLevel : 1:1
+filterRaids --> raidbossPokemon : 1...n
+filterRaids --> showAllRaidsOnExraidGym : 1:1
+ 
+
+@enduml

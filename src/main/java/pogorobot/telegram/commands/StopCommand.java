@@ -29,7 +29,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import pogorobot.service.UserService;
+import pogorobot.service.db.UserService;
 
 /**
  * This commands stops the conversation with the bot. Bot won't respond to user
