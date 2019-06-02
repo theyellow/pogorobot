@@ -32,6 +32,7 @@ public class RocketmapRaid implements EventMessage<Raid> {
 	private Long pokemon_id;
 	private Long cp;
 	private String name;
+	private String gym_name;
 	private String url;
 	private String move_1;
 	private String move_2;
@@ -156,6 +157,14 @@ public class RocketmapRaid implements EventMessage<Raid> {
 
 	public final void setMove_2(String move_2) {
 		this.move_2 = move_2;
+	}
+
+	public String getGym_name() {
+		return gym_name;
+	}
+
+	public void setGym_name(String gym_name) {
+		this.gym_name = gym_name;
 	}
 
 	@Override

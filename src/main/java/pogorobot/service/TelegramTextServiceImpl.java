@@ -150,23 +150,38 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return jsonForms;
 	}
 
-	private String generateFormMessage(String pokemonId, String form) {
+	private String generateFormMessage(String pokemonId, String formId) {
 		String result = "";
 		initializeJsonForms();
 		JSONObject pokemonForms = null;
 		try {
+			pokemonId = idToThreeChars(pokemonId);
+			formId = idToThreeChars(formId);
 			pokemonForms = jsonForms.getJSONObject(pokemonId);
 		} catch (JSONException ex) {
-			if (!"0".equals(form)) {
-				logger.error("Form \"" + form + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
-					+ " -> send message to developer to update internal configuration.");
+			if (!"0".equals(formId)) {
+				logger.error("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
+						+ " -> send message to developer to update internal configuration.");
 			}
 		}
-		if (pokemonForms != null && pokemonForms.getString(form) != null) {
-			result = pokemonForms.getString(form);
+		if (pokemonForms != null && pokemonForms.getString(formId) != null) {
+			result = pokemonForms.getString(formId);
 
+		} else {
+			if (!"0".equals(formId)) {
+				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
+						+ " -> send message to developer to update internal configuration.");
+			}
 		}
 		return result;
+	}
+
+	private String idToThreeChars(String pokemonId) {
+		int length = pokemonId.length();
+		for (int i = length; i < 3; i++) {
+			pokemonId = "0" + pokemonId;
+		}
+		return pokemonId;
 	}
 
 	private JSONObject getTranslatorFile(String name) {
@@ -483,7 +498,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			} else if (placeholderString.equalsIgnoreCase("form")) {
 				String form = pokemon.getForm();
 				if (form != null && !form.isEmpty()) {
-					result = !form.equals("0") ? "" : generateFormMessage(pokemon.getPokemonId().toString(), form);
+					result = form.equals("0") ? "" : generateFormMessage(pokemon.getPokemonId().toString(), form);
 				}
 			} else if (placeholderString.equalsIgnoreCase("level")) {
 				// Hack, should be pokemon level but i don't want to change database atm
@@ -575,7 +590,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return "<empty placeholder>";
 	}
 
-	private String getRaidValueOf(String string, Gym gym, Integer weatherBoosted, String color) {
+	private String getRaidValueOf(String placeholderString, Gym gym, Integer weatherBoosted, String color) {
 		String level = String.valueOf(gym.getRaid().getRaidLevel());
 		String monsterName = getPokemonName(gym.getRaid().getPokemonId().toString());
 		String name = gym.getName();
@@ -591,68 +606,79 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String imageUrl = gym.getUrl();
 		String googleLink = getGoogleUrl(gym.getLatitude(), gym.getLongitude());
 		String appleLink = getAppleLink(gym.getLatitude(), gym.getLongitude());
-		if (string != null) {
-			String result = "default: " + string;
-			logger.debug("Searching for " + string);
+		if (placeholderString != null) {
+			String result = "default: " + placeholderString;
+			logger.debug("Searching for " + placeholderString);
 
 			// if (quickMove != null && chargeMove != null && !quickMove.isEmpty() &&
 			// !chargeMove.isEmpty()) {
 			// stringBuilder.append(getMovesString(quickMove, chargeMove));
 			// stringBuilder.append(MESSAGE_NEWLINE);
 			// }
-			if (string.equals("name")) {
+			if (placeholderString.equals("name")) {
 				result = monsterName;
-			} else if (string.equals("gymname")) {
+			} else if (placeholderString.equals("gymname")) {
 				result = name;
-			} else if (string.equals("imgurl")) {
+			} else if (placeholderString.equals("imgurl")) {
 				result = imageUrl;
-			} else if (string.equals("moves")) {
+			} else if (placeholderString.equals("moves")) {
 				result = movesString;
-			} else if (string.equals("quickmove")) {
+			} else if (placeholderString.equals("quickmove")) {
 				result = getJsonMoves().getString(quickmove);
-			} else if (string.equals("chargemove")) {
+			} else if (placeholderString.equals("chargemove")) {
 				result = getJsonMoves().getString(chargemove);
-			} else if (string.equals("level")) {
+			} else if (placeholderString.equals("level")) {
 				result = level;
-			} else if (string.equals("begin") || string.equals("start")) {
+			} else if (placeholderString.equals("begin") || placeholderString.equals("start")) {
 				result = begin;
-			} else if (string.equals("end")) {
+			} else if (placeholderString.equals("end")) {
 				result = end;
-			} else if (string.equals("lat")) {
+			} else if (placeholderString.equals("lat")) {
 				result = lat;
-			} else if (string.equals("lon")) {
+			} else if (placeholderString.equals("lon")) {
 				result = lon;
-			} else if (string.equals("appleLink") || string.equals("applemap")) {
+			} else if (placeholderString.equals("appleLink") || placeholderString.equals("applemap")) {
 				result = appleLink;
-			} else if (string.equals("googleLink") || string.equals("mapurl")) {
+			} else if (placeholderString.equals("googleLink") || placeholderString.equals("mapurl")) {
 				result = googleLink;
-			} else if (string.equals("googleLink")) {
+			} else if (placeholderString.equals("googleLink")) {
 				result = googleLink;
-			} else if (string.equals("color")) {
+			} else if (placeholderString.equals("color")) {
 				result = color != null ? color : "";
-			} else if (string.equals("weatherEmoji")) {
+			} else if (placeholderString.equals("weatherEmoji")) {
 				result = weatherBoosted != null ? new StringBuffer().append(getWeatherEmoji(weatherBoosted)).toString()
 						: "";
-			} else if (string.equals("clockEmoji")) {
+			} else if (placeholderString.equals("clockEmoji")) {
 				result = new StringBuffer().append(Emoji.ALARM_CLOCK).toString();
-			} else if (string.equals("pushpinEmoji")) {
+			} else if (placeholderString.equals("pushpinEmoji")) {
 				result = new StringBuffer().append(Emoji.ROUND_PUSHPIN).toString();
-			} else if (string.equals("globeEmoji")) {
+			} else if (placeholderString.equals("globeEmoji")) {
 				result = new StringBuffer().append(Emoji.EARTH_GLOBE_EUROPE_AFRICA).toString();
-			} else if (string.equals("exraidXflagEmoji")) {
+			} else if (placeholderString.equals("exraidXflagEmoji")) {
 				result = getExraidEmoji(exraidGym, Emoji.CROSS_MARK);
-			} else if (string.equals("exraidFlagEmoji") || string.equals("exraidExclamationmarkEmoji")) {
+			} else if (placeholderString.equals("exraidFlagEmoji")
+					|| placeholderString.equals("exraidExclamationmarkEmoji")) {
 				result = getExraidEmoji(exraidGym, Emoji.HEAVY_EXCLAMATION_MARK_SYMBOL);
-			} else if (string.equals("exraidExclamationmarkWhiteEmoji")) {
+			} else if (placeholderString.equals("exraidExclamationmarkWhiteEmoji")) {
 				result = getExraidEmoji(exraidGym, Emoji.WHITE_EXCLAMATION_MARK_ORNAMENT);
-			} else {
-				logger.debug("Unknown configToken: " + string);
+
+			}
+			// else if (placeholderString.equalsIgnoreCase("form")) {
+			// String form = pokemon.getForm();
+			// if (form != null && !form.isEmpty()) {
+			// result = !form.equals("0") ? "" :
+			// generateFormMessage(pokemon.getPokemonId().toString(), form);
+			// }
+			//
+			// }
+			else {
+				logger.debug("Unknown configToken: " + placeholderString);
 				result = "";
 			}
 
 			return result;
 		}
-		return string;
+		return placeholderString;
 	}
 
 	private String getExraidEmoji(Boolean exraidGym, Emoji crossMark) {
