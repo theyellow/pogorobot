@@ -1,0 +1,28 @@
+{
+    "package": {
+        "name": "\${name}",
+        "repo": "repo",
+        "subject": "theyellow",
+        "desc": "I was pushed completely automatically",
+        "website_url": "https://theyellow.github.io/pogorobot/",
+        "issue_tracker_url": "https://github.com/theyellow/pogorobot/issues",
+        "vcs_url": "https://github.com/theyellow/pogorobot.git",
+        "licenses": ["Apache-2.0"],
+        "public_download_numbers": false,
+        "public_stats": false
+    },
+
+    "version": {
+        "name": ${name}-${version},
+    	"released": "${maven.build.timestamp}",
+   		"vcs_tag": "${name}-${version}"
+    },
+
+    "files":
+        [
+        {"includePattern": "target/target-repo/(.*)", "excludePattern": ".*/*-SNAPSHOT/.*", "uploadPattern": "./$1"}
+        ],
+    "matrixParams": {
+        "override": 1 },
+    "publish": true
+}

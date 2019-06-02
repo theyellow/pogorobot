@@ -31,6 +31,8 @@ import pogorobot.events.rocketmap.RdmQuest;
 import pogorobot.events.rocketmap.RocketmapEgg;
 import pogorobot.events.rocketmap.RocketmapGym;
 import pogorobot.events.rocketmap.RocketmapRaid;
+import pogorobot.service.db.GymService;
+import pogorobot.service.db.PokemonService;
 
 @Service("messageContentProcessor")
 public class MessageContentProcessorImpl implements MessageContentProcessor {

@@ -56,11 +56,12 @@ import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
-import pogorobot.repositories.ProcessedPokemonRepository;
-import pogorobot.repositories.ProcessedRaidRepository;
-import pogorobot.repositories.RaidAtGymEventRepository;
-import pogorobot.repositories.SendMessagesRepository;
-import pogorobot.repositories.UserRepository;
+import pogorobot.service.db.EventWithSubscribersService;
+import pogorobot.service.db.repositories.ProcessedPokemonRepository;
+import pogorobot.service.db.repositories.ProcessedRaidRepository;
+import pogorobot.service.db.repositories.RaidAtGymEventRepository;
+import pogorobot.service.db.repositories.SendMessagesRepository;
+import pogorobot.service.db.repositories.UserRepository;
 import pogorobot.telegram.PogoBot;
 import pogorobot.telegram.util.SendMessageAnswer;
 

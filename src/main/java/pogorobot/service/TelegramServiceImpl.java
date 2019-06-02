@@ -56,11 +56,15 @@ import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
-import pogorobot.repositories.FilterRepository;
-import pogorobot.repositories.ProcessedPokemonRepository;
-import pogorobot.repositories.ProcessedRaidRepository;
-import pogorobot.repositories.RaidAtGymEventRepository;
-import pogorobot.repositories.UserGroupRepository;
+import pogorobot.service.db.EventWithSubscribersService;
+import pogorobot.service.db.FilterService;
+import pogorobot.service.db.GymService;
+import pogorobot.service.db.UserService;
+import pogorobot.service.db.repositories.FilterRepository;
+import pogorobot.service.db.repositories.ProcessedPokemonRepository;
+import pogorobot.service.db.repositories.ProcessedRaidRepository;
+import pogorobot.service.db.repositories.RaidAtGymEventRepository;
+import pogorobot.service.db.repositories.UserGroupRepository;
 import pogorobot.telegram.util.SendMessageAnswer;
 
 @Service("telegramService")

@@ -30,7 +30,7 @@ import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import pogorobot.service.TelegramKeyboardService;
-import pogorobot.service.UserService;
+import pogorobot.service.db.UserService;
 import pogorobot.telegram.util.Emoji;
 
 /**

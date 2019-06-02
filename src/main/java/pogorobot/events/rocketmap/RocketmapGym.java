@@ -35,6 +35,7 @@ public class RocketmapGym implements EventMessage<Gym> {
 	private String move_1;
 	private String move_2;
 	private String name;
+	private String gym_name;
 	private String description;
 	private String url;
 	private Long occupied_since;
@@ -199,6 +200,14 @@ public class RocketmapGym implements EventMessage<Gym> {
 		this.sponsor_id = sponsor_id;
 	}
 
+	public String getGym_name() {
+		return gym_name;
+	}
+
+	public void setGym_name(String gym_name) {
+		this.gym_name = gym_name;
+	}
+
 	@Override
 	public Gym transformToEntity() {
 		Gym gym = new Gym();
@@ -211,6 +220,9 @@ public class RocketmapGym implements EventMessage<Gym> {
 		gym.setLongitude(longitude);
 		gym.setSlotsAvailable(slots_available);
 		gym.setName(name);
+		if (StringUtils.isNotEmpty(gym_name)) {
+			gym.setName(gym_name);
+		}
 		gym.setOccupiedSince(occupied_since);
 		gym.setRaidActiveUntil(raid_active_until);
 		gym.setUrl(url);
