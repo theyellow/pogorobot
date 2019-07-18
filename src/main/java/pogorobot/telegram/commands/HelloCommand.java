@@ -74,7 +74,7 @@ public class HelloCommand extends BotCommand {
         }
 
         SendMessage answer = new SendMessage();
-        answer.setChatId(chat.getId().toString());
+		answer.setChatId(chat.getId().toString());
         answer.setText(messageTextBuilder.toString());
 		boolean isRaidAdmin = user2.isRaidadmin();
 		answer.setReplyMarkup(telegramKeyboardService.getSettingsKeyboard(isRaidAdmin));

@@ -18,6 +18,7 @@ package pogorobot.telegram;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -49,6 +51,7 @@ import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Location;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.ResponseParameters;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.InlineQuery;
 import org.telegram.telegrambots.meta.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent;
@@ -76,6 +79,8 @@ import pogorobot.util.RaidImageScanner;
  */
 public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBot {
 
+	private static final String INVALID_CHAT = "invalid chat";
+
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
@@ -90,6 +95,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	@Autowired
 	private RaidImageScanner raidImageScanner;
 
+	private Map<Integer, Integer> sendMessages = new HashMap<>();
+
 	private static final long MANY_CHATS_SEND_INTERVAL = 33;
 	private static final long ONE_CHAT_SEND_INTERVAL = 1000;
 	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10L;
@@ -102,7 +109,30 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	private static Configuration configuration;
 
+	/**
+	 * 
+	 * @param internalId
+	 * @param postedMessageId
+	 * @return the previous value associated with internalId, or null if there was
+	 *         no mapping for internalId. (A null return can also indicate that the
+	 *         map previously associated null with internalId, if the implementation
+	 *         supports null values.)
+	 */
+	@Override
+	public Integer putSendMessages(Integer internalId, Integer postedMessageId) {
+		return sendMessages.put(internalId, postedMessageId);
+	}
 
+	@Override
+	public Integer getSendMessages(Integer internalId) {
+		return sendMessages.get(internalId);
+	}
+
+	@Override
+	public void removeSendMessage(Integer next) {
+		sendMessages.remove(next);
+	}
+		
 	private final class MessageSenderTask extends TimerTask {
 		@Override
 		public void run() {
@@ -154,7 +184,52 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 			// Invoke the send callback. ChatId is passed for possible
 			// additional processing
-			sendMessageCallback(sendQueue.getChatId(), sendQueue.getMessage(currentTime));
+			BotApiMethod<? extends Serializable> message = sendQueue.getMessage(currentTime);
+			Integer sendMessageAnswer = sendQueue.getSendMessageAnswer(currentTime);
+			Long chatId = sendQueue.getChatId();
+			try {
+				Serializable result = execute(message);
+				Message response = null;
+				if (result instanceof Message) {
+					response = (Message) result;
+				} else if (message instanceof DeleteMessage) {
+					logger.info("delete message " + ((DeleteMessage) message).getMessageId() + " gave " + result);
+				} else {
+					logger.warn("response of PogoBot.execute(...) is no message but " + result + " | sent message was "
+							+ message);
+				}
+				if (response == null || sendMessageAnswer == Integer.MIN_VALUE
+						|| (sendMessageAnswer != null && sendMessageAnswer == 0)) {
+					logger.info("wrote message in chat " + chatId + " with answer " + sendMessageAnswer);
+					sendMessageAnswer = null;
+				} else {
+					Integer messageId = response.getMessageId();
+					sendMessages.put(sendMessageAnswer, messageId);
+					logger.info(
+							"wrote message " + messageId + " in chat " + chatId + " - answer was " + sendMessageAnswer);
+				}
+			} catch (TelegramApiException e) {
+				if (INVALID_CHAT.equals(e.getMessage())) {
+					logger.warn("chat with id " + sendQueue.getChatId() + " doesn't exist.");
+
+				} else if (e instanceof TelegramApiRequestException) {
+					TelegramApiRequestException requestException = (TelegramApiRequestException) e;
+					ResponseParameters parameters = requestException.getParameters();
+					String apiResponse = requestException.getApiResponse();
+					Integer errorCode = requestException.getErrorCode();
+					String optionalParameters = parameters != null
+							? " | parameters: migrateToChatId - " + parameters.getMigrateToChatId() + " | retry after "
+									+ parameters.getRetryAfter()
+							: "";
+					logger.warn("TelegramApiRequestException was thrown: " + errorCode + " || " + apiResponse
+							+ optionalParameters);
+				} else {
+					logger.error(e.getMessage(), e);
+				}
+				if (sendMessageAnswer != null) {
+					sendMessages.put(sendMessageAnswer, null);
+				}
+			}
 		}
 	}
 
@@ -169,6 +244,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public static final int GET_MESSAGE = 3; // Queue has message(s) and
 													// ready to send
 		private final ConcurrentLinkedQueue<BotApiMethod<? extends Serializable>> mQueue = new ConcurrentLinkedQueue<>();
+		private final ConcurrentLinkedQueue<Integer> mQueueAnswer = new ConcurrentLinkedQueue<>();
 		private final Long mChatId;
 		private long mLastSendTime; // Time of last peek from queue
 		private volatile long mLastPutTime; // Time of last put into queue
@@ -177,8 +253,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			mChatId = chatId;
 		}
 
-		public synchronized void putMessage(BotApiMethod<? extends Serializable> msg) {
+		public synchronized void putMessage(BotApiMethod<? extends Serializable> msg, Integer internalMapId, Type type) {
 			mQueue.add(msg);
+			if (internalMapId != null) {
+				mQueueAnswer.add(internalMapId);
+			} else {
+				mQueueAnswer.add(Integer.MIN_VALUE);
+			}
 			mLastPutTime = System.currentTimeMillis();
 		}
 
@@ -200,6 +281,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public synchronized BotApiMethod<? extends Serializable> getMessage(long currentTime) {
 			mLastSendTime = currentTime;
 			return mQueue.poll();
+		}
+
+		public synchronized Integer getSendMessageAnswer(long currentTime) {
+			mLastSendTime = currentTime;
+			return mQueueAnswer.poll();
 		}
 
 		public long getPutTime() {
@@ -234,14 +320,35 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	 * @see pogorobot.telegram.bot.TelegramBot#sendTimed(java.lang.Long, org.telegram.telegrambots.api.methods.BotApiMethod)
 	 */
 	@Override
+	public void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer next, Type type) {
+		MessageQueue queue = mMessagesMap.get(chatId);
+		if (queue == null) {
+			queue = new MessageQueue(chatId);
+			queue.putMessage(messageRequest, next, type);
+			mMessagesMap.put(chatId, queue);
+		} else {
+			queue.putMessage(messageRequest, next, type);
+			MessageQueue absent = mMessagesMap.putIfAbsent(chatId, queue); // Double check, because
+			// the queue can be
+			// removed from hashmap
+			// on state DELETE
+			if (absent == null) {
+				logger.warn("no mapping of chat " + chatId + " , now queue state is "
+						+ queue.getCurrentState(System.currentTimeMillis()));
+			}
+		}
+		mSendRequested.set(true);
+	}
+
+	@Override
 	public void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest) {
 		MessageQueue queue = mMessagesMap.get(chatId);
 		if (queue == null) {
 			queue = new MessageQueue(chatId);
-			queue.putMessage(messageRequest);
+			queue.putMessage(messageRequest, null, null);
 			mMessagesMap.put(chatId, queue);
 		} else {
-			queue.putMessage(messageRequest);
+			queue.putMessage(messageRequest, null, null);
 			MessageQueue absent = mMessagesMap.putIfAbsent(chatId, queue); // Double check, because
 														// the queue can be
 														// removed from hashmap
@@ -265,7 +372,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		try {
 			execute(messageRequest);
 		} catch (TelegramApiException e) {
-			logger.error(e.getMessage(), e);
+			if (INVALID_CHAT.equals(e.getMessage())) {
+				logger.warn("chat with id " + chatId + " doesn't exist.");
+			} else {
+				logger.error(e.getMessage(), e);
+			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
@@ -280,13 +391,20 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		} catch (TelegramApiException e) {
 			if (e instanceof TelegramApiRequestException) {
 				TelegramApiRequestException x = (TelegramApiRequestException) e;
+				Integer errorCode = x.getErrorCode();
+				String apiResponse = x.getApiResponse();
 				logger.error(
-						x.getErrorCode() + " - " + x.getApiResponse()
-								+ (x.getParameters() != null ? " - Parameter: " + x.getParameters().toString() : ""),
+						errorCode + " - " + apiResponse
+								+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
 						x.getCause());
+				if (errorCode == 400 && apiResponse.contains("Bad Request: chat not found")) {
+					logger.error("somebody deleted bot conversation");
+					throw new TelegramApiException(INVALID_CHAT);
+				}
 			} else if (e instanceof TelegramApiValidationException) {
 				TelegramApiValidationException x = (TelegramApiValidationException) e;
-				logger.error(x.getMethod() + " - " + x.getObject() + " - Error: " + x.toString(), x.getCause());
+				logger.error(x.getMethod() + " - " + x.getObject() + " - validation error: " + x.toString(),
+						x.getCause());
 			}
 			throw e;
 		} catch (Exception e) {
@@ -299,6 +417,27 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			throw new TelegramApiException("Parameter method can not be null");
 		}
 		return sendApiMethod(method);
+	}
+
+	public <T extends Serializable, Method extends BotApiMethod<T>> void executeTimed(Long chatId, Method method)
+			throws TelegramApiException {
+		try {
+			sendTimed(chatId, method);
+			return;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e.getCause());
+			if (e instanceof TelegramApiException) {
+				throw (TelegramApiException) e;
+			}
+		}
+		if (method == null) {
+			throw new TelegramApiException("Parameter method can not be null");
+		} else {
+			logger.warn(
+					"asynchronous queuing failed in executeTimed(...), using directly sendApiMethod(...) for method "
+							+ method);
+		}
+		sendApiMethod(method);
 	}
 
 	/**
@@ -380,7 +519,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		if (update.hasCallbackQuery()) {
 			CallbackQuery callbackQuery = update.getCallbackQuery();
 			updateUser(callbackQuery.getFrom());
-			handleCallbackQuery(update);
+			try {
+				handleCallbackQuery(update);
+			} catch (NumberFormatException | TelegramApiException e) {
+				logger.warn("exception occured in nonCommandUpdate with callback query " + callbackQuery, e);
+			}
 			// if (message != null) {
 			// logger.info(message.toString());
 			// }
@@ -397,7 +540,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		if (update.hasMessage()) {
 			Message message = update.getMessage();
 			updateUser(message.getFrom());
-			Message handleUserMessage = null;
 			if (message.hasPhoto()) {
 				Integer highestFilesize = null;
 				String fileId = null;
@@ -423,12 +565,17 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				raidImageScanner.scanImage(url);
 			}
 			if (message.isUserMessage()) {
-				handleUserMessage = handleUserMessage(message);
+				try {
+					handleUserMessage(message);
+				} catch (TelegramApiException e) {
+					logger.warn("exception occured in nonCommandUpdate with user message " + message, e);
+				}
 			} else if (message.hasText()) {
-				handleUserMessage = handleMessageText(message);
-			}
-			if (null != handleUserMessage) {
-				logger.info(handleUserMessage.toString());
+				try {
+					handleMessageText(message);
+				} catch (TelegramApiException e) {
+					logger.warn("exception occured in nonCommandUpdate with text message " + message, e);
+				}
 			}
 		}
 	}
@@ -479,31 +626,33 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 		if (inlineQuery.hasQuery()) {
 			String query = inlineQuery.getQuery();
-			System.out.println(query);
+			logger.info("inlineQuery is " + query);
 		}
 		Boolean method = sendAnswerCallbackQuery(inlineQuery);
-		logger.info(method.toString());
+		if (method == Boolean.TRUE) {
+			logger.info("answerCallbackQuery gave true ");
+		}
 	}
 
-	private Message handleMessageText(Message message) {
+	private void handleMessageText(Message message) throws TelegramApiException {
 		if (message.getChat().isChannelChat() || message.getChat().isGroupChat() || message.getChat().isSuperGroupChat()
 				|| message.isChannelMessage() || message.isGroupMessage() || message.isSuperGroupMessage()) {
-			return null;
+			return;
 		}
 		SendMessage echoMessage = new SendMessage();
 		echoMessage.setChatId(message.getChatId());
 		echoMessage.setText("Hey, deine Nachricht:\n" + message.getText());
 		echoMessage.disableNotification();
-		return executeBotApiMethod(echoMessage);
+		executeBotApiMethodTimed(message.getChatId(), echoMessage);
 	}
 
-	private Message handleUserMessage(Message message) {
+	private void handleUserMessage(Message message) throws TelegramApiException {
 
 		SendMessage echoMessage = telegramHandlerService.answerUserMessage(message, message.getFrom());
-		return executeBotApiMethod(echoMessage);
+		executeBotApiMethodTimed(message.getChatId(), echoMessage);
 	}
 
-	private BotApiMethod<? extends Serializable> handleCallbackQuery(Update update) {
+	private void handleCallbackQuery(Update update) throws NumberFormatException, TelegramApiException {
 		CallbackQuery callbackquery = update.getCallbackQuery();
 		String[] data = callbackquery.getData().split(" ");
 		String callbackCommand = data[0];
@@ -592,12 +741,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			// } else if (callbackCommand.equals("disableraids")) {
 			// handleRaidDisable(callbackquery, data);
 		} else {
-			Boolean message = this
-					.sendAnswerCallbackQuery("Bitte einen der Buttons verwenden", false, callbackquery);
-			return null;
+			sendAnswerCallbackQuery("Bitte einen der Buttons verwenden", false, callbackquery);
 		}
-		this.sendAnswerCallbackQuery("Eingabe wurde bearbeitet", false, callbackquery);
-		return null;
+		sendAnswerCallbackQuery("Eingabe wurde bearbeitet", false, callbackquery);
 	}
 
 	private void handleSignupRaidEvent(CallbackQuery callbackquery, String[] data) {
@@ -606,7 +752,14 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			Long delay = 0L;
 			ScheduledExecutorService ses = Executors.newScheduledThreadPool(1);
 			for (EditMessageText editMessage : editMessages) {
-				Runnable updater = () -> executeBotApiMethod(editMessage);
+				Runnable updater = () -> {
+					try {
+						executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
+					} catch (NumberFormatException | TelegramApiException e) {
+						logger.warn("exception occured in handleSignupRaid with callback query " + callbackquery
+								+ " and edit message " + editMessage, e);
+					}
+				};
 				// run this task after 5 seconds, nonblock for task3
 				ses.schedule(updater, delay, TimeUnit.MILLISECONDS);
 				delay += 3334;
@@ -619,87 +772,100 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 	}
 
-	private void handleConfirmRaidAtGym(CallbackQuery callbackquery, String[] data) {
+	private void handleConfirmRaidAtGym(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getConfirmNewRaidDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleCreateRaidAtGymGetDate(CallbackQuery callbackquery, String[] data) {
+	private void handleCreateRaidAtGymGetDate(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getDateForNewRaidDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleCreateRaidAtGym(CallbackQuery callbackquery, String[] data) {
+	private void handleCreateRaidAtGym(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getChooseRaidLevelOrPokemonDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleCreateRaidAtGymGetTimeHours(CallbackQuery callbackquery, String[] data) {
+	private void handleCreateRaidAtGymGetTimeHours(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getHoursForNewRaidDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleCreateRaidAtGymGetTimeMinutes(CallbackQuery callbackquery, String[] data) {
+	private void handleCreateRaidAtGymGetTimeMinutes(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getMinutesForNewRaidDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleCreateRaidAtGymGetExactTime(CallbackQuery callbackquery, String[] data) {
+	private void handleCreateRaidAtGymGetExactTime(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getExactTimeForNewRaidDialog(callbackquery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleRaidPokemon(CallbackQuery callbackquery, String[] data) {
+	private void handleRaidPokemon(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getRaidPokemonDialog(callbackquery);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleRaidLevel(CallbackQuery callbackquery, String[] data) {
+	private void handleRaidLevel(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText message = telegramHandlerService.getRaidLevelDialog(callbackquery, data);
 		if (message == null) {
 			return;
 		}
-		executeBotApiMethod(message);
+		executeBotApiMethodTimed(Long.valueOf(message.getChatId()), message);
 	}
 
-	private void handleIvSelect(CallbackQuery callbackquery, String[] data) {
+	private void handleIvSelect(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		BotApiMethod<? extends Serializable> message = telegramHandlerService.getIvSettingDialog(callbackquery, data);
 		if (message == null) {
 			return;
 		}
-		executeBotApiMethod(message);
+		executeBotApiMethodTimed(Long.valueOf(callbackquery.getId()), message);
 	}
 
-	private void handleSettingsDistanceselect(CallbackQuery callbackquery, String[] data) {
+	private void handleSettingsDistanceselect(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText message = telegramHandlerService.getDistanceSelectDialog(callbackquery, data);
 		if (null == message) {
 			return;
 		}
-		executeBotApiMethod(message);
+		executeBotApiMethodTimed(Long.valueOf(message.getChatId()), message);
 	}
 
-	private void handleRaidDisable(CallbackQuery callbackquery, String[] data) {
+	private void handleRaidDisable(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getRaidDisabledDialog(callbackquery);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleRaidEnable(CallbackQuery callbackquery, String[] data) {
+	private void handleRaidEnable(CallbackQuery callbackquery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getEnabledRaidsMainDialog(callbackquery);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handlePokemonRemove(CallbackQuery callbackquery, String[] data, boolean raids) {
+	private void handlePokemonRemove(CallbackQuery callbackquery, String[] data, boolean raids)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getPokemonRemoveDialog(callbackquery, data, raids);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
-	private void handleCreateRaid(CallbackQuery callbackQuery, String[] data) {
+	private void handleCreateRaid(CallbackQuery callbackQuery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getChooseRaidOrEggDialog(callbackQuery, data);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
 	private void handleSendNewRaid(CallbackQuery callbackQuery, String[] data) {
-		// TODO: Send new Raid-Message to channels and people
 		// IncomingManualRaid message = new IncomingManualRaid();
 		// message.
 		IncomingManualRaid manualRaid = telegramHandlerService.getManualRaid(callbackQuery, data);
@@ -712,7 +878,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 		if ("share".equals(share)) {
 			// TODO: activate!
-			System.out.println("Share the raid!");
+			logger.info("Somebody shared a raid!");
 			// messageContentProcessor.shareRaid(manualRaid);
 		}
 		
@@ -722,14 +888,17 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		// executeBotApiMethod(editMessage);
 	}
 
-	private Message handlePokemonChoiceRaidOrEgg(CallbackQuery callbackQuery, String[] data) {
+	private Message handlePokemonChoiceRaidOrEgg(CallbackQuery callbackQuery, String[] data)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getChooseGymOfRaidChoiceDialog(callbackQuery, data);
-		Serializable method = executeBotApiMethod(editMessage);
-		if (method instanceof Message) {
-			Message message = (Message) method;
-			return message;
-		}
-		logger.warn("No response from handlePokemonChoiceRaidOrEgg");
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
+		// if (method instanceof Message) {
+		// Message message = (Message) method;
+		// return message;
+		// }
+		logger.info("handlePokemonChoiceRaidOrEgg gets executed asynchronous");
+		// logger.info("no info from handlePokemonChoiceRaidOrEgg, gets executed
+		// asynchronous");
 		return null;
 	}
 	// private void handleSettingsLocation(CallbackQuery callbackquery, String[]
@@ -766,15 +935,40 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		return result;
 	}
 
-	private void handleSettingsLocationarea(CallbackQuery callbackquery, String[] data, Type pokemonFilter) {
-		EditMessageText editMessage = telegramHandlerService.getLocationSettingsAreaDialog(callbackquery, data,
-				pokemonFilter);
-		executeBotApiMethod(editMessage);
+	private <T extends Serializable, Method extends BotApiMethod<T>> void executeBotApiMethodTimed(Long chatId,
+			Method message) throws TelegramApiException {
+		try {
+			executeTimed(chatId, message);
+		} catch (TelegramApiException e) {
+			if (e instanceof TelegramApiRequestException) {
+				TelegramApiRequestException x = (TelegramApiRequestException) e;
+				logger.error(
+						x.getErrorCode() + " - " + x.getApiResponse()
+								+ (x.getParameters() != null ? " - Parameter: " + x.getParameters().toString() : ""),
+						x.getCause());
+			} else if (e instanceof TelegramApiValidationException) {
+				TelegramApiValidationException x = (TelegramApiValidationException) e;
+				logger.error(x.getMethod() + " - " + x.getObject() + " - Error: " + x.toString(), x.getCause());
+				throw x;
+
+			} else {
+				logger.error(e.getMessage(), e.getCause());
+			}
+			throw e;
+		}
 	}
 
-	private void handlePokemonAdd(CallbackQuery callbackquery, String[] data, boolean raids) {
+	private void handleSettingsLocationarea(CallbackQuery callbackquery, String[] data, Type pokemonFilter)
+			throws NumberFormatException, TelegramApiException {
+		EditMessageText editMessage = telegramHandlerService.getLocationSettingsAreaDialog(callbackquery, data,
+				pokemonFilter);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
+	}
+
+	private void handlePokemonAdd(CallbackQuery callbackquery, String[] data, boolean raids)
+			throws NumberFormatException, TelegramApiException {
 		EditMessageText editMessage = telegramHandlerService.getPokemonAddDialog(callbackquery, data, raids);
-		executeBotApiMethod(editMessage);
+		executeBotApiMethodTimed(Long.valueOf(editMessage.getChatId()), editMessage);
 	}
 
 	/**
@@ -812,8 +1006,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		queryResultArticle.setInputMessageContent(inputMessageContent);
 		results.add(queryResultArticle);
 		answerInlineQuery.setResults(results);
-		Boolean answer = executeBotApiMethod(answerInlineQuery);
-		return answer;
+		sendTimed(Long.valueOf(inlineQuery.getId()), answerInlineQuery);
+		return true;
 	}
 
 	/* (non-Javadoc)
@@ -837,4 +1031,5 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	protected boolean filter(Message message) {
 		return message.getChat().isGroupChat();
 	}
+
 }

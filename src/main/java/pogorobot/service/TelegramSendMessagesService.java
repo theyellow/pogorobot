@@ -34,7 +34,7 @@ import pogorobot.telegram.util.SendMessageAnswer;
 
 public interface TelegramSendMessagesService {
 
-	public Message sendMessageToRecipient(User userId, String message);
+	public void sendMessageToRecipient(User userId, String message);
 
 	public boolean sendMessageToAll(String message);
 
@@ -61,7 +61,17 @@ public interface TelegramSendMessagesService {
 	SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
+	/**
+	 * Use {@link TelegramSendMessagesService.sendMessageTimed(Long chatId,
+	 * PartialBotApiMethod<Message> message)} instead.
+	 * 
+	 * @param message
+	 * @return
+	 */
+	@Deprecated
 	Message sendMessage(PartialBotApiMethod<Message> message);
+
+	void sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message);
 
 	void cleanupSendMessage() throws TelegramApiException;
 	// String getPokemonName(String pokemon);
@@ -69,4 +79,9 @@ public interface TelegramSendMessagesService {
 	// JSONObject getJsonPokemons();
 
 	void deleteMessage(Long groupChatId, Integer messageId) throws TelegramApiException;
+
+	SendMessageAnswer sendStandardMessage(PokemonWithSpawnpoint pokemon, Gym fullGym,
+			SortedSet<EventWithSubscribers> eventWithSubscribers, String chatId, Integer possibleMessageIdToUpdate)
+			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
+
 }

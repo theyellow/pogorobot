@@ -1097,11 +1097,10 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 							String userline = prefix + username + optionalParticipants + MESSAGE_NEWLINE;
 							boolean added = userLines.add(userline);
 							if (!added) {
-								System.out.println("Error adding user " + username);
-								// TODO: Log error!
+								logger.error("Error adding user " + username);
 							}
 						} else {
-							System.out.println("Error adding subscriber " + subscriber.toString());
+							logger.error("Error adding subscriber " + subscriber.toString());
 						}
 					});
 

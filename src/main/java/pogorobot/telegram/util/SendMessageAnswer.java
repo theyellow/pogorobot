@@ -18,17 +18,17 @@ package pogorobot.telegram.util;
 
 import java.io.Serializable;
 
-import org.telegram.telegrambots.meta.api.objects.Message;
-
 public class SendMessageAnswer {
 
-	private Message stickerAnswer;
+	private Integer stickerAnswer;
 
-	private Message mainMessageAnswer;
+	private Integer mainMessageAnswer;
 
-	private Message locationAnswer;
+	private Integer locationAnswer;
 
 	private Serializable eventAnswer;
+
+	private Long chatId;
 
 	public final Serializable getEventAnswer() {
 		return eventAnswer;
@@ -38,28 +38,36 @@ public class SendMessageAnswer {
 		this.eventAnswer = eventAnswer;
 	}
 
-	public final Message getStickerAnswer() {
+	public final Integer getStickerAnswer() {
 		return stickerAnswer;
 	}
 
-	public final void setStickerAnswer(Message stickerAnswer) {
+	public final void setStickerAnswer(Integer stickerAnswer) {
 		this.stickerAnswer = stickerAnswer;
 	}
 
-	public final Message getMainMessageAnswer() {
+	public final Integer getMainMessageAnswer() {
 		return mainMessageAnswer;
 	}
 
-	public final void setMainMessageAnswer(Message mainMessageAnswer) {
+	public final void setMainMessageAnswer(Integer mainMessageAnswer) {
 		this.mainMessageAnswer = mainMessageAnswer;
 	}
 
-	public final Message getLocationAnswer() {
+	public final Integer getLocationAnswer() {
 		return locationAnswer;
 	}
 
-	public final void setLocationAnswer(Message locationAnswer) {
-		this.locationAnswer = locationAnswer;
+	public final void setLocationAnswer(Integer messageId) {
+		this.locationAnswer = messageId;
+	}
+
+	public Long getChatId() {
+		return chatId;
+	}
+
+	public void setChatId(Long chatId) {
+		this.chatId = chatId;
 	}
 
 }

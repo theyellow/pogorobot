@@ -23,38 +23,55 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.LongPollingBot;
 
+import pogorobot.telegram.util.Type;
+
 public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 
 	// Something like destructor
 	void finish();
 
-	// This method must be called instead of all calls to sendMessage(),
-	// editMessageText(), sendChatAction() etc...
-	// for performing time-based sends obeying the basic Telegram limits (no
-	// more 30 msgs per second in different chats,
-	// no more 1 msg per second in any single chat). The method can be safely
-	// called from multiple threads.
-	// Order of sends to any given chat is guaranteed to remain the same as
-	// order of calls. Sends to different chats can be out-of-order depending on
-	// timing.
-	// Example of call:
-	/// **
-	// * SendMessage sendMessageRequest = new SendMessage();
-	// * sendMessageRequest.setChatId(chatId);
-	// * sendMessageRequest.setParseMode("HTML");
-	// * sendMessageRequest.setText(text);
-	// * sendMessageRequest.setReplyMarkup(replyMarkup); sendTimed(chatId,
-	// * sendMessageRequest); // <= Instead of sendMessage() API method
-	// */
+	/**
+	 * 
+	 * This method must be called instead of all calls to sendMessage(),
+	 * editMessageText(), sendChatAction() etc... for performing time-based sends
+	 * obeying the basic Telegram limits (no more 30 msgs per second in different
+	 * chats, no more 1 msg per second in any single chat). The method can be safely
+	 * called from multiple threads. Order of sends to any given chat is guaranteed
+	 * to remain the same as order of calls. Sends to different chats can be
+	 * out-of-order depending on timing.<br>
+	 * Example of call: <br>
+	 * <br>
+	 * <code>
+	* SendMessage sendMessageRequest = new SendMessage();<br>
+	* sendMessageRequest.setChatId(chatId);<br>
+	* sendMessageRequest.setParseMode("HTML");<br>
+	* sendMessageRequest.setText(text);<br>
+	* sendMessageRequest.setReplyMarkup(replyMarkup); sendTimed(chatId,<br>
+	* sendMessageRequest); // <= Instead of sendMessage() API method<br>
+	* </code>
+	 **/
 	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
 
-	// When time of actual send comes this callback is called with the same
-	// parameters as in call to sendTimed().
+	/**
+	 * When time of actual send comes this callback is called with the same
+	 * parameters as in call to sendTimed().
+	 * 
+	 * @param chatId
+	 * @param messageRequest
+	 */
 	void sendMessageCallback(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
 
 	void processNonCommandUpdate(Update update);
 
 	@Override
 	String getBotToken();
+
+	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer updateId, Type type);
+
+	Integer putSendMessages(Integer internalId, Integer postedMessageId);
+
+	Integer getSendMessages(Integer internalId);
+
+	void removeSendMessage(Integer next);
 
 }

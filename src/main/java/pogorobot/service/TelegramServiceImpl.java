@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
@@ -401,11 +401,18 @@ public class TelegramServiceImpl implements TelegramService {
 
 					// Needed trigger to initialize resultSet:
 					logger.debug("there are " + sendMessages.size() + " chats where this raid is posted");
-
+					Map<Integer, Long> messages = new HashMap<>();
 					for (SendMessages sendMessage : sendMessages) {
+						messages.put(sendMessage.getMessageId(), sendMessage.getGroupChatId());
+					}
+					for (Entry<Integer, Long> sendMessage : messages.entrySet()) {
 						sendOnlyUpdate = true;
-						Long groupChatId = sendMessage.getGroupChatId();
-						Integer messageId = sendMessage.getMessageId();
+						Integer messageId = sendMessage.getKey();
+						Long groupChatId = sendMessage.getValue();
+						if (null == groupChatId) {
+							logger.warn("can't edit message " + messageId + " of unknown chat");
+							continue;
+						}
 
 						// magic number: pokemonId -1 means "egg"
 						boolean raidMessage = !(pokemonId == -1);
@@ -424,7 +431,7 @@ public class TelegramServiceImpl implements TelegramService {
 						SendMessageAnswer answer = getFutureAnswer(future);
 						if (answer != null && (answer.getLocationAnswer() != null || answer.getStickerAnswer() != null
 								|| answer.getMainMessageAnswer() != null)) {
-							updateProcessedRaid(processedRaid, answer);
+							updateProcessedRaid(processedRaid, answer, groupChatId);
 						}
 						// }
 						// }
@@ -453,9 +460,10 @@ public class TelegramServiceImpl implements TelegramService {
 							filter, pokemonId, filter.getGroup().getChatId().toString(), eventsWithSubscribers);
 					SendMessageAnswer answer = getFutureAnswer(raidFuture);
 
-					if (answer != null && (answer.getLocationAnswer() != null || answer.getStickerAnswer() != null
+					if (answer != null && (answer.getLocationAnswer() != null
+							|| answer.getStickerAnswer() != null
 							|| answer.getMainMessageAnswer() != null)) {
-						updateProcessedRaid(processedRaid, answer);
+						updateProcessedRaid(processedRaid, answer, filter.getGroup().getChatId());
 					}
 				} catch (NullPointerException ex) {
 					logger.warn("error sending raid for filter " + filter.getId() + " for group " + filter.getGroup(),
@@ -470,9 +478,10 @@ public class TelegramServiceImpl implements TelegramService {
 					CompletableFuture<SendMessageAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
 							userFilter, pokemonId, chatId, eventsWithSubscribers);
 					SendMessageAnswer answer = getFutureAnswer(raidFuture);
-					if (answer != null && (answer.getLocationAnswer() != null || answer.getStickerAnswer() != null
+					if (answer != null && (answer.getLocationAnswer() != null
+							|| answer.getStickerAnswer() != null
 							|| answer.getMainMessageAnswer() != null)) {
-						updateProcessedRaid(processedRaid, answer);
+						updateProcessedRaid(processedRaid, answer, Long.valueOf(chatId));
 					}
 				}
 			}
@@ -519,28 +528,30 @@ public class TelegramServiceImpl implements TelegramService {
 				"raid");
 	}
 
-	private ProcessedRaids updateProcessedRaid(ProcessedRaids processedRaid, SendMessageAnswer answer) {
+	private ProcessedRaids updateProcessedRaid(ProcessedRaids processedRaid, SendMessageAnswer answer, Long chatId) {
 		Set<SendMessages> sentMessages = processedRaid.getGroupsRaidIsPosted();
 
 		if (sentMessages == null) {
 			sentMessages = new HashSet<>();
 		}
 		SendMessages sentMessage = new SendMessages();
-		Message mainMessageAnswer = answer.getMainMessageAnswer();
+
+		sentMessage.setGroupChatId(Long.valueOf(chatId));
+		// sentMessage.setGroupChatId(answer.getChatId());
+
+		Integer mainMessageAnswer = answer.getMainMessageAnswer();
 		if (mainMessageAnswer != null) {
-			sentMessage.setGroupChatId(mainMessageAnswer.getChatId());
-			sentMessage.setMessageId(mainMessageAnswer.getMessageId());
+			sentMessage.setMessageId(mainMessageAnswer);
 		}
-		Message stickerAnswer = answer.getStickerAnswer();
+		Integer stickerAnswer = answer.getStickerAnswer();
 		if (stickerAnswer != null) {
-			sentMessage.setGroupChatId(stickerAnswer.getChatId());
-			sentMessage.setStickerId(stickerAnswer.getMessageId());
+			sentMessage.setStickerId(stickerAnswer);
 		}
-		Message locationAnswer = answer.getLocationAnswer();
+		Integer locationAnswer = answer.getLocationAnswer();
 		if (locationAnswer != null) {
-			sentMessage.setGroupChatId(locationAnswer.getChatId());
-			sentMessage.setLocationId(locationAnswer.getMessageId());
+			sentMessage.setLocationId(locationAnswer);
 		}
+
 		processedRaid.addToGroupsRaidIsPosted(sentMessage);
 		processedRaid = processedRaidRepository.save(processedRaid);
 		return processedRaid;
@@ -559,17 +570,17 @@ public class TelegramServiceImpl implements TelegramService {
 		if (answer != null) {
 			logger.debug("now we have future while sending to group :) The main-message is "
 					+ answer.getMainMessageAnswer());
-			Message mainMessageAnswer = answer.getMainMessageAnswer();
+			Integer mainMessageAnswer = answer.getMainMessageAnswer();
 			if (mainMessageAnswer != null) {
-				e.setMessageId(mainMessageAnswer.getMessageId());
+				e.setMessageId(mainMessageAnswer);
 			}
-			Message stickerAnswer = answer.getStickerAnswer();
+			Integer stickerAnswer = answer.getStickerAnswer();
 			if (stickerAnswer != null) {
-				e.setStickerId(stickerAnswer.getMessageId());
+				e.setStickerId(stickerAnswer);
 			}
-			Message locationAnswer = answer.getLocationAnswer();
+			Integer locationAnswer = answer.getLocationAnswer();
 			if (locationAnswer != null) {
-				e.setLocationId(locationAnswer.getMessageId());
+				e.setLocationId(locationAnswer);
 			}
 		} else {
 			logger.debug("got no real answer for monster encounter {} in chat {}", processedPokemon.getEncounterId(),
@@ -588,12 +599,12 @@ public class TelegramServiceImpl implements TelegramService {
 			try {
 				SendMessageAnswer answer = future.get();
 				if (answer != null && answer.getMainMessageAnswer() != null) {
-					Message mainMessageAnswer = answer.getMainMessageAnswer();
+					Integer mainMessageAnswer = answer.getMainMessageAnswer();
 					Iterable<UserGroup> allUserGroups = userGroupRepository.findAll();
 					Map<Long, String> groups = new HashMap<>();
 					allUserGroups.forEach(x -> groups.put(x.getChatId(), x.getGroupName().toString()));
-					logger.info("wrote message with messageId {} in chat '{}'", mainMessageAnswer.getMessageId(),
-							groups.get(mainMessageAnswer.getChat().getId()));
+					logger.info("wrote message with messageId {} in chat '{}'", mainMessageAnswer,
+							groups.get(answer.getChatId()));
 				} else {
 					logger.info("no answer from future...");
 				}
@@ -616,14 +627,23 @@ public class TelegramServiceImpl implements TelegramService {
 		CompletableFuture<SendMessageAnswer> future = CompletableFuture.supplyAsync(() -> {
 			try {
 				if ("egg".equals(type)) {
-					return telegramSendMessagesService.sendEggMessage(chatId, gym, level.toString(),
-							eventWithSubscribers, possibleMessageIdToUpdate);
-				} else if ("raid".equals(type)) {
-					return telegramSendMessagesService.sendRaidMessage(gym, chatId, eventWithSubscribers,
+					return telegramSendMessagesService.sendStandardMessage(null, gym, eventWithSubscribers, chatId,
 							possibleMessageIdToUpdate);
+					// return telegramSendMessagesService.sendEggMessage(chatId, gym,
+					// level.toString(),
+					// eventWithSubscribers, possibleMessageIdToUpdate);
+				} else if ("raid".equals(type)) {
+					return telegramSendMessagesService.sendStandardMessage(null, gym, eventWithSubscribers, chatId,
+							possibleMessageIdToUpdate);
+					// return telegramSendMessagesService.sendRaidMessage(gym, chatId,
+					// eventWithSubscribers,
+					// possibleMessageIdToUpdate);
 				} else if ("pokemon".equals(type)) {
 					logger.debug("now start sending pokemon " + pokemon.getPokemonId());
-					return telegramSendMessagesService.sendMonMessage(pokemon, chatId, possibleMessageIdToUpdate);
+					return telegramSendMessagesService.sendStandardMessage(pokemon, null, eventWithSubscribers, chatId,
+							possibleMessageIdToUpdate);
+					// return telegramSendMessagesService.sendMonMessage(pokemon, chatId,
+					// possibleMessageIdToUpdate);
 				}
 			} catch (FileNotFoundException | DecoderException e) {
 				logger.error(e.getMessage(), e);
