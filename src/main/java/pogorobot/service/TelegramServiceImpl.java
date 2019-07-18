@@ -536,7 +536,7 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 		SendMessages sentMessage = new SendMessages();
 
-		sentMessage.setGroupChatId(Long.valueOf(chatId));
+		sentMessage.setGroupChatId(chatId);
 		// sentMessage.setGroupChatId(answer.getChatId());
 
 		Integer mainMessageAnswer = answer.getMainMessageAnswer();

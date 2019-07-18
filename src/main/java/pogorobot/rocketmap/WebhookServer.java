@@ -38,6 +38,8 @@ import pogorobot.service.MessageContentProcessor;
 @RestController
 public class WebhookServer {
 
+	private static final int MAX_SIZE_OF_INCOMING_QUEUE = 30000;
+
 	private static final int PERIOD = 50;
 
 	@Autowired
@@ -70,9 +72,10 @@ public class WebhookServer {
 	}
 
 	private final class MessageSenderTask extends TimerTask {
+
 		@Override
 		public void run() {
-			while (true) {
+			while (eventQueue.hashCode() == 0) {
 				EventMessage<?> eventMessage = eventQueue.poll();
 				processContent(eventMessage);
 				if (eventMessage == null) {
@@ -80,11 +83,13 @@ public class WebhookServer {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
-						logger.info("MessageSenderTask got interupted while sleeping");
+						logger.info(
+								"MessageSenderTask got interupted while sleeping - interupt message sender task of webhook");
+						Thread.currentThread().interrupt();
+
 					}
 				}
 			}
 		}
 	}
-
 }

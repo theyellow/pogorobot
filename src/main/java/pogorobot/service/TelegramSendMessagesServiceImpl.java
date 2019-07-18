@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
@@ -97,9 +98,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	private EventWithSubscribersService eventWithSubscribersService;
 
 
-	private Iterator<Integer> sendMessageIterator = new Iterator<Integer>() {
+	private static Iterator<Integer> sendMessageIterator = new Iterator<Integer>() {
 
-		int i;
+		private int i;
 
 		@Override
 		public boolean hasNext() {
@@ -111,8 +112,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			if (hasNext()) {
 				i++;
 				return i;
+			} else {
+				throw new NoSuchElementException("iterator for map of sendMessages and internal id mapping is full.");
 			}
-			return null;
 		}
 	};
 
@@ -318,7 +320,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			try {
 				Thread.sleep(123L);
 			} catch (InterruptedException e) {
-				logger.info("posted message? got interupted in waitUntilPosted");
+				logger.warn("wait until posted message got interupted - shutting down this thread -> "
+						+ Thread.currentThread().getName());
+				Thread.currentThread().interrupt();
 			}
 		}
 	}

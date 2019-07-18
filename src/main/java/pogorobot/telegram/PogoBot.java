@@ -629,7 +629,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			logger.info("inlineQuery is " + query);
 		}
 		Boolean method = sendAnswerCallbackQuery(inlineQuery);
-		if (method == Boolean.TRUE) {
+		if (Boolean.TRUE.equals(method)) {
 			logger.info("answerCallbackQuery gave true ");
 		}
 	}
