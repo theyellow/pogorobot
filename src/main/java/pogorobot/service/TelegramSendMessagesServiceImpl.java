@@ -19,7 +19,9 @@ package pogorobot.service;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +66,7 @@ import pogorobot.service.db.repositories.SendMessagesRepository;
 import pogorobot.service.db.repositories.UserRepository;
 import pogorobot.telegram.PogoBot;
 import pogorobot.telegram.util.SendMessageAnswer;
+import pogorobot.telegram.util.Type;
 
 @Service("telegramSendMessagesService")
 public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesService {
@@ -93,6 +96,27 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 	@Autowired
 	private EventWithSubscribersService eventWithSubscribersService;
+
+
+	private static Iterator<Integer> sendMessageIterator = new Iterator<Integer>() {
+
+		private int i;
+
+		@Override
+		public boolean hasNext() {
+			return i < Integer.MAX_VALUE;
+		}
+
+		@Override
+		public Integer next() {
+			if (hasNext()) {
+				i++;
+				return i;
+			} else {
+				throw new NoSuchElementException("iterator for map of sendMessages and internal id mapping is full.");
+			}
+		}
+	};
 
 	@Override
 	public SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId,
@@ -187,16 +211,56 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		return result;
 	}
 
+	@Override
+	public void sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message) {
+		Message result = null;
+		try {
+			if (message instanceof SendSticker) {
+				result = pogoBot.execute((SendSticker) message);
+			} else if (message != null) {
+				pogoBot.executeTimed(chatId, (BotApiMethod<Message>) message);
+			}
+		} catch (TelegramApiException e) {
+			if (e instanceof TelegramApiRequestException) {
+				TelegramApiRequestException x = (TelegramApiRequestException) e;
+				logger.error(
+						"errorCode " + x.getErrorCode() + " - "
+								+ (x.getApiResponse() != null ? x.getApiResponse() : x.getMessage())
+								+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
+						x.getCause());
+			} else if (e instanceof TelegramApiValidationException) {
+				TelegramApiValidationException x = (TelegramApiValidationException) e;
+				logger.error("method: " + x.getMethod() + " - " + x.getObject() + " - error: " + x.toString(),
+						x.getCause());
+			} else {
+				logger.error("Unknown error: ", e);
+			}
+			if (message instanceof SendSticker) {
+				SendSticker myMessage = (SendSticker) message;
+				logger.error("Chat : " + myMessage.getChatId());
+			} else {
+				BotApiMethod<Message> myMessage = (BotApiMethod<Message>) message;
+				if (message != null) {
+					logger.error("BotApiMethod - error in method: " + myMessage.getMethod());
+
+				}
+			}
+		}
+		if (null != result) {
+			logger.info("Got result " + result);
+		}
+	}
+
 	private SendMessageAnswer sendAllMessagesForEventInternally(SendSticker stickerMessage,
 			BotApiMethod<? extends Serializable> message, SendLocation location, boolean isGroupMessage)
 			throws InterruptedException, TelegramApiException {
 		Thread.sleep(100);
 		SendMessageAnswer answer = new SendMessageAnswer();
-		Message stickerAnswer = sendMessage(stickerMessage);
-		if (stickerAnswer != null) {
-			answer.setStickerAnswer(stickerAnswer);
+		if (stickerMessage != null) {
+			Message sendMessage = sendMessage(stickerMessage);
+			answer.setLocationAnswer(sendMessage.getMessageId());
+			Thread.sleep(100);
 		}
-		Thread.sleep(100);
 		if (message instanceof SendMessage) {
 			SendMessage sendMessage = (SendMessage) message;
 			sendMessage.enableMarkdown(true);
@@ -206,40 +270,78 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 							? telegramKeyboardService.getSettingsKeyboard(true)
 							: originalKeyboard;
 			sendMessage.setReplyMarkup(replyMarkup);
-			Message messageAnswer = sendMessage(sendMessage);
-			if (messageAnswer != null) {
-				answer.setMainMessageAnswer(messageAnswer);
+			Integer next = sendMessageIterator.next();
+			pogoBot.putSendMessages(next, 0);
+			pogoBot.sendTimed(Long.valueOf(sendMessage.getChatId()), sendMessage, next, null);
+			waitUntilPosted(next);
+			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
+				pogoBot.removeSendMessage(next);
+			} else {
+				answer.setMainMessageAnswer(sendMessagesInternalId);
+				pogoBot.removeSendMessage(next);
 			}
 		} else if (message instanceof EditMessageText) {
-			Serializable eventMessageAnswer = pogoBot.execute(((EditMessageText) message).enableMarkdown(true));
-			if (eventMessageAnswer != null) {
-				answer.setEventAnswer(eventMessageAnswer);
+			EditMessageText editMessage = ((EditMessageText) message).enableMarkdown(true);
+			Integer next = sendMessageIterator.next();
+			pogoBot.putSendMessages(next, 0);
+			pogoBot.sendTimed(Long.valueOf(editMessage.getChatId()), editMessage, next, null);
+			waitUntilPosted(next);
+			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
+				pogoBot.removeSendMessage(next);
+			} else {
+				answer.setMainMessageAnswer(sendMessagesInternalId);
+				pogoBot.removeSendMessage(next);
 			}
 		}
-		Thread.sleep(100);
 		if (location != null) {
 			if (!isGroupMessage) {
 				location.setReplyMarkup(telegramKeyboardService.getSettingsKeyboard(true));
 			}
-			Message locationAnswer = sendMessage(location);
-			if (locationAnswer != null) {
-				answer.setLocationAnswer(locationAnswer);
+			Integer next = sendMessageIterator.next();
+			pogoBot.putSendMessages(next, 0);
+			pogoBot.sendTimed(Long.valueOf(location.getChatId()), location, next, null);
+			waitUntilPosted(next);
+			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
+				pogoBot.removeSendMessage(next);
+			} else {
+				answer.setMainMessageAnswer(sendMessagesInternalId);
+				pogoBot.removeSendMessage(next);
 			}
 		}
 		return answer;
 	}
 
-	private SendMessageAnswer sendStandardMessage(PokemonWithSpawnpoint pokemon, Gym fullGym,
+	private void waitUntilPosted(Integer next) {
+		while (next != Integer.MIN_VALUE && pogoBot.getSendMessages(next) != null
+				&& pogoBot.getSendMessages(next) == 0) {
+			try {
+				Thread.sleep(123L);
+			} catch (InterruptedException e) {
+				logger.warn("wait until posted message got interupted - shutting down this thread -> "
+						+ Thread.currentThread().getName());
+				Thread.currentThread().interrupt();
+			}
+		}
+	}
+
+	@Override
+	public SendMessageAnswer sendStandardMessage(PokemonWithSpawnpoint pokemon, Gym fullGym,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, String chatId, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException {
 
 		// TODO: Refactor with this raidPokemon and call to different methods for
 		// monsters and egg/raids
+		Type type = null;
 		Boolean raidPokemon = null;
 		if (pokemon == null && fullGym != null) {
 			raidPokemon = true;
+			type = Type.RAID;
 		} else if (pokemon != null && fullGym == null) {
 			raidPokemon = false;
+			type = Type.POKEMON;
 		} else {
 			logger.warn("tried to send mon-message without mon or gym...");
 			return null;
@@ -351,15 +453,15 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		}
 	}
 
-	private BotApiMethod<? extends Serializable> createMessageForChat(String pokemonFound, String chatId,
+	private BotApiMethod<? extends Serializable> createMessageForChat(String chatText, String chatId,
 			Integer possibleMessageIdToUpdate) {
 		if (possibleMessageIdToUpdate != null && possibleMessageIdToUpdate != 0) {
-			EditMessageText messageForChat = updateMessageForChat(pokemonFound, chatId, possibleMessageIdToUpdate);
-			messageForChat.enableMarkdown(true);
+			EditMessageText message = updateMessageForChat(chatText, chatId, possibleMessageIdToUpdate);
+			message.enableMarkdown(true);
 			logger.debug("created edit message for " + chatId + " with messageIdToUpdate " + possibleMessageIdToUpdate);
-			return messageForChat;
+			return message;
 		} else {
-			SendMessage message = new SendMessage(chatId, pokemonFound);
+			SendMessage message = new SendMessage(chatId, chatText);
 			message.enableMarkdown(true);
 			logger.debug("created new message for " + chatId);
 			return message;
@@ -398,11 +500,10 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	private UserRepository userDAO;
 
 	@Override
-	public Message sendMessageToRecipient(User user, String userMessage) {
+	public void sendMessageToRecipient(User user, String userMessage) {
 		String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
 		SendMessage sendMessage = new SendMessage(chatId, userMessage);
-		Message result = sendMessage(sendMessage);
-		return result;
+		sendMessageTimed(Long.valueOf(chatId), sendMessage);
 	}
 
 	@Override
@@ -598,12 +699,18 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (messageId != null) {
 			deleteMessage = new DeleteMessage(groupChatId, messageId);
 			try {
-				pogoBot.execute(deleteMessage);
-				logger.info("deleted message " + messageId + " in chat '" + groupChatId + "'");
-			} catch (TelegramApiException e) {
+				// pogoBot.execute(deleteMessage);
+				// Thread.sleep(340);
+				pogoBot.sendTimed(groupChatId, deleteMessage);
+				logger.info("sending delete message " + messageId + " for chat '" + groupChatId + "'");
+			} catch (Exception e) {
 				logger.error("delete message " + messageId + " failed in chat: '" + groupChatId + "'", e.getCause());
 				logger.error("message: " + e.getMessage(), e);
-				throw e;
+				if (e instanceof TelegramApiException) {
+					throw (TelegramApiException) e;
+				} else if (e instanceof Exception) {
+					throw new TelegramApiException(e);
+				}
 			}
 		}
 	}

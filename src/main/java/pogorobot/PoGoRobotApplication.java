@@ -192,7 +192,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 						.toMillis();
 			} catch (IOException e) {
 				timestampGroupGeofencesFile = 0;
-				logger.info("Couldn't retrieve timestamps for geofence legacy settings at " + relativePath);
+				logger.trace("Couldn't retrieve timestamps for geofence legacy settings at " + relativePath);
 			}
 			try {
 				timestampGroupChatIdFile = Files.getLastModifiedTime(Paths.get(relativePath, "groupchatid.txt"))
@@ -390,7 +390,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			taskScheduler.schedule(getUpdateRaidBossListTask(raidBossRepository),
 					new CronTrigger("0 16 5,11,17,23 * * *"));
 			taskScheduler.schedule(getDeleteOldGymsTask(telegramSendMessagesService),
-					new CronTrigger("10/40 * * * * *"));
+					new CronTrigger("10 * * * * *"));
 			taskScheduler.schedule(getReloadConfigurationTask(ctx.getBean(ConfigReader.class)),
 					new CronTrigger("20/50 * * * * *"));
 
@@ -438,8 +438,11 @@ public class PoGoRobotApplication implements ApplicationRunner {
 				&& standardConfiguration.getPassword().trim().isEmpty() ? null : standardConfiguration.getPassword();
 		dataSource.setPassword(password);
 		dataSource.setMinPoolSize(3);
-		dataSource.setMaxPoolSize(25);
+		dataSource.setMaxPoolSize(45);
 		dataSource.setDebugUnreturnedConnectionStackTraces(true);
+
+		dataSource.setIdleConnectionTestPeriod(2);
+		dataSource.setTestConnectionOnCheckin(true);
 
 		return dataSource;
 	}
@@ -525,7 +528,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		SendMessage sendMessage = new SendMessage(chatId, text);
 		ReplyKeyboardMarkup keyboard = telegramKeyboardService.getSettingsKeyboard(admin.isRaidadmin());
 		sendMessage.setReplyMarkup(keyboard);
-		telegramSendMessagesService.sendMessage(sendMessage);
+		telegramSendMessagesService.sendMessageTimed(Long.valueOf(chatId), sendMessage);
 	}
 
 	public final String[] getArgs() {

@@ -18,7 +18,7 @@ standard.bottoken=123456789:AAAA-xxxxxxxxxxxxxxxxxxxxxxxx
 # mysql
 standard.hibernate-dialect=org.hibernate.dialect.MySQL5Dialect
 standard.jdbcurl=jdbc:mysql://localhost:3306/telegramdb?serverTimezone=Europe/Berlin
-standard.controllerdbclass=com.mysql.jdbc.Driver
+standard.controllerdbclass=com.mysql.cj.jdbc.Driver
 
 # database user and password
 standard.user=<your-db-user>
