@@ -41,9 +41,9 @@
     
     <appender name="RollingFileDebug"
         class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGS}/pogorobot-debug.log</file>
+        <file>${LOGS}/pogorobot-warn.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
+            <level>WARN</level>
         </filter>
         <encoder
             class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
