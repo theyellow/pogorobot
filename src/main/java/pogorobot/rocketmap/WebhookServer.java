@@ -17,6 +17,9 @@
 package pogorobot.rocketmap;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,31 +38,53 @@ import pogorobot.service.MessageContentProcessor;
 @RestController
 public class WebhookServer {
 
+	private static final int PERIOD = 50;
+
 	@Autowired
 	private MessageContentProcessor messageContentProcessor;
 
+	private ConcurrentLinkedQueue<EventMessage<?>> eventQueue = new ConcurrentLinkedQueue<>();
+
+	private final Timer messageSendTimer = new Timer(true);
+
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	// public HttpStatus readFromWebhook(@RequestBody String messages) {
-	// System.out.println(messages.toString());
-	// // messages.stream().map((event) -> event.getMessage()).forEach((message) ->
-	// {
-	// // processContent(message);
-	// // });
-	// return HttpStatus.OK;
-	// }
+	public WebhookServer() {
+		messageSendTimer.schedule(new MessageSenderTask(), 0, PERIOD);
+	}
+
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
 	public HttpStatus readFromWebhook(@RequestBody List<RocketmapEvent<EventMessage<?>>> messages) {
 		messages.stream().map((event) -> event.getMessage()).forEach((message) -> {
 			logger.debug("message: " + message.toString());
-			processContent(message);
+			eventQueue.add(message);
 		});
 		return HttpStatus.OK;
 	}
 
-	private synchronized <T> EventMessage<T> processContent(EventMessage<T> message) {
-		return messageContentProcessor.processContent(message);
+	private synchronized <T> void processContent(EventMessage<T> message) {
+		if (message != null) {
+			messageContentProcessor.processContent(message);
+		}
+	}
+
+	private final class MessageSenderTask extends TimerTask {
+		@Override
+		public void run() {
+			while (true) {
+				EventMessage<?> eventMessage = eventQueue.poll();
+				processContent(eventMessage);
+				if (eventMessage == null) {
+					logger.debug("incoming queue empty - waiting a second");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						logger.info("MessageSenderTask got interupted while sleeping");
+					}
+				}
+			}
+		}
 	}
 
 }
