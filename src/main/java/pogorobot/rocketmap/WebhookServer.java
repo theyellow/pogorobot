@@ -75,7 +75,7 @@ public class WebhookServer {
 
 		@Override
 		public void run() {
-			while (eventQueue.hashCode() == 0) {
+			while (eventQueue.hashCode() != 0) {
 				EventMessage<?> eventMessage = eventQueue.poll();
 				processContent(eventMessage);
 				if (eventMessage == null) {
