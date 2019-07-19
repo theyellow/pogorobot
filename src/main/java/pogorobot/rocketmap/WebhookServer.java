@@ -77,19 +77,22 @@ public class WebhookServer {
 		public void run() {
 			while (eventQueue.hashCode() != 0) {
 				EventMessage<?> eventMessage = eventQueue.poll();
-				processContent(eventMessage);
-				if (eventMessage == null) {
+				if (eventMessage != null) {
+					logger.debug("processing next message: {}", eventMessage);
+					processContent(eventMessage);
+
+				} else {
 					logger.debug("incoming queue empty - waiting a second");
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
-						logger.info(
+						logger.warn(
 								"MessageSenderTask got interupted while sleeping - interupt message sender task of webhook");
 						Thread.currentThread().interrupt();
-
 					}
 				}
 			}
 		}
 	}
+
 }

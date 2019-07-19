@@ -111,10 +111,16 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		public Integer next() {
 			if (hasNext()) {
 				i++;
-				return i;
 			} else {
-				throw new NoSuchElementException("iterator for map of sendMessages and internal id mapping is full.");
+				i = Integer.MIN_VALUE + 1;
+				logger.warn("internal id map of send messages was full, reiterate from beginning.");
+				if (i == 0) {
+					// not reachable, because of hack above
+					throw new NoSuchElementException(
+							"iterator for map of sendMessages and internal id mapping is full.");
+				}
 			}
+			return i;
 		}
 	};
 
