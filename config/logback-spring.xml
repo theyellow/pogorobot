@@ -100,7 +100,13 @@
         <appender-ref ref="Console" />
     </logger>
     
-    <logger name="com.gargoylesoftware" level="error">
+    <logger name="com.gargoylesoftware" level="off">
+        <appender-ref ref="RollingFileDebug" />
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </logger>
+    
+    <logger name="org.apache.http.client.protocol.ResponseProcessCookies" level="error">
         <appender-ref ref="RollingFileDebug" />
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
