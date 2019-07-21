@@ -1,6 +1,6 @@
 {
     "package": {
-        "name": "\${name}",
+        "name": "pogorobot",
         "repo": "repo",
         "subject": "theyellow",
         "desc": "I was pushed completely automatically",
@@ -13,9 +13,9 @@
     },
 
     "version": {
-        "name": ${name}-${version},
-    	"released": "${maven.build.timestamp}",
-   		"vcs_tag": "${name}-${version}"
+        "name": pogorobot-1.1.0,
+    	"released": "2019-07-21",
+   		"vcs_tag": "reelase-1.1.0"
     },
 
     "files":

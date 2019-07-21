@@ -6,7 +6,7 @@ then
 VERSION=$1
 else
 : # $1 was not given
-VERSION='1.1.0-SNAPSHOT'
+VERSION='1.1.0'
 fi
 
 screen -S telegram-bot -d -m java -Xmx800m -Dext.properties.dir=file:$PWD/config -jar pogorobot-$VERSION-exec.jar
