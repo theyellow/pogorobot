@@ -10,7 +10,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.theyellow</groupId>
 	<artifactId>pogorobot</artifactId>
-	<version>1.1.0</version>
+	<version>1.1.1-SNAPSHOT</version>
 	<name>pogorobot</name>
 
 	<parent>
@@ -661,7 +661,7 @@
 		<connection>scm:git:git@github.com:theyellow/pogorobot.git</connection>
 		<developerConnection>scm:git:git@github.com:theyellow/pogorobot.git</developerConnection>
 		<url>scm:git:git@github.com:theyellow/pogorobot.git</url>
-		<tag>pogorobot-1.1.0</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 </project>
