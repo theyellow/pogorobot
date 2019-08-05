@@ -4,7 +4,7 @@ import pogorobot.events.rocketmap.RdmInvasion;
 
 public class RdmEventInvasion extends IncomingEvent<RdmInvasion> {
 
-	RdmInvasion message;
+	private RdmInvasion message;
 
 	@Override
 	public RdmInvasion getMessage() {

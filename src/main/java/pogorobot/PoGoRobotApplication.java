@@ -418,7 +418,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			taskScheduler.schedule(getReloadConfigurationTask(ctx.getBean(ConfigReader.class)),
 					new CronTrigger("20/50 * * * * *"));
 
-			deleteMessageTimer.schedule(getDeleteOldGymsTask(telegramSendMessagesService), 100, 22 * 1000);
+			deleteMessageTimer.schedule(getDeleteOldGymsTask(telegramSendMessagesService), 100, 22 * 1000L);
 		};
 	}
 
