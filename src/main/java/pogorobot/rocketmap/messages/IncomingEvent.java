@@ -30,10 +30,9 @@ import pogorobot.events.EventMessage;
 		@JsonSubTypes.Type(value = RocketmapEventRaid.class, name = "raid"),
 		@JsonSubTypes.Type(value = RocketmapEventPokemon.class, name = "pokemon"),
 		@JsonSubTypes.Type(value = RdmEventQuest.class, name = "quest"),
+		@JsonSubTypes.Type(value = RdmEventInvasion.class, name = "invasion"),
 		@JsonSubTypes.Type(value = RdmEventPokestop.class, name = "pokestop") })
-public abstract class RocketmapEvent<T extends EventMessage<?>> {
-
-	// TODO: Rename to IncomingEvent !
+public abstract class IncomingEvent<T extends EventMessage<?>> {
 
 	private String type;
 

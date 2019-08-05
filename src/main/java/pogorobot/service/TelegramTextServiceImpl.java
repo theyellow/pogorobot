@@ -155,14 +155,15 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		initializeJsonForms();
 		JSONObject pokemonForms = null;
 		try {
-			pokemonId = idToThreeChars(pokemonId);
+			String pokemonIdInForm = idToThreeChars(pokemonId);
 			formId = idToThreeChars(formId);
-			pokemonForms = jsonForms.getJSONObject(pokemonId);
+			pokemonForms = jsonForms.getJSONObject(pokemonIdInForm);
 		} catch (JSONException ex) {
 			if (!"0".equals(formId)) {
-				logger.error("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
+				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
 						+ " -> send message to developer to update internal configuration.");
 			}
+			return result;
 		}
 		if (pokemonForms != null && pokemonForms.getString(formId) != null) {
 			result = pokemonForms.getString(formId);

@@ -104,7 +104,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 		@Override
 		public boolean hasNext() {
-			return i < Integer.MAX_VALUE;
+			return i < Integer.MAX_VALUE - 1;
 		}
 
 		@Override
@@ -260,9 +260,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	private SendMessageAnswer sendAllMessagesForEventInternally(SendSticker stickerMessage,
 			BotApiMethod<? extends Serializable> message, SendLocation location, boolean isGroupMessage)
 			throws InterruptedException, TelegramApiException {
-		Thread.sleep(100);
 		SendMessageAnswer answer = new SendMessageAnswer();
 		if (stickerMessage != null) {
+			Thread.sleep(100);
 			Message sendMessage = sendMessage(stickerMessage);
 			answer.setLocationAnswer(sendMessage.getMessageId());
 			Thread.sleep(100);
@@ -321,15 +321,17 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	}
 
 	private void waitUntilPosted(Integer next) {
-		while (next != Integer.MIN_VALUE && pogoBot.getSendMessages(next) != null
+		while (next != Integer.MIN_VALUE && next != Integer.MAX_VALUE && pogoBot.getSendMessages(next) != null
 				&& pogoBot.getSendMessages(next) == 0) {
-			try {
-				Thread.sleep(123L);
-			} catch (InterruptedException e) {
-				logger.warn("wait until posted message got interupted - shutting down this thread -> "
-						+ Thread.currentThread().getName());
-				Thread.currentThread().interrupt();
-			}
+
+			// try {
+			// Thread.sleep(123L);
+			// } catch (InterruptedException e) {
+			// logger.warn("wait until posted message got interupted - shutting down this
+			// thread -> "
+			// + Thread.currentThread().getName());
+			// Thread.currentThread().interrupt();
+			// }
 		}
 	}
 
@@ -595,36 +597,56 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				Long chatId = sendMessages.getGroupChatId();
 				boolean success = true;
 				TelegramApiException possibleException = null;
-				// Before (always!):
-				// if (chatId != null && chatId < 0) {
 				// Now try to delete all:
 				if (chatId != null && chatId != 0) {
-					try {
-						Integer locationId = sendMessages.getLocationId();
-						deleteMessage(chatId, locationId);
-					} catch (TelegramApiException e) {
-						possibleException = e;
-						errorsWhileDeleting += ("location " + sendMessages.getLocationId() + " in chat " + chatId
-								+ "\n  -> " + e.toString() + "\n");
-						// success = false;
+					boolean deletedMessage = true;
+					Integer locationId = sendMessages.getLocationId();
+					if (locationId != null) {
+						try {
+							deletedMessage = deleteMessage(chatId, locationId);
+						} catch (TelegramApiException e) {
+							possibleException = e;
+							deletedMessage = false;
+							errorsWhileDeleting += ("location " + sendMessages.getLocationId() + " in chat " + chatId
+									+ "\n  -> " + e.toString() + "\n");
+							// success = false;
+						}
+						if (!deletedMessage) {
+							logger.info("Can't delete location in chat " + chatId + " and location " + locationId);
+						}
 					}
-					try {
-						Integer stickerId = sendMessages.getStickerId();
-						deleteMessage(chatId, stickerId);
-					} catch (TelegramApiException e) {
-						possibleException = e;
-						errorsWhileDeleting += ("sticker " + sendMessages.getStickerId() + " in chat " + chatId
-								+ "\n  -> " + e.toString() + "\n");
-						// success = false;
+					deletedMessage = true;
+					Integer stickerId = sendMessages.getStickerId();
+					if (stickerId != null) {
+
+						try {
+							deletedMessage = deleteMessage(chatId, stickerId);
+						} catch (TelegramApiException e) {
+							possibleException = e;
+							deletedMessage = false;
+							errorsWhileDeleting += ("sticker " + sendMessages.getStickerId() + " in chat " + chatId
+									+ "\n  -> " + e.toString() + "\n");
+							// success = false;
+						}
+						if (!deletedMessage) {
+							logger.info("Can't delete sticker in chat " + chatId + " and sticker " + stickerId);
+						}
 					}
-					try {
-						Integer messageId = sendMessages.getMessageId();
-						deleteMessage(chatId, messageId);
-					} catch (TelegramApiException e) {
-						possibleException = e;
-						errorsWhileDeleting += ("message " + sendMessages.getMessageId() + " in chat " + chatId
-								+ "\n  -> " + e.toString() + "\n");
-						success = false;
+					deletedMessage = true;
+					Integer messageId = sendMessages.getMessageId();
+					if (messageId != null) {
+						try {
+							deletedMessage = deleteMessage(chatId, messageId);
+						} catch (TelegramApiException e) {
+							possibleException = e;
+							deletedMessage = false;
+							errorsWhileDeleting += ("message " + sendMessages.getMessageId() + " in chat " + chatId
+									+ "\n  -> " + e.toString() + "\n");
+							success = false;
+						}
+					}
+					if (!deletedMessage) {
+						logger.info("Can't delete message in chat " + chatId + " and message " + messageId);
 					}
 				}
 				// eventWithSubscribersService.deleteEvent(owningRaid.getGymId());
@@ -636,7 +658,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 					// TODO: what kind of error handling is best here? (We also want to dele
 					// throw possibleException;
 				} else {
-					logger.info("deleted message, difference is " + (nowInSecons - endTime) / 60 + " minutes");
+					logger.info(
+							"deleted message on database, difference is " + (nowInSecons - endTime) / 60 + " minutes");
 				}
 
 				if (possibleException != null) {
@@ -700,15 +723,22 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	}
 
 	@Override
-	public void deleteMessage(Long groupChatId, Integer messageId) throws TelegramApiException {
+	public boolean deleteMessage(Long groupChatId, Integer messageId) throws TelegramApiException {
 		DeleteMessage deleteMessage;
 		if (messageId != null) {
 			deleteMessage = new DeleteMessage(groupChatId, messageId);
+			Integer sendMessagesInternalId = null;
 			try {
 				// pogoBot.execute(deleteMessage);
-				// Thread.sleep(340);
-				pogoBot.sendTimed(groupChatId, deleteMessage);
-				logger.info("sending delete message " + messageId + " for chat '" + groupChatId + "'");
+				// Hack for not mixing up ids:
+				// TODO: cleanup
+				Integer next = sendMessageIterator.next() - Integer.MIN_VALUE + 2;
+				pogoBot.putSendMessages(next, 0);
+				pogoBot.sendTimed(groupChatId, deleteMessage, next, null);
+				logger.info("waiting delete message " + messageId + " for chat '" + groupChatId + "'");
+				// waitUntilPosted(next);
+				sendMessagesInternalId = pogoBot.getSendMessages(next);
+				pogoBot.removeSendMessage(next);
 			} catch (Exception e) {
 				logger.error("delete message " + messageId + " failed in chat: '" + groupChatId + "'", e.getCause());
 				logger.error("message: " + e.getMessage(), e);
@@ -718,6 +748,13 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 					throw new TelegramApiException(e);
 				}
 			}
+			if (sendMessagesInternalId != null && sendMessagesInternalId == Integer.MAX_VALUE) {
+				return false;
+			} else {
+				return true;
+			}
+		} else {
+			return false;
 		}
 	}
 

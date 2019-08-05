@@ -234,7 +234,8 @@ public class RocketmapGym implements EventMessage<Gym> {
 			} else {
 				gym.setExraidEglible(false);
 			}
-			logger.info("Found something in exraid-tags: \nsponsor_id={}  | ex_raid_eligible={}", sponsor_id,
+			logger.info("Found something in exraid-tags for '{}': 'sponsor_id={}'  | 'ex_raid_eligible={}'", name,
+					sponsor_id,
 					ex_raid_eligible);
 		}
 		return gym;

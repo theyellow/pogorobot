@@ -18,7 +18,7 @@ package pogorobot.rocketmap.messages;
 
 import pogorobot.events.rocketmap.RocketmapEgg;
 
-public class RocketmapEventEgg extends RocketmapEvent<RocketmapEgg> {
+public class RocketmapEventEgg extends IncomingEvent<RocketmapEgg> {
 
 
 	private RocketmapEgg message;
