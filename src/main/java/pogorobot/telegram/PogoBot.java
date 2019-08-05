@@ -18,7 +18,6 @@ package pogorobot.telegram;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -79,7 +78,10 @@ import pogorobot.util.RaidImageScanner;
  */
 public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBot {
 
+	private static final String MESSAGE_ALREADY_DELETED = "message already deleted";
+	private static final String BAD_REQUEST_CHAT_NOT_FOUND = "Bad Request: chat not found";
 	private static final String INVALID_CHAT = "invalid chat";
+	private static final String BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND = "Bad Request: message to delete not found";
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -95,8 +97,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	@Autowired
 	private RaidImageScanner raidImageScanner;
 
-	private Map<Integer, Integer> sendMessages = new HashMap<>();
+	private Map<Integer, Integer> sendMessages = new ConcurrentHashMap<>();
 
+	// private static final long MANY_CHATS_SEND_INTERVAL = 33;
 	private static final long MANY_CHATS_SEND_INTERVAL = 33;
 	private static final long ONE_CHAT_SEND_INTERVAL = 1000;
 	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10L;
@@ -134,6 +137,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 		
 	private final class MessageSenderTask extends TimerTask {
+
 		@Override
 		public void run() {
 			// mSendRequested used for optimisation to not traverse all
@@ -182,23 +186,26 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 									// chats in state GET_MESSAGE
 				return;
 
+
 			// Invoke the send callback. ChatId is passed for possible
 			// additional processing
+			Long chatId = sendQueue.getChatId();
 			BotApiMethod<? extends Serializable> message = sendQueue.getMessage(currentTime);
 			Integer sendMessageAnswer = sendQueue.getSendMessageAnswer(currentTime);
-			Long chatId = sendQueue.getChatId();
 			try {
 				Serializable result = execute(message);
 				Message response = null;
 				if (result instanceof Message) {
 					response = (Message) result;
 				} else if (message instanceof DeleteMessage) {
-					logger.info("delete message " + ((DeleteMessage) message).getMessageId() + " gave " + result);
+					logger.info("delete message " + ((DeleteMessage) message).getMessageId() + " in chat " + chatId
+							+ " gave " + result + " - internal answer (id) is " + sendMessageAnswer);
 				} else {
 					logger.warn("response of PogoBot.execute(...) is no message but " + result + " | sent message was "
 							+ message);
 				}
-				if (response == null || sendMessageAnswer == Integer.MIN_VALUE
+				if (response == null || (sendMessageAnswer != null && sendMessageAnswer == Integer.MIN_VALUE)
+						|| (sendMessageAnswer != null && sendMessageAnswer == Integer.MAX_VALUE)
 						|| (sendMessageAnswer != null && sendMessageAnswer == 0)) {
 					logger.info("wrote message in chat " + chatId + " with answer " + sendMessageAnswer);
 					sendMessageAnswer = null;
@@ -210,25 +217,41 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				}
 			} catch (TelegramApiException e) {
 				if (INVALID_CHAT.equals(e.getMessage())) {
-					logger.warn("chat with id " + sendQueue.getChatId() + " doesn't exist.");
-
+					logger.warn("chat with id " + sendQueue.getChatId() + " doesn't exist. Problem with message type "
+							+ message.getClass().getSimpleName());
+					if (sendMessageAnswer != null) {
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+					}
+				} else if (MESSAGE_ALREADY_DELETED.equals(e.getMessage())) {
+					logger.warn("in chat " + sendQueue.getChatId() + " message "
+							+ ((DeleteMessage) message).getMessageId() + " couldn't be deleted.");
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
 				} else if (e instanceof TelegramApiRequestException) {
 					TelegramApiRequestException requestException = (TelegramApiRequestException) e;
-					ResponseParameters parameters = requestException.getParameters();
 					String apiResponse = requestException.getApiResponse();
-					Integer errorCode = requestException.getErrorCode();
-					String optionalParameters = parameters != null
-							? " | parameters: migrateToChatId - " + parameters.getMigrateToChatId() + " | retry after "
-									+ parameters.getRetryAfter()
-							: "";
-					logger.warn("TelegramApiRequestException was thrown: " + errorCode + " || " + apiResponse
-							+ optionalParameters);
+					if (BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND.equals(apiResponse)) {
+						logger.error("Message " + ((DeleteMessage) message).getMessageId() + " in chat " + chatId
+								+ " can't be deleted because it's missing");
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+					} else {
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+						ResponseParameters parameters = requestException.getParameters();
+						Integer errorCode = requestException.getErrorCode();
+						String optionalParameters = parameters != null
+								? " | parameters: migrateToChatId - " + parameters.getMigrateToChatId()
+										+ " | retry after " + parameters.getRetryAfter()
+								: "";
+						logger.warn("TelegramApiRequestException was thrown: " + errorCode + " || " + apiResponse
+								+ optionalParameters);
+					}
 				} else {
 					logger.error(e.getMessage(), e);
+					if (sendMessageAnswer != null) {
+						sendMessages.put(sendMessageAnswer, null);
+					}
 				}
-				if (sendMessageAnswer != null) {
-					sendMessages.put(sendMessageAnswer, null);
-				}
+
+				// TODO: rewrite and use real QUEUE
 			}
 		}
 	}
@@ -393,13 +416,16 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				TelegramApiRequestException x = (TelegramApiRequestException) e;
 				Integer errorCode = x.getErrorCode();
 				String apiResponse = x.getApiResponse();
-				logger.error(
-						errorCode + " - " + apiResponse
-								+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
-						x.getCause());
-				if (errorCode == 400 && apiResponse.contains("Bad Request: chat not found")) {
-					logger.error("somebody deleted bot conversation");
+				if (errorCode == 400 && apiResponse.contains(BAD_REQUEST_CHAT_NOT_FOUND)) {
+					logger.error("somebody deleted bot conversation?");
 					throw new TelegramApiException(INVALID_CHAT);
+				} else if (apiResponse.contains(BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND)) {
+					logger.error(MESSAGE_ALREADY_DELETED);
+					throw new TelegramApiException(MESSAGE_ALREADY_DELETED);
+				} else {
+					logger.error(errorCode + " - " + apiResponse
+							+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
+							x.getCause());
 				}
 			} else if (e instanceof TelegramApiValidationException) {
 				TelegramApiValidationException x = (TelegramApiValidationException) e;

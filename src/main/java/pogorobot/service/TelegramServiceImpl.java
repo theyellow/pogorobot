@@ -254,7 +254,7 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 		Long id = filter.getId();
 
-		logger.debug("begin filter analyze of {}", id);
+		logger.debug("begin filter analyze of filter {}", id);
 		filter = filterDAO.findById(id).orElse(null);
 		if (filter == null) {
 			logger.warn("could not find filter {}", id);
@@ -603,8 +603,10 @@ public class TelegramServiceImpl implements TelegramService {
 					Iterable<UserGroup> allUserGroups = userGroupRepository.findAll();
 					Map<Long, String> groups = new HashMap<>();
 					allUserGroups.forEach(x -> groups.put(x.getChatId(), x.getGroupName().toString()));
+					String chatId = groups.get(answer.getChatId());
+					chatId = chatId != null ? chatId : "" + answer.getChatId();
 					logger.info("wrote message with messageId {} in chat '{}'", mainMessageAnswer,
-							groups.get(answer.getChatId()));
+							chatId);
 				} else {
 					logger.info("no answer from future...");
 				}

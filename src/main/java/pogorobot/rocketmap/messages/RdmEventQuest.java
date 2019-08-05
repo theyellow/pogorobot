@@ -18,7 +18,7 @@ package pogorobot.rocketmap.messages;
 
 import pogorobot.events.rocketmap.RdmQuest;
 
-public class RdmEventQuest extends RocketmapEvent<RdmQuest> {
+public class RdmEventQuest extends IncomingEvent<RdmQuest> {
 
 
 	private RdmQuest message;

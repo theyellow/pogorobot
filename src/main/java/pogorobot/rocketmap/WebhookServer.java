@@ -32,13 +32,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import pogorobot.events.EventMessage;
-import pogorobot.rocketmap.messages.RocketmapEvent;
+import pogorobot.rocketmap.messages.IncomingEvent;
 import pogorobot.service.MessageContentProcessor;
 
 @RestController
 public class WebhookServer {
-
-	private static final int MAX_SIZE_OF_INCOMING_QUEUE = 30000;
 
 	private static final int PERIOD = 50;
 
@@ -57,13 +55,26 @@ public class WebhookServer {
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
 	@ResponseBody
-	public HttpStatus readFromWebhook(@RequestBody List<RocketmapEvent<EventMessage<?>>> messages) {
+	public HttpStatus readFromWebhook(@RequestBody List<IncomingEvent<EventMessage<?>>> messages) {
 		messages.stream().map((event) -> event.getMessage()).forEach((message) -> {
 			logger.debug("message: " + message.toString());
 			eventQueue.add(message);
 		});
 		return HttpStatus.OK;
 	}
+	
+	/**
+	 * Temporary turn on for debugging raw webhook data
+	 * 
+	 * @param messages
+	 * @return
+	 */
+	// public HttpStatus readFromWebhook(@RequestBody String messages) {
+	// if (messages.contains("invasion")) {
+	// logger.info(messages.toString());
+	// }
+	// return HttpStatus.OK;
+	// }
 
 	private synchronized <T> void processContent(EventMessage<T> message) {
 		if (message != null) {

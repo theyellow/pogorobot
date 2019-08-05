@@ -18,7 +18,7 @@ package pogorobot.rocketmap.messages;
 
 import pogorobot.events.rocketmap.RocketmapGymInfo;
 
-public class RocketmapEventGymInfo extends RocketmapEvent<RocketmapGymInfo> {
+public class RocketmapEventGymInfo extends IncomingEvent<RocketmapGymInfo> {
 
 
 	private RocketmapGymInfo message;
