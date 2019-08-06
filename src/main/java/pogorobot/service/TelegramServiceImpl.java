@@ -159,7 +159,7 @@ public class TelegramServiceImpl implements TelegramService {
 			for (User user : userService.getAllUsers()) {
 				if (user.isShowPokemonMessages()) {
 					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
-					Filter userFilter = user.getUserFilter();
+					Long userFilter = user.getUserFilter().getId();
 					if (!updatedChats.contains(Long.valueOf(chatId))) {
 						CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
 								userFilter, deepScan, null);
@@ -176,14 +176,22 @@ public class TelegramServiceImpl implements TelegramService {
 
 			// Process all groups
 			final ProcessedPokemon processedMonFinal = processedMon;
-			userGroupRepository.findAll().iterator().forEachRemaining(group -> {
-				String chatId = String.valueOf(group.getChatId());
-				Filter groupFilter = group.getGroupFilter();
 
+			// Retrieve groupfilter information from db
+			Map<Long, String> usergroupFilters = new HashMap<>();
+			userGroupRepository.findAll().iterator().forEachRemaining(group -> {
+				Long groupFilterId = group.getGroupFilter().getId();
+				String chatId = String.valueOf(group.getChatId());
+
+				usergroupFilters.put(groupFilterId, chatId);
+			});
+
+			// Send messages to all matching groupfilters
+			usergroupFilters.forEach((groupfilterId, chatId) -> {
 				if (!updatedChats.contains(Long.valueOf(chatId))) {
 					logger.debug("chat {} will be tested with monster encounter {}", chatId, pokemon.getEncounterId());
 					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-							groupFilter, onlyDeep, null);
+							groupfilterId, onlyDeep, null);
 					if (monsterFuture != null) {
 						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
 						updateProcessedMonster(processedMonFinal, answer, chatId);
@@ -247,17 +255,16 @@ public class TelegramServiceImpl implements TelegramService {
 	}
 
 	private CompletableFuture<SendMessageAnswer> sendPokemonIfFilterMatch(PokemonWithSpawnpoint pokemon, String chatId,
-			Filter filter, boolean onlyDeepScan, Integer possibleMessageIdToUpdate) {
-		if (filter == null) {
-			logger.warn("could not find null filter");
+			Long filterId, boolean onlyDeepScan, Integer possibleMessageIdToUpdate) {
+		if (filterId == null) {
+			logger.warn("could not find filter without id");
 			return null;
 		}
-		Long id = filter.getId();
 
-		logger.debug("begin filter analyze of filter {}", id);
-		filter = filterDAO.findById(id).orElse(null);
+		logger.debug("begin filter analyze of filter {}", filterId);
+		Filter filter = filterDAO.findById(filterId).orElse(null);
 		if (filter == null) {
-			logger.warn("could not find filter {}", id);
+			logger.warn("could not find filter {}", filterId);
 			return null;
 		}
 		CompletableFuture<SendMessageAnswer> monsterFuture = null;
