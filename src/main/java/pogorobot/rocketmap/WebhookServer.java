@@ -93,14 +93,14 @@ public class WebhookServer {
 					processContent(eventMessage);
 
 				} else {
-					logger.debug("incoming queue empty - wait a period of {} ms",PERIOD);
-//					try {
-//						Thread.sleep(1000);
-//					} catch (InterruptedException e) {
-//						logger.warn(
-//								"MessageSenderTask got interupted while sleeping - interupt message sender task of webhook");
-//						Thread.currentThread().interrupt();
-//					}
+					logger.info("incoming queue empty - wait a period of {} ms", PERIOD * 10);
+					try {
+						Thread.sleep(PERIOD * 9L);
+					} catch (InterruptedException e) {
+						logger.warn(
+								"MessageSenderTask got interupted while sleeping - interupt message sender task of webhook");
+						Thread.currentThread().interrupt();
+					}
 				}
 			}
 		}

@@ -324,14 +324,13 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		while (next != Integer.MIN_VALUE && next != Integer.MAX_VALUE && pogoBot.getSendMessages(next) != null
 				&& pogoBot.getSendMessages(next) == 0) {
 
-			// try {
-			// Thread.sleep(123L);
-			// } catch (InterruptedException e) {
-			// logger.warn("wait until posted message got interupted - shutting down this
-			// thread -> "
-			// + Thread.currentThread().getName());
-			// Thread.currentThread().interrupt();
-			// }
+			try {
+				Thread.sleep(123L);
+			} catch (InterruptedException e) {
+				logger.warn("wait until posted message got interupted - shutting down this thread -> "
+						+ Thread.currentThread().getName());
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 
