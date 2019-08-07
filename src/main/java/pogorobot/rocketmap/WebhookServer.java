@@ -93,7 +93,7 @@ public class WebhookServer {
 					processContent(eventMessage);
 
 				} else {
-					logger.info("incoming queue empty - wait a period of {} ms", PERIOD * 10);
+					logger.debug("incoming queue empty - wait a period of {} ms", PERIOD * 10);
 					try {
 						Thread.sleep(PERIOD * 9L);
 					} catch (InterruptedException e) {
