@@ -324,7 +324,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 		public synchronized MessageAnswer getMessage(long currentTime) {
 			mLastSendTime = currentTime;
-			MessageAnswer answer = new MessageAnswer(mQueue.poll(), mQueueAnswer.poll())
+			MessageAnswer answer = new MessageAnswer(mQueue.poll(), mQueueAnswer.poll());
 			return answer;
 		}
 
