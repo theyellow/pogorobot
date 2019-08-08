@@ -257,10 +257,10 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 	}
 
-	private class MessageAnswer {
+	private static class MessageAnswer {
 	
-		private BotApiMethod<? extends Serializable> message;
-		private Integer answer;
+		private final BotApiMethod<? extends Serializable> message;
+		private final Integer answer;
 		
 		public MessageAnswer(BotApiMethod<? extends Serializable> message, Integer answer) {
 			this.message = message;
