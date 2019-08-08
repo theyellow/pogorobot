@@ -110,8 +110,8 @@ public class TelegramServiceImpl implements TelegramService {
 	private UserGroupRepository userGroupRepository;
 
 	@Override
-	@Transactional
-	public synchronized void triggerPokemonMessages(PokemonWithSpawnpoint pokemon) {
+	@Transactional(TxType.REQUIRES_NEW)
+	public void triggerPokemonMessages(PokemonWithSpawnpoint pokemon) {
 		if (pokemon.getPokemonId() != null) {
 			boolean deepScan = false;
 
@@ -366,7 +366,7 @@ public class TelegramServiceImpl implements TelegramService {
 
 	@Override
 	@Transactional(TxType.REQUIRES_NEW)
-	public synchronized void triggerRaidMessages(RaidAtGymEvent event) {
+	public void triggerRaidMessages(RaidAtGymEvent event) {
 		String gymId = event.getGymId();
 		Gym gym = gymService.getGym(gymId);
 		Long end = event.getEnd();
