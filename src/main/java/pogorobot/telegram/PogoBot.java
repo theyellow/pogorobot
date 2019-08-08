@@ -191,7 +191,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			// additional processing
 			Long chatId = sendQueue.getChatId();
 			MessageAnswer answer = sendQueue.getMessage(currentTime);
-			BotApiMethod<? extends Serializable> message = answer.getMessage()
+			BotApiMethod<? extends Serializable> message = answer.getMessage();
 			Integer sendMessageAnswer = answer.getAnswer();
 			try {
 				Serializable result = execute(message);
