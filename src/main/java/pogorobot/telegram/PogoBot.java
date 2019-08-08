@@ -190,8 +190,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			// Invoke the send callback. ChatId is passed for possible
 			// additional processing
 			Long chatId = sendQueue.getChatId();
-			BotApiMethod<? extends Serializable> message = sendQueue.getMessage(currentTime);
-			Integer sendMessageAnswer = sendQueue.getSendMessageAnswer(currentTime);
+			MessageAnswer answer = sendQueue.getMessage(currentTime);
+			BotApiMethod<? extends Serializable> message = answer.getMessage()
+			Integer sendMessageAnswer = answer.getAnswer();
 			try {
 				Serializable result = execute(message);
 				Message response = null;
@@ -256,6 +257,26 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 	}
 
+	private class MessageAnswer {
+	
+		private BotApiMethod<? extends Serializable> message;
+		private Integer answer;
+		
+		public MessageAnswer(BotApiMethod<? extends Serializable> message, Integer answer) {
+			this.message = message;
+			this.answer = answer;
+		}
+		
+		public BotApiMethod<? extends Serializable> getMessage() {
+			return message;
+		}
+		
+		public Integer getAnswer() {
+			return answer;
+		}
+		
+	}
+	
 	private static class MessageQueue {
 		public static final int EMPTY = 0; // Queue is empty
 		public static final int WAIT_SIG = 1; // Queue has message(s) but not yet
@@ -301,14 +322,10 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				return WAIT_SIG;
 		}
 
-		public synchronized BotApiMethod<? extends Serializable> getMessage(long currentTime) {
+		public synchronized MessageAnswer getMessage(long currentTime) {
 			mLastSendTime = currentTime;
-			return mQueue.poll();
-		}
-
-		public synchronized Integer getSendMessageAnswer(long currentTime) {
-			mLastSendTime = currentTime;
-			return mQueueAnswer.poll();
+			MessageAnswer answer = new MessageAnswer(mQueue.poll(), mQueueAnswer.poll())
+			return answer;
 		}
 
 		public long getPutTime() {
