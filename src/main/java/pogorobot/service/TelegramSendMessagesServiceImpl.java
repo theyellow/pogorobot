@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.transaction.Transactional;
@@ -58,6 +60,7 @@ import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
+import pogorobot.events.EventMessage;
 import pogorobot.service.db.EventWithSubscribersService;
 import pogorobot.service.db.repositories.ProcessedPokemonRepository;
 import pogorobot.service.db.repositories.ProcessedRaidRepository;
@@ -267,6 +270,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			answer.setLocationAnswer(sendMessage.getMessageId());
 			Thread.sleep(100);
 		}
+		Semaphore mutex = new Semaphore(1);
 		if (message instanceof SendMessage) {
 			SendMessage sendMessage = (SendMessage) message;
 			sendMessage.enableMarkdown(true);
@@ -278,8 +282,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			sendMessage.setReplyMarkup(replyMarkup);
 			Integer next = sendMessageIterator.next();
 			pogoBot.putSendMessages(next, 0);
-			pogoBot.sendTimed(Long.valueOf(sendMessage.getChatId()), sendMessage, next, null);
-			waitUntilPosted(next);
+			pogoBot.sendTimed(Long.valueOf(sendMessage.getChatId()), sendMessage, next, mutex);
+			mutex.tryAcquire(2000, TimeUnit.MILLISECONDS);
+			// waitUntilPosted(next);
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
 			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
 				pogoBot.removeSendMessage(next);
@@ -287,12 +292,13 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				answer.setMainMessageAnswer(sendMessagesInternalId);
 				pogoBot.removeSendMessage(next);
 			}
+			mutex.release();
 		} else if (message instanceof EditMessageText) {
 			EditMessageText editMessage = ((EditMessageText) message).enableMarkdown(true);
 			Integer next = sendMessageIterator.next();
 			pogoBot.putSendMessages(next, 0);
-			pogoBot.sendTimed(Long.valueOf(editMessage.getChatId()), editMessage, next, null);
-			waitUntilPosted(next);
+			pogoBot.sendTimed(Long.valueOf(editMessage.getChatId()), editMessage, next, mutex);
+			mutex.tryAcquire(2000, TimeUnit.MILLISECONDS);
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
 			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
 				pogoBot.removeSendMessage(next);
@@ -300,6 +306,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				answer.setMainMessageAnswer(sendMessagesInternalId);
 				pogoBot.removeSendMessage(next);
 			}
+			mutex.release();
 		}
 		if (location != null) {
 			if (!isGroupMessage) {
@@ -307,8 +314,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			}
 			Integer next = sendMessageIterator.next();
 			pogoBot.putSendMessages(next, 0);
-			pogoBot.sendTimed(Long.valueOf(location.getChatId()), location, next, null);
-			waitUntilPosted(next);
+			pogoBot.sendTimed(Long.valueOf(location.getChatId()), location, next, mutex);
+			mutex.acquire();
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
 			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
 				pogoBot.removeSendMessage(next);
@@ -316,23 +323,28 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				answer.setMainMessageAnswer(sendMessagesInternalId);
 				pogoBot.removeSendMessage(next);
 			}
+			mutex.release();
 		}
 		return answer;
 	}
 
-	private void waitUntilPosted(Integer next) {
-		while (next != Integer.MIN_VALUE && next != Integer.MAX_VALUE && pogoBot.getSendMessages(next) != null
-				&& pogoBot.getSendMessages(next) == 0) {
+	private ConcurrentLinkedQueue<EventMessage<?>> eventQueue = new ConcurrentLinkedQueue<>();
 
-			try {
-				Thread.sleep(123L);
-			} catch (InterruptedException e) {
-				logger.warn("wait until posted message got interupted - shutting down this thread -> "
-						+ Thread.currentThread().getName());
-				Thread.currentThread().interrupt();
-			}
-		}
-	}
+	// private void waitUntilPosted(Integer next) {
+	// while (next != Integer.MIN_VALUE && next != Integer.MAX_VALUE &&
+	// pogoBot.getSendMessages(next) != null
+	// && pogoBot.getSendMessages(next) == 0) {
+	//
+	// try {
+	// Thread.sleep(123L);
+	// } catch (InterruptedException e) {
+	// logger.warn("wait until posted message got interupted - shutting down this
+	// thread -> "
+	// + Thread.currentThread().getName());
+	// Thread.currentThread().interrupt();
+	// }
+	// }
+	// }
 
 	@Override
 	public SendMessageAnswer sendStandardMessage(PokemonWithSpawnpoint pokemon, Gym fullGym,
@@ -727,17 +739,22 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (messageId != null) {
 			deleteMessage = new DeleteMessage(groupChatId, messageId);
 			Integer sendMessagesInternalId = null;
+			Semaphore mutex = new Semaphore(1);
 			try {
 				// pogoBot.execute(deleteMessage);
 				// Hack for not mixing up ids:
 				// TODO: cleanup
 				Integer next = sendMessageIterator.next() - Integer.MIN_VALUE + 2;
 				pogoBot.putSendMessages(next, 0);
-				pogoBot.sendTimed(groupChatId, deleteMessage, next, null);
+				pogoBot.sendTimed(groupChatId, deleteMessage, next, mutex);
 				logger.info("waiting delete message " + messageId + " for chat '" + groupChatId + "'");
 				// waitUntilPosted(next);
-				sendMessagesInternalId = pogoBot.getSendMessages(next);
+				boolean acquired = mutex.tryAcquire(1000, TimeUnit.MILLISECONDS);
+				if (acquired) {
+					sendMessagesInternalId = pogoBot.getSendMessages(next);
+				}
 				pogoBot.removeSendMessage(next);
+				mutex.release();
 			} catch (Exception e) {
 				logger.error("delete message " + messageId + " failed in chat: '" + groupChatId + "'", e.getCause());
 				logger.error("message: " + e.getMessage(), e);
@@ -748,9 +765,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 				}
 			}
 			if (sendMessagesInternalId != null && sendMessagesInternalId == Integer.MAX_VALUE) {
-				return false;
-			} else {
 				return true;
+			} else {
+				return false;
 			}
 		} else {
 			return false;

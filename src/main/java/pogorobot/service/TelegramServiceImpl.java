@@ -159,8 +159,9 @@ public class TelegramServiceImpl implements TelegramService {
 			for (User user : userService.getAllUsers()) {
 				if (user.isShowPokemonMessages()) {
 					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
+					chatId = "null".equals(chatId) ? null : chatId;
 					Long userFilter = user.getUserFilter().getId();
-					if (!updatedChats.contains(Long.valueOf(chatId))) {
+					if (chatId != null && !updatedChats.contains(Long.valueOf(chatId))) {
 						CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
 								userFilter, deepScan, null);
 						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
@@ -188,13 +189,17 @@ public class TelegramServiceImpl implements TelegramService {
 
 			// Send messages to all matching groupfilters
 			usergroupFilters.forEach((groupfilterId, chatId) -> {
-				if (!updatedChats.contains(Long.valueOf(chatId))) {
+				chatId = "null".equals(chatId) ? null : chatId;
+				if (chatId != null && !updatedChats.contains(Long.valueOf(chatId))) {
 					logger.debug("chat {} will be tested with monster encounter {}", chatId, pokemon.getEncounterId());
 					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
 							groupfilterId, onlyDeep, null);
 					if (monsterFuture != null) {
 						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
-						updateProcessedMonster(processedMonFinal, answer, chatId);
+						if (answer != null && chatId != null) {
+							updateProcessedMonster(processedMonFinal, answer, chatId);
+						}
+
 					} else {
 						logger.debug("got no future for monster encounter {} in chat {}, filter didn't match?",
 								pokemon.getEncounterId(), chatId);
@@ -461,19 +466,26 @@ public class TelegramServiceImpl implements TelegramService {
 					+ ", end " + telegramTextService.formatTimeFromSeconds(end));
 			processedRaid = processedRaidRepository.save(processedRaid);
 
+			UserGroup group = null;
 			for (Filter filter : filterService.getFiltersByType(FilterType.GROUP)) {
 				try {
+					group = filter.getGroup();
+					Long chatIdTmp = group != null ? group.getChatId() : null;
+					String chatId = chatIdTmp != null ? chatIdTmp.toString() : "";
+					if ("".equals(chatId)) {
+						continue;
+					}
 					CompletableFuture<SendMessageAnswer> raidFuture = sendOrUpdateRaidIfFiltersMatch(fullGym, level,
-							filter, pokemonId, filter.getGroup().getChatId().toString(), eventsWithSubscribers);
+							filter, pokemonId, chatId, eventsWithSubscribers);
 					SendMessageAnswer answer = getFutureAnswer(raidFuture);
 
 					if (answer != null && (answer.getLocationAnswer() != null
 							|| answer.getStickerAnswer() != null
 							|| answer.getMainMessageAnswer() != null)) {
-						updateProcessedRaid(processedRaid, answer, filter.getGroup().getChatId());
+						updateProcessedRaid(processedRaid, answer, chatIdTmp);
 					}
 				} catch (NullPointerException ex) {
-					logger.warn("error sending raid for filter " + filter.getId() + " for group " + filter.getGroup(),
+					logger.warn("error sending raid for filter " + filter.getId() + " for group " + group,
 							ex);
 				}
 			}

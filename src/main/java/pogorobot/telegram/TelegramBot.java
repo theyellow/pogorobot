@@ -17,13 +17,12 @@
 package pogorobot.telegram;
 
 import java.io.Serializable;
+import java.util.concurrent.Semaphore;
 
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.generics.LongPollingBot;
-
-import pogorobot.telegram.util.Type;
 
 public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 
@@ -66,7 +65,7 @@ public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 	@Override
 	String getBotToken();
 
-	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer updateId, Type type);
+	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer updateId, Semaphore mutex);
 
 	Integer putSendMessages(Integer internalId, Integer postedMessageId);
 

@@ -81,10 +81,10 @@ public class ProcessedPokemon extends AbstractPersistable<Long> {
 		this.encounterId = pokemonId;
 	}
 
-	public void addToChatsPokemonIsPosted(SendMessages group) {
-		if (group != null) {
-			getChatsPokemonIsPosted().add(group);
-			group.setOwningPokemon(this);
+	public void addToChatsPokemonIsPosted(SendMessages sendMessage) {
+		if (sendMessage != null) {
+			getChatsPokemonIsPosted().add(sendMessage);
+			sendMessage.setOwningPokemon(this);
 		}
 	}
 

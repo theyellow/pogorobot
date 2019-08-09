@@ -25,8 +25,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -192,7 +194,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			Long chatId = sendQueue.getChatId();
 			MessageAnswer answer = sendQueue.getMessage(currentTime);
 			BotApiMethod<? extends Serializable> message = answer.getMessage();
-			Integer sendMessageAnswer = answer.getAnswer();
+			Semaphore sendMessageSemaphore = answer.getAnswer();
+			Integer sendMessageAnswer = answer.getMessageId();
 			try {
 				Serializable result = execute(message);
 				Message response = null;
@@ -201,6 +204,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				} else if (message instanceof DeleteMessage) {
 					logger.info("delete message " + ((DeleteMessage) message).getMessageId() + " in chat " + chatId
 							+ " gave " + result + " - internal answer (id) is " + sendMessageAnswer);
+					int resultValue = (Boolean) result ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+					sendMessages.put(sendMessageAnswer, resultValue);
 				} else {
 					logger.warn("response of PogoBot.execute(...) is no message but " + result + " | sent message was "
 							+ message);
@@ -215,6 +220,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					sendMessages.put(sendMessageAnswer, messageId);
 					logger.info(
 							"wrote message " + messageId + " in chat " + chatId + " - answer was " + sendMessageAnswer);
+				}
+				if (sendMessageSemaphore != null) {
+					sendMessageSemaphore.release();
 				}
 			} catch (TelegramApiException e) {
 				if (INVALID_CHAT.equals(e.getMessage())) {
@@ -251,7 +259,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 						sendMessages.put(sendMessageAnswer, null);
 					}
 				}
-
+				if (sendMessageSemaphore != null) {
+					sendMessageSemaphore.release();
+				}
 				// TODO: rewrite and use real QUEUE
 			}
 		}
@@ -260,18 +270,24 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	private static class MessageAnswer {
 	
 		private final BotApiMethod<? extends Serializable> message;
-		private final Integer answer;
+		private final Semaphore answer;
+		private final Integer messageId;
 		
-		public MessageAnswer(BotApiMethod<? extends Serializable> message, Integer answer) {
+		public MessageAnswer(BotApiMethod<? extends Serializable> message, Semaphore mutex, Integer messageId) {
 			this.message = message;
-			this.answer = answer;
+			this.answer = mutex;
+			this.messageId = messageId;
 		}
 		
+		public Integer getMessageId() {
+			return messageId;
+		}
+
 		public BotApiMethod<? extends Serializable> getMessage() {
 			return message;
 		}
 		
-		public Integer getAnswer() {
+		public Semaphore getAnswer() {
 			return answer;
 		}
 		
@@ -288,7 +304,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public static final int GET_MESSAGE = 3; // Queue has message(s) and
 													// ready to send
 		private final ConcurrentLinkedQueue<BotApiMethod<? extends Serializable>> mQueue = new ConcurrentLinkedQueue<>();
-		private final ConcurrentLinkedQueue<Integer> mQueueAnswer = new ConcurrentLinkedQueue<>();
+		private final ConcurrentLinkedQueue<Semaphore> mQueueAnswer = new ConcurrentLinkedQueue<>();
+		private final ConcurrentLinkedQueue<Integer> mQueueAnswerMessageId = new ConcurrentLinkedQueue<>();
 		private final Long mChatId;
 		private long mLastSendTime; // Time of last peek from queue
 		private volatile long mLastPutTime; // Time of last put into queue
@@ -297,12 +314,14 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			mChatId = chatId;
 		}
 
-		public synchronized void putMessage(BotApiMethod<? extends Serializable> msg, Integer internalMapId, Type type) {
+		public synchronized void putMessage(BotApiMethod<? extends Serializable> msg, Integer internalMapId,
+				Semaphore mutex) {
 			mQueue.add(msg);
 			if (internalMapId != null) {
-				mQueueAnswer.add(internalMapId);
+				mQueueAnswer.add(mutex);
+				mQueueAnswerMessageId.add(internalMapId);
 			} else {
-				mQueueAnswer.add(Integer.MIN_VALUE);
+				mQueueAnswerMessageId.add(Integer.MIN_VALUE);
 			}
 			mLastPutTime = System.currentTimeMillis();
 		}
@@ -324,7 +343,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 		public synchronized MessageAnswer getMessage(long currentTime) {
 			mLastSendTime = currentTime;
-			MessageAnswer answer = new MessageAnswer(mQueue.poll(), mQueueAnswer.poll());
+			MessageAnswer answer = new MessageAnswer(mQueue.poll(), mQueueAnswer.poll(), mQueueAnswerMessageId.poll());
 			return answer;
 		}
 
@@ -360,14 +379,16 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	 * @see pogorobot.telegram.bot.TelegramBot#sendTimed(java.lang.Long, org.telegram.telegrambots.api.methods.BotApiMethod)
 	 */
 	@Override
-	public void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer next, Type type) {
+	public void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer next,
+			Semaphore mutex) {
+		mutex.acquireUninterruptibly();
 		MessageQueue queue = mMessagesMap.get(chatId);
 		if (queue == null) {
 			queue = new MessageQueue(chatId);
-			queue.putMessage(messageRequest, next, type);
+			queue.putMessage(messageRequest, next, mutex);
 			mMessagesMap.put(chatId, queue);
 		} else {
-			queue.putMessage(messageRequest, next, type);
+			queue.putMessage(messageRequest, next, mutex);
 			MessageQueue absent = mMessagesMap.putIfAbsent(chatId, queue); // Double check, because
 			// the queue can be
 			// removed from hashmap
@@ -483,6 +504,15 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		sendApiMethod(method);
 	}
 
+	private class ThreadPerTaskExecutor implements Executor {
+
+		@Override
+		public void execute(Runnable r) {
+			new Thread(r).start();
+		}
+
+	}
+
 	/**
 	 * Start PogoBot
 	 * 
@@ -495,7 +525,19 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	 */
 	public PogoBot(DefaultBotOptions options, boolean allowCommandsWithUsername, String botUsername) {
 		super(options, true, botUsername);
-		mSendTimer.schedule(new MessageSenderTask(), MANY_CHATS_SEND_INTERVAL, MANY_CHATS_SEND_INTERVAL);
+		Executor executor = new ThreadPerTaskExecutor();
+		Runnable messagePoller = new Runnable() {
+
+			@Override
+			public void run() {
+				Timer messageSendTimer = new Timer(true);
+				// messageSendTimer = new Timer(true);
+				messageSendTimer.schedule(new MessageSenderTask(), MANY_CHATS_SEND_INTERVAL, MANY_CHATS_SEND_INTERVAL);
+			}
+		};
+		executor.execute(messagePoller);
+		// mSendTimer.schedule(new MessageSenderTask(), MANY_CHATS_SEND_INTERVAL,
+		// MANY_CHATS_SEND_INTERVAL);
 		registerDefaultAction((absSender, message) -> {
 			SendMessage commandUnknownMessage = new SendMessage();
 			commandUnknownMessage.setChatId(message.getChatId());

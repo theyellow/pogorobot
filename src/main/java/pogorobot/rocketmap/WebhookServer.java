@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,12 +46,30 @@ public class WebhookServer {
 
 	private ConcurrentLinkedQueue<EventMessage<?>> eventQueue = new ConcurrentLinkedQueue<>();
 
-	private final Timer messageSendTimer = new Timer(true);
 
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	private class ThreadPerTaskExecutor implements Executor {
+
+		@Override
+		public void execute(Runnable r) {
+			new Thread(r).start();
+		}
+
+	}
+
 	public WebhookServer() {
-		messageSendTimer.schedule(new MessageSenderTask(), 0, PERIOD);
+		Executor executor = new ThreadPerTaskExecutor();
+		Runnable messagePoller = new Runnable() {
+
+			@Override
+			public void run() {
+				Timer messageSendTimer = new Timer(true);
+				// messageSendTimer = new Timer(true);
+				messageSendTimer.schedule(new MessageSenderTask(), 0, PERIOD);
+			}
+		};
+		executor.execute(messagePoller);
 	}
 
 	@RequestMapping(value = "/", method = RequestMethod.POST)
@@ -76,33 +95,36 @@ public class WebhookServer {
 	// return HttpStatus.OK;
 	// }
 
-	private synchronized <T> void processContent(EventMessage<T> message) {
-		if (message != null) {
-			messageContentProcessor.processContent(message);
-		}
-	}
 
 	private final class MessageSenderTask extends TimerTask {
 
+		private synchronized <T> void processContent(EventMessage<T> message) {
+			if (message != null) {
+				messageContentProcessor.processContent(message);
+			}
+		}
+
 		@Override
 		public void run() {
-			while (eventQueue.hashCode() != 0) {
+			// while (eventQueue.hashCode() != 0) {
 				EventMessage<?> eventMessage = eventQueue.poll();
 				if (eventMessage != null) {
 					logger.debug("processing next message: {}", eventMessage);
 					processContent(eventMessage);
 
-				} else {
-					logger.debug("incoming queue empty - wait a period of {} ms", PERIOD * 10);
-					try {
-						Thread.sleep(PERIOD * 9L);
-					} catch (InterruptedException e) {
-						logger.warn(
-								"MessageSenderTask got interupted while sleeping - interupt message sender task of webhook");
-						Thread.currentThread().interrupt();
-					}
-				}
 			}
+			// else {
+			// logger.debug("incoming queue empty - wait a period of {} ms", PERIOD * 10);
+			// try {
+			// Thread.sleep(PERIOD * 9L);
+			// } catch (InterruptedException e) {
+			// logger.warn(
+			// "MessageSenderTask got interupted while sleeping - interupt message sender
+			// task of webhook");
+			// Thread.currentThread().interrupt();
+			// }
+			// }
+			// }
 		}
 	}
 
