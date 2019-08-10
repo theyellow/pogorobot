@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -106,6 +107,23 @@ public class PokemonServiceImpl implements PokemonService {
 		long time = stopWatch.getTime(TimeUnit.SECONDS);
 		logger.info("Cleaning up processed Pokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
 		logger.info("Just a fake, no processedPokemon deleted on database - saved " + numberOfDeleted);
+	}
+
+	@Override
+	@Transactional(TxType.REQUIRES_NEW)
+	public void cleanPokemonWithSpawnpointOnDatabase() {
+		logger.info("start cleaning up PokemonWithSpawnpoint ");
+		StopWatch stopWatch = StopWatch.createStarted();
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaDelete<PokemonWithSpawnpoint> retrieveSpawnpointsWithMon = cb
+				.createCriteriaDelete(PokemonWithSpawnpoint.class);
+		Root<PokemonWithSpawnpoint> from = retrieveSpawnpointsWithMon.from(PokemonWithSpawnpoint.class);
+		Predicate spawnpointIdEqual = cb.lessThan(from.get("disappearTime"), System.currentTimeMillis() / 1000 - 65);
+		retrieveSpawnpointsWithMon = retrieveSpawnpointsWithMon.where(spawnpointIdEqual);
+		int deadPokemon = entityManager.createQuery(retrieveSpawnpointsWithMon).executeUpdate();
+		stopWatch.stop();
+		long time = stopWatch.getTime(TimeUnit.SECONDS);
+		logger.info("cleaning up PokemonWithSpawnpoint - deleted: " + deadPokemon + " | used time: " + time + " secs");
 	}
 
 	// public void deletePokemon(String mon) {

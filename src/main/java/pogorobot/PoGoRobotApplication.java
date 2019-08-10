@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.sql.DataSource;
 
@@ -46,6 +45,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -142,11 +142,11 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		return compareValue != 0;
 	}
 
-	private final class MessageSenderTask extends TimerTask {
+	private final class CleanupMessageTask implements Runnable {
 
 		private TelegramSendMessagesService telegramSendMessagesService;
 
-		public MessageSenderTask(TelegramSendMessagesService telegramSendMessagesService) {
+		public CleanupMessageTask(TelegramSendMessagesService telegramSendMessagesService) {
 			this.telegramSendMessagesService = telegramSendMessagesService;
 		}
 
@@ -159,7 +159,22 @@ public class PoGoRobotApplication implements ApplicationRunner {
 				logger.error("Error while deleting messages...", e);
 			}
 		}
+	}
+	
 
+	private final class CleanupPokemonTask implements Runnable {
+
+		private PokemonService pokemonService;
+
+		public CleanupPokemonTask(PokemonService telegramSendMessagesService) {
+			this.pokemonService = telegramSendMessagesService;
+		}
+
+		@Override
+		public void run() {
+			pokemonService.cleanPokemonWithSpawnpointOnDatabase();
+			logger.debug("Cleaned pokemon...");
+		}
 	}
 
 	private class GroupfilesTimestamps implements Comparable<GroupfilesTimestamps> {
@@ -413,12 +428,19 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			taskScheduler.schedule(getDeleteOldGymMonsTask(gymService), new CronTrigger("0 18 22 1 1 *"));
 			taskScheduler.schedule(getUpdateRaidBossListTask(raidBossRepository),
 					new CronTrigger("0 16 5,11,17,23 * * *"));
-			// taskScheduler.schedule(getDeleteOldGymsTask(telegramSendMessagesService),
+			// taskScheduler.schedule(getDeleteOldGymsTask(pokemonService),
 			// new CronTrigger("10 * * * * *"));
 			taskScheduler.schedule(getReloadConfigurationTask(ctx.getBean(ConfigReader.class)),
 					new CronTrigger("20/50 * * * * *"));
 
-			deleteMessageTimer.schedule(getDeleteOldGymsTask(telegramSendMessagesService), 100L, 60 * 1000L);
+			taskScheduler.schedule(new CleanupMessageTask(telegramSendMessagesService),
+					new PeriodicTrigger(60 * 1000L));
+			taskScheduler.schedule(new CleanupPokemonTask(pokemonService), new PeriodicTrigger(10 * 60 * 1000L));
+
+			
+			
+			// deleteMessageTimer.schedule(getCleanupMessagesGymsTask(pokemonService), 100L,
+			// 60 * 1000L);
 		};
 	}
 
@@ -434,9 +456,10 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		configReader.updateGroupFilterWithLevel();
 	}
 
-	private TimerTask getDeleteOldGymsTask(TelegramSendMessagesService telegramSendMessagesService) {
-		return new MessageSenderTask(telegramSendMessagesService);
-	}
+	// private TimerTask getCleanupMessagesGymsTask(TelegramSendMessagesService
+	// pokemonService) {
+	// return new CleanupMessageTask(pokemonService);
+//	}
 
 	@Bean
 	public DataSource dataSource(ApplicationContext ctx, ApplicationArguments aArgs) {
