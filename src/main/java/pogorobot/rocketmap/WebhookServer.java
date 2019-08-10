@@ -58,17 +58,20 @@ public class WebhookServer {
 
 	}
 
+	Runnable messagePoller = new Runnable() {
+
+		Timer messageSendTimer = new Timer(true);
+
+		@Override
+		public void run() {
+			// messageSendTimer = new Timer(true);
+			messageSendTimer.schedule(new MessageSenderTask(), 0, PERIOD);
+		}
+
+	};
+
 	public WebhookServer() {
 		Executor executor = new ThreadPerTaskExecutor();
-		Runnable messagePoller = new Runnable() {
-
-			@Override
-			public void run() {
-				Timer messageSendTimer = new Timer(true);
-				// messageSendTimer = new Timer(true);
-				messageSendTimer.schedule(new MessageSenderTask(), 0, PERIOD);
-			}
-		};
 		executor.execute(messagePoller);
 	}
 
@@ -106,12 +109,13 @@ public class WebhookServer {
 
 		@Override
 		public void run() {
-			// while (eventQueue.hashCode() != 0) {
+			 while (!eventQueue.isEmpty()) {
 				EventMessage<?> eventMessage = eventQueue.poll();
 				if (eventMessage != null) {
 					logger.debug("processing next message: {}", eventMessage);
 					processContent(eventMessage);
 
+				}
 			}
 			// else {
 			// logger.debug("incoming queue empty - wait a period of {} ms", PERIOD * 10);

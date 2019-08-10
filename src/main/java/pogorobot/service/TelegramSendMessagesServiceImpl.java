@@ -669,8 +669,12 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 					// TODO: what kind of error handling is best here? (We also want to dele
 					// throw possibleException;
 				} else {
-					logger.info(
-							"deleted message on database, difference is " + (nowInSecons - endTime) / 60 + " minutes");
+					long differenceInMinutes = (nowInSecons - endTime) / 60;
+					if (differenceInMinutes > 1) {
+						logger.warn("deleted message on database, difference is " + differenceInMinutes + " minutes");
+					} else {
+						logger.info("deleted message on database, difference is " + differenceInMinutes + " minutes");
+					}
 				}
 
 				if (possibleException != null) {
