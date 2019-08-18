@@ -286,7 +286,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			mutex.tryAcquire(2000, TimeUnit.MILLISECONDS);
 			// waitUntilPosted(next);
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
-			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE
+					|| sendMessagesInternalId == Integer.MAX_VALUE) {
 				pogoBot.removeSendMessage(next);
 			} else {
 				answer.setMainMessageAnswer(sendMessagesInternalId);
@@ -647,7 +648,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 					Integer messageId = sendMessages.getMessageId();
 					if (messageId != null) {
 						try {
-							deletedMessage = deleteMessage(chatId, messageId);
+							if (messageId != 0) {
+								deletedMessage = deleteMessage(chatId, messageId);
+							}
 						} catch (TelegramApiException e) {
 							possibleException = e;
 							deletedMessage = false;
