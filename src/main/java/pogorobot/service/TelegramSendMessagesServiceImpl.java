@@ -283,7 +283,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			Integer next = sendMessageIterator.next();
 			pogoBot.putSendMessages(next, 0);
 			pogoBot.sendTimed(Long.valueOf(sendMessage.getChatId()), sendMessage, next, mutex);
-			mutex.tryAcquire(2000, TimeUnit.MILLISECONDS);
+			mutex.acquire();
 			// waitUntilPosted(next);
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
 			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE
@@ -299,7 +299,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			Integer next = sendMessageIterator.next();
 			pogoBot.putSendMessages(next, 0);
 			pogoBot.sendTimed(Long.valueOf(editMessage.getChatId()), editMessage, next, mutex);
-			mutex.tryAcquire(2000, TimeUnit.MILLISECONDS);
+			mutex.acquire();
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
 			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
 				pogoBot.removeSendMessage(next);
