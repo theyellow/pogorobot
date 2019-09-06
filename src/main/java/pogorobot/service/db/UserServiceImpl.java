@@ -49,7 +49,14 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public Iterable<User> getAllUsers() {
-		return userDAO.findAll();
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
+		Root<User> from = query.from(User.class);
+		// query = query.where(criteriaBuilder.equal(from.get("telegramId"),
+		// telegramId));
+		List<User> resultList = entityManager.createQuery(query).getResultList();
+
+		return resultList;
 	}
 
 	@Override
@@ -150,6 +157,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional
 	public User getOrCreateUser(String telegramId) {
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
@@ -163,6 +171,33 @@ public class UserServiceImpl implements UserService {
 			user = resultList.get(0);
 		}
 		return user;
+	}
+
+	@Override
+	@Transactional
+	public void createOrUpdateFromTelegramUser(String telegramId,
+			org.telegram.telegrambots.meta.api.objects.User telegramUser) {
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<User> query = criteriaBuilder.createQuery(User.class);
+		Root<User> from = query.from(User.class);
+		query = query.where(criteriaBuilder.equal(from.get("telegramId"), telegramId));
+		List<User> resultList = entityManager.createQuery(query).getResultList();
+		User user;
+		String prename = telegramUser.getFirstName() != null ? telegramUser.getFirstName() + " " : "";
+		String surname = telegramUser.getLastName() != null ? telegramUser.getLastName() : "";
+		if (resultList.size() == 0) {
+			user = createUser(prename + surname, telegramId);
+			user.setTelegramName(telegramUser.getUserName());
+			user.setTelegramId(telegramUser.getId().toString());
+			user.setTelegramActive(true);
+			entityManager.persist(user);
+		} else {
+			user = resultList.get(0);
+			user.setName(prename + surname);
+			user.setTelegramId(telegramUser.getId().toString());
+			user.setTelegramActive(true);
+			entityManager.merge(user);
+		}
 	}
 
 }

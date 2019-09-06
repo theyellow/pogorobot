@@ -36,6 +36,9 @@ public interface UserService {
 	public User updateOrInsertUser(User user);
 
 	public User createUser(String name, String telegramId);
+
+	public void createOrUpdateFromTelegramUser(String telegramId,
+			org.telegram.telegrambots.meta.api.objects.User telegramUser);
 	
 	
 }

@@ -19,6 +19,7 @@ package pogorobot.service.db;
 import java.util.SortedSet;
 
 import pogorobot.entities.EventWithSubscribers;
+import pogorobot.entities.User;
 
 public interface EventWithSubscribersService {
 
@@ -27,5 +28,7 @@ public interface EventWithSubscribersService {
 	public void saveSubscribersForRaid(SortedSet<EventWithSubscribers> eventsForRaid);
 
 	public void deleteEvent(String gymId);
+
+	void modifyEvent(String commandOrGymId, User user, String gymId, String time);
 
 }

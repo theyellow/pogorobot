@@ -28,6 +28,7 @@ import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.Gym;
 import pogorobot.entities.PokemonWithSpawnpoint;
+import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
 import pogorobot.telegram.util.SendMessageAnswer;
@@ -73,7 +74,7 @@ public interface TelegramSendMessagesService {
 
 	void sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message);
 
-	void cleanupSendMessage() throws TelegramApiException;
+	// void cleanupSendMessage() throws TelegramApiException;
 	// String getPokemonName(String pokemon);
 	//
 	// JSONObject getJsonPokemons();
@@ -83,5 +84,7 @@ public interface TelegramSendMessagesService {
 	SendMessageAnswer sendStandardMessage(PokemonWithSpawnpoint pokemon, Gym fullGym,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, String chatId, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
+
+	String deleteMessagesOnTelegram(SendMessages sendMessagesClone, long timeDifference);
 
 }

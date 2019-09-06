@@ -16,9 +16,12 @@
 
 package pogorobot.service.db;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -26,6 +29,8 @@ import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
 import org.hibernate.Hibernate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +38,7 @@ import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.Subscriber;
 import pogorobot.entities.User;
+import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.db.repositories.EventWithSubscribersRepository;
 import pogorobot.service.db.repositories.RaidAtGymEventRepository;
 import pogorobot.service.db.repositories.SubscriberRepository;
@@ -46,6 +52,8 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 
 	@Autowired
 	private EventWithSubscribersRepository eventWithSubscribersRepository;
+
+	private static Logger logger = LoggerFactory.getLogger(EventWithSubscribersService.class);
 
 	@Autowired
 	private SubscriberRepository subscriberRepository;
@@ -135,4 +143,98 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 		entityManager.flush();
 	}
 
+	@Override
+	@Transactional
+	public void modifyEvent(String commandOrGymId, User user, String gymId, String time) {
+
+		// Gym fullGym = gymService.getGym(gymId);
+		SortedSet<EventWithSubscribers> eventsWithSubscribers = getSubscribersForRaid(gymId);
+		// event.setEventsWithSubscribers(eventsWithSubscribers);
+		// SortedSet<EventWithSubscribers> eventsWithSubscribers =
+		// event.getEventsWithSubscribers();
+
+		if (null == commandOrGymId) {
+			logger.error("Error while trying to signup raid");
+		} else if (TelegramKeyboardService.CANCEL.equals(commandOrGymId)) {
+			for (EventWithSubscribers eventWithSubscribers : eventsWithSubscribers) {
+				Set<Subscriber> users = eventWithSubscribers.getSubscribers();
+				Set<Subscriber> toRemove = new HashSet<>();
+				for (Subscriber subscriber : users) {
+					if (subscriber.getSubscriber().equals(user)) {
+						toRemove.add(subscriber);
+					}
+				}
+				for (Subscriber subscriber : toRemove) {
+					eventWithSubscribers.removeSubscriber(subscriber);
+				}
+				// TODO: Where is save now?
+				// if (users.contains(user)) {
+				// eventWithSubscribersRepository.save(x);
+				// }
+
+			}
+		} else if (TelegramKeyboardService.ADDONE.equals(commandOrGymId)) {
+			// TODO: implement addOne - action
+			List<Boolean> breakOuterLoop = new ArrayList<>();
+			for (EventWithSubscribers eventWithSubscribers : eventsWithSubscribers) {
+				Set<Subscriber> users = eventWithSubscribers.getSubscribers();
+				users.stream().forEach(subscriber -> {
+					if (user.equals(subscriber.getSubscriber())) {
+						subscriber.setAdditionalParticipants(subscriber.getAdditionalParticipants() + 1);
+						breakOuterLoop.add(true);
+					}
+				});
+				if (!breakOuterLoop.isEmpty()) {
+					break;
+				}
+			}
+		} else if (TelegramKeyboardService.REMOVEONE.equals(commandOrGymId)) {
+			List<Boolean> breakOuterLoop = new ArrayList<>();
+			for (EventWithSubscribers eventWithSubscribers : eventsWithSubscribers) {
+				Set<Subscriber> users = eventWithSubscribers.getSubscribers();
+				users.stream().forEach(subscriber -> {
+					if (user.equals(subscriber.getSubscriber())) {
+						Integer additionalParticipants = subscriber.getAdditionalParticipants();
+						if (additionalParticipants > 0) {
+							subscriber.setAdditionalParticipants(additionalParticipants - 1);
+						}
+						breakOuterLoop.add(true);
+					}
+				});
+				if (!breakOuterLoop.isEmpty()) {
+					break;
+				}
+			}
+		} else {
+			for (EventWithSubscribers eventWithSubscribers : eventsWithSubscribers) {
+				Set<Subscriber> users = eventWithSubscribers.getSubscribers();
+				if (eventWithSubscribers.getTime().equals(time)) {
+					Set<User> usersParticipating = users.stream().map(subscriber -> subscriber.getSubscriber())
+							.collect(Collectors.toSet());
+					if (!usersParticipating.contains(user)) {
+						Subscriber subscriber = new Subscriber();
+						subscriber.setSubscriber(user);
+						subscriber.setAdditionalParticipants(0);
+						// Hibernate.initialize(subscriber);
+						eventWithSubscribers.addSubcriber(subscriber);
+					}
+				} else {
+					Set<User> usersParticipating = users.stream().map(subscriber -> subscriber.getSubscriber())
+							.collect(Collectors.toSet());
+					if (usersParticipating.contains(user)) {
+
+						eventWithSubscribers.removeSubscriber(user);
+					}
+					// eventWithSubscribersRepository.save(x);
+				}
+
+			}
+			// eventsWithSubscribers.stream().forEach(x -> {
+			// });
+
+		}
+		saveSubscribersForRaid(eventsWithSubscribers);
+		// String time = ;
+
+	}
 }

@@ -17,8 +17,10 @@ package pogorobot.service.db;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,6 +60,7 @@ import pogorobot.events.rocketmap.RocketmapPokemon;
 import pogorobot.service.db.repositories.FilterRepository;
 import pogorobot.service.db.repositories.GeofenceRepository;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
+import pogorobot.service.db.repositories.UserGroupRepository;
 import pogorobot.telegram.util.Type;
 
 @Service("filterService")
@@ -80,6 +83,9 @@ public class FilterServiceImpl implements FilterService {
 
 	@Autowired
 	private PossibleRaidPokemonRepository raidPokemonRepository;
+
+	@Autowired
+	private UserGroupRepository userGroupRepository;
 
 	@Override
 	public List<Filter> getFiltersByType(FilterType type) {
@@ -587,6 +593,118 @@ public class FilterServiceImpl implements FilterService {
 			break;
 		}
 		filterDAO.save(userFilter);
+	}
+
+	@Override
+	@Transactional(TxType.REQUIRED)
+	public Filter retrieveMatchingFilterConditionIv(Long filterId) {
+		Set<Geofence> clonedIvGeofences = new HashSet<>();
+		Filter filter = filterDAO.findById(filterId).orElse(null);
+		Set<Geofence> ivGeofences = filter.getIvGeofences();
+		logger.debug("Filter has {} geofences", ivGeofences.size());
+		for (Geofence geofence : ivGeofences) {
+			Geofence geofenceNew = new Geofence();
+			List<Double> polygon = geofence.getPolygon();
+			logger.debug("There are {} coordinates in this geofence", polygon.size() / 2);
+			geofenceNew.setPolygon(polygon);
+			geofenceNew.setGeofenceName(geofence.getGeofenceName());
+			clonedIvGeofences.add(geofenceNew);
+		}
+		logger.debug(ivGeofences.size() + " geofences found for this filter");
+		Long id = filter.getId();
+		logger.debug("Analyze filter {}", id);
+		// Filter filter = new Filter();
+		Double minIV = filter.getMinIV();
+		Double maxIV = filter.getMaxIV();
+		Double latitude = filter.getLatitude();
+		Double longitude = filter.getLongitude();
+		Double radiusPokemon = filter.getRadiusPokemon();
+		Double radiusIV = filter.getRadiusIV();
+
+		Filter clonedFilter = new Filter();
+		clonedFilter.setMinIV(minIV);
+		clonedFilter.setMaxIV(maxIV);
+		clonedFilter.setLatitude(latitude);
+		clonedFilter.setLongitude(longitude);
+		clonedFilter.setRadiusPokemon(radiusPokemon);
+		clonedFilter.setRadiusIV(radiusIV);
+		clonedFilter.setGeofences(clonedIvGeofences);
+
+		return clonedFilter;
+	}
+
+	@Override
+	@Transactional
+	public Map<Long, String> retrieveUsergroupFilters() {
+		Map<Long, String> usergroupFilters = new HashMap<>();
+		userGroupRepository.findAll().iterator().forEachRemaining(group -> {
+			if (group != null) {
+				Filter groupFilter = group.getGroupFilter();
+				if (groupFilter != null) {
+					Long groupFilterId = groupFilter.getId();
+					Long chatIdLong = group.getChatId();
+					if (groupFilterId != null && chatIdLong != null) {
+						String chatId = String.valueOf(chatIdLong);
+						usergroupFilters.put(groupFilterId, chatId);
+					}
+				}
+			}
+		});
+		return usergroupFilters;
+	}
+
+	@Override
+	@Transactional
+	public Map<String, Long> retrieveChatAndFilter(List<Long> updatedChats) {
+		Map<String, Long> chatAndFilter = new HashMap<>();
+		// Process all users:
+		for (User user : userService.getAllUsers()) {
+			if (user.isShowPokemonMessages()) {
+				String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
+				chatId = "null".equals(chatId) ? null : chatId;
+				if (chatId != null && !updatedChats.contains(Long.valueOf(chatId))) {
+					Long userFilter = user.getUserFilter().getId();
+					chatAndFilter.put(chatId, userFilter);
+				} else {
+					logger.debug("message was already posted (and perhaps edited), no reposting necessary");
+				}
+
+			}
+		}
+		return chatAndFilter;
+	}
+
+	@Override
+	@Transactional
+	public Boolean retrieveMatchingFilterConditionsForPokemon(String chatId, Long pokemonId, Long filterId,
+			Double monLatitude, Double monLongitude) {
+		Boolean matchingFilterCondition = null;
+		Filter filter = filterDAO.findById(filterId).orElse(null);
+		List<Integer> pokemons = filter.getPokemons();
+		if (pokemons != null && pokemonId != null && pokemons.contains(pokemonId.intValue())) {
+			logger.debug("begin of pokemon-search by area/nearby");
+			if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
+				logger.debug("only-iv filtering stops sending message to {}", chatId);
+				return null;
+			}
+			Double latitude = filter.getLatitude();
+			Double longitude = filter.getLongitude();
+			Double radius = filter.getRadiusPokemon();
+			Set<Geofence> geofences = filter.getGeofences();
+
+			logger.debug("begin looking for nearby or geofence");
+			matchingFilterCondition = retrieveNearbyOrInGeofence(latitude, longitude, monLatitude, monLongitude, radius,
+					geofences);
+		}
+		return matchingFilterCondition;
+	}
+
+	private boolean retrieveNearbyOrInGeofence(Double latitude, Double longitude, Double monLatitude,
+			Double monLongitude, Double radius, Set<Geofence> geofences) {
+		boolean nearby = isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radius);
+		boolean pointInOneOfManyGeofences = isPointInOneOfManyGeofences(monLatitude, monLongitude, geofences);
+		boolean nearbyOrInGeofence = nearby || pointInOneOfManyGeofences;
+		return nearbyOrInGeofence;
 	}
 
 }

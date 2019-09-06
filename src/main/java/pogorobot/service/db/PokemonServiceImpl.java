@@ -67,7 +67,29 @@ public class PokemonServiceImpl implements PokemonService {
 
 	@Override
 	@Transactional
-	public void deleteProcessedPokemonOnDatabase() {
+	public List<String> retrieveProcessedPokemonEncounterIds() {
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<ProcessedPokemon> retrieveProcessedMons = cb.createQuery(ProcessedPokemon.class);
+		retrieveProcessedMons.from(ProcessedPokemon.class);
+		List<ProcessedPokemon> processedPokemon = entityManager.createQuery(retrieveProcessedMons).getResultList();
+		List<String> processedMons = processedPokemon.stream().map(processed -> processed.getEncounterId())
+				.collect(Collectors.toList());
+		return processedMons;
+	}
+
+	@Override
+	@Transactional
+	public List<ProcessedPokemon> retrieveProcessedPokemon() {
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<ProcessedPokemon> retrieveProcessedMons = cb.createQuery(ProcessedPokemon.class);
+		retrieveProcessedMons.from(ProcessedPokemon.class);
+		List<ProcessedPokemon> processedPokemon = entityManager.createQuery(retrieveProcessedMons).getResultList();
+		return processedPokemon;
+	}
+
+	@Override
+	@Transactional
+	public List<String> retrievePokemonWithSpawnpointEncounterIds() {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		CriteriaQuery<PokemonWithSpawnpoint> retrieveSpawnpointsWithMon = cb.createQuery(PokemonWithSpawnpoint.class);
 		retrieveSpawnpointsWithMon.from(PokemonWithSpawnpoint.class);
@@ -75,11 +97,17 @@ public class PokemonServiceImpl implements PokemonService {
 		List<PokemonWithSpawnpoint> livePokemon = entityManager.createQuery(retrieveSpawnpointsWithMon).getResultList();
 		List<String> encounterIds = livePokemon.stream().map(pokemon -> pokemon.getEncounterId())
 				.collect(Collectors.toList());
-		CriteriaQuery<ProcessedPokemon> retrieveProcessedMons = cb.createQuery(ProcessedPokemon.class);
-		retrieveProcessedMons.from(ProcessedPokemon.class);
-		List<ProcessedPokemon> processedPokemon = entityManager.createQuery(retrieveProcessedMons).getResultList();
-		List<String> processedMons = processedPokemon.stream().map(processed -> processed.getEncounterId())
-				.collect(Collectors.toList());
+		return encounterIds;
+	}
+
+	/**
+	 * Not used and also does nothing
+	 */
+	@Override
+	@Deprecated
+	public void deleteProcessedPokemonOnDatabase() {
+		List<String> encounterIds = retrievePokemonWithSpawnpointEncounterIds();
+		List<String> processedMons = retrieveProcessedPokemonEncounterIds();
 
 		int numberOfSavedPokemon = 0;
 
@@ -88,6 +116,8 @@ public class PokemonServiceImpl implements PokemonService {
 				numberOfSavedPokemon++;
 			}
 		}
+		List<ProcessedPokemon> processedPokemon = retrieveProcessedPokemon();
+
 		List<Set<SendMessages>> processedMessages = processedPokemon.stream()
 				.map(processed -> processed.getChatsPokemonIsPosted()).collect(Collectors.toList());
 

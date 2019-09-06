@@ -41,13 +41,13 @@ public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 	 * Example of call: <br>
 	 * <br>
 	 * <code>
-	* SendMessage sendMessageRequest = new SendMessage();<br>
-	* sendMessageRequest.setChatId(chatId);<br>
-	* sendMessageRequest.setParseMode("HTML");<br>
-	* sendMessageRequest.setText(text);<br>
-	* sendMessageRequest.setReplyMarkup(replyMarkup); sendTimed(chatId,<br>
-	* sendMessageRequest); // <= Instead of sendMessage() API method<br>
-	* </code>
+	 * SendMessage sendMessageRequest = new SendMessage();<br>
+	 * sendMessageRequest.setChatId(chatId);<br>
+	 * sendMessageRequest.setParseMode("HTML");<br>
+	 * sendMessageRequest.setText(text);<br>
+	 * sendMessageRequest.setReplyMarkup(replyMarkup); <br>
+	 * sendTimed(chatId, sendMessageRequest); // now use this instead of sendMessage() API method<br>
+	 * </code>
 	 **/
 	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
 

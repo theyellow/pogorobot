@@ -24,9 +24,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
@@ -61,6 +63,7 @@ import liquibase.integration.spring.SpringLiquibase;
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
 import pogorobot.entities.PossibleRaidPokemon;
+import pogorobot.entities.SendMessages;
 import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
 import pogorobot.service.ConfigReader;
@@ -69,6 +72,7 @@ import pogorobot.service.TelegramSendMessagesService;
 import pogorobot.service.db.FilterService;
 import pogorobot.service.db.GymService;
 import pogorobot.service.db.PokemonService;
+import pogorobot.service.db.ProcessedElementsServiceRepository;
 import pogorobot.service.db.UserService;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
 import pogorobot.telegram.PogoBot;
@@ -110,11 +114,12 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		this.args = args.getSourceArgs();
 	}
 
-	private Runnable getDeleteOldProcessedMonsTask(PokemonService pokemonService) {
-		return () -> {
-			pokemonService.deleteProcessedPokemonOnDatabase();
-		};
-	}
+	// private Runnable getDeleteOldProcessedMonsTask(PokemonService pokemonService)
+	// {
+	// return () -> {
+	// pokemonService.deleteProcessedPokemonOnDatabase();
+	// };
+	// }
 
 	private Runnable getDeleteOldGymMonsTask(GymService gymService) {
 		return () -> {
@@ -144,19 +149,56 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 	private final class CleanupMessageTask implements Runnable {
 
+		private ProcessedElementsServiceRepository processedElementsService;
 		private TelegramSendMessagesService telegramSendMessagesService;
 
-		public CleanupMessageTask(TelegramSendMessagesService telegramSendMessagesService) {
+		public CleanupMessageTask(ProcessedElementsServiceRepository telegramSendMessagesService1,
+				TelegramSendMessagesService telegramSendMessagesService) {
+			this.processedElementsService = telegramSendMessagesService1;
 			this.telegramSendMessagesService = telegramSendMessagesService;
 		}
 
 		@Override
 		public void run() {
-			try {
-				telegramSendMessagesService.cleanupSendMessage();
-				logger.debug("Cleaned messages...");
-			} catch (TelegramApiException e) {
-				logger.error("Error while deleting messages...", e);
+			long nowInSeconds = System.currentTimeMillis() / 1000;
+			// ProcessedRaids owningRaid = null;
+			// ProcessedPokemon owningMon = null;
+			// String errorsWhileDeleting = "";
+			// StopWatch stopWatch = StopWatch.createStarted();
+
+			StopWatch stopWatch = StopWatch.createStarted();
+			List<SendMessages> messagesWithTimeOver = processedElementsService
+					.retrievePostedMonsterMessagesWithTimeOver(nowInSeconds);
+			messagesWithTimeOver.addAll(processedElementsService.retrievePostedRaidMessagesWithTimeOver(nowInSeconds));
+			// all.addAll(processedElementsService.retrievePostedMessagesWithoutExistingProcessedElement());
+			// try {
+			processedElementsService.cleanupSendMessage(messagesWithTimeOver, nowInSeconds);
+			logger.debug("Cleaned messages...");
+			// toDeleteOnTelegram = deleteMessagesOnTelegram(sendMessagesClone, nowInSeconds
+			// - endTime);
+
+			stopWatch.stop();
+			long time = stopWatch.getTime(TimeUnit.SECONDS);
+			if (time > 10) {
+				logger.warn("slow database and message cleanup took {} seconds", time);
+			} else if (time > 5) {
+				logger.info("database and message cleanup took {} seconds", time);
+			} else {
+				logger.debug("fast database and message cleanup took {} seconds", time);
+			}
+			stopWatch.reset();
+			stopWatch.start();
+			messagesWithTimeOver.forEach(x -> {
+				telegramSendMessagesService.deleteMessagesOnTelegram(x, 1);
+			});
+			stopWatch.stop();
+			time = stopWatch.getTime(TimeUnit.SECONDS);
+			if (time > 10) {
+				logger.warn("slow telegram cleanup took {} seconds", time);
+			} else if (time > 5) {
+				logger.info("telegram message cleanup took {} seconds", time);
+			} else {
+				logger.debug("fast telegram cleanup took {} seconds", time);
 			}
 		}
 	}
@@ -369,6 +411,8 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 		Properties additionalProperties = new Properties();
 		// additionalProperties.put("hibernate.hbm2ddl.auto", "create");
+		// additionalProperties.put("hibernate.show_sql", "true");
+
 		additionalProperties.put("hibernate.dialect", standardConfiguration.getHibernateDialect());
 		additionalProperties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
 		additionalProperties.put("hibernate.jdbc.lob.non_contextual_creation", "true");
@@ -418,6 +462,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			PokemonService pokemonService = ctx.getBean(PokemonService.class);
 			GymService gymService = ctx.getBean(GymService.class);
 			PossibleRaidPokemonRepository raidBossRepository = ctx.getBean(PossibleRaidPokemonRepository.class);
+			ProcessedElementsServiceRepository processedElementsService = ctx.getBean(ProcessedElementsServiceRepository.class);
 			TelegramSendMessagesService telegramSendMessagesService = ctx.getBean(TelegramSendMessagesService.class);
 
 			taskScheduler = new ThreadPoolTaskScheduler();
@@ -433,7 +478,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			taskScheduler.schedule(getReloadConfigurationTask(ctx.getBean(ConfigReader.class)),
 					new CronTrigger("20/50 * * * * *"));
 
-			taskScheduler.schedule(new CleanupMessageTask(telegramSendMessagesService),
+			taskScheduler.schedule(new CleanupMessageTask(processedElementsService, telegramSendMessagesService),
 					new PeriodicTrigger(60 * 1000L));
 			taskScheduler.schedule(new CleanupPokemonTask(pokemonService), new PeriodicTrigger(10 * 60 * 1000L));
 
@@ -479,7 +524,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 				&& standardConfiguration.getPassword().trim().isEmpty() ? null : standardConfiguration.getPassword();
 		dataSource.setPassword(password);
 		dataSource.setMinPoolSize(3);
-		dataSource.setMaxPoolSize(45);
+		dataSource.setMaxPoolSize(80);
 		dataSource.setDebugUnreturnedConnectionStackTraces(true);
 
 		dataSource.setIdleConnectionTestPeriod(2);

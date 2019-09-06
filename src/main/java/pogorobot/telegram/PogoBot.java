@@ -624,7 +624,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 		if (update.hasMessage()) {
 			Message message = update.getMessage();
-			updateUser(message.getFrom());
+			org.telegram.telegrambots.meta.api.objects.User from = message.getFrom();
+			updateUser(from);
 			if (message.hasPhoto()) {
 				Integer highestFilesize = null;
 				String fileId = null;
@@ -666,16 +667,18 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	private void updateUser(org.telegram.telegrambots.meta.api.objects.User from) {
-		User user;
+		// User user;
 		if (userService != null) {
-			user = userService.getOrCreateUser(from.getId().toString());
-			user.setTelegramName(from.getUserName());
-			String prename = from.getFirstName() != null ? from.getFirstName() + " " : "";
-			String surname = from.getLastName() != null ? from.getLastName() : "";
-			user.setName(prename + surname);
-			user.setTelegramId(from.getId().toString());
-			user.setTelegramActive(true);
-			user = userService.updateOrInsertUser(user);
+			userService.createOrUpdateFromTelegramUser(from.getId().toString(), from);
+			// user = userService.getOrCreateUser(from.getId().toString());
+			// user.setTelegramName(from.getUserName());
+			// String prename = from.getFirstName() != null ? from.getFirstName() + " " :
+			// "";
+			// String surname = from.getLastName() != null ? from.getLastName() : "";
+			// user.setName(prename + surname);
+			// user.setTelegramId(from.getId().toString());
+			// user.setTelegramActive(true);
+			// user = userService.updateOrInsertUser(user);
 		}
 	}
 

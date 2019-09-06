@@ -34,8 +34,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
 
-import javax.transaction.Transactional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +58,7 @@ import pogorobot.events.telegrambot.IncomingManualRaid;
 import pogorobot.service.db.EventWithSubscribersService;
 import pogorobot.service.db.FilterService;
 import pogorobot.service.db.GymService;
-import pogorobot.service.db.ProcessedElementsService;
+import pogorobot.service.db.ProcessedElementsServiceRepository;
 import pogorobot.service.db.UserService;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
 import pogorobot.service.db.repositories.ProcessedRaidRepository;
@@ -81,7 +79,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	private UserService userService;
 
 	@Autowired
-	private ProcessedElementsService processedElementsService;
+	private ProcessedElementsServiceRepository processedElementsService;
 
 	@Autowired
 	private FilterService filterService;
@@ -959,7 +957,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		}
 
 		// Attention: Action starts here
-		modifyEvent(commandOrGymId, user, gymId, time);
+		eventWithSubscribersService.modifyEvent(commandOrGymId, user, gymId, time);
 
 		List<EditMessageText> messages = getUpdateRaidMessages(gymId, callbackOriginChatId);
 		// event.getGymId()
@@ -1095,8 +1093,8 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		return result;
 	}
 
-	@Transactional
-	private void modifyEvent(String commandOrGymId, User user, String gymId, String time) {
+	// @Transactional
+	private void modif2yEvent(String commandOrGymId, User user, String gymId, String time) {
 
 		// Gym fullGym = gymService.getGym(gymId);
 		SortedSet<EventWithSubscribers> eventsWithSubscribers = eventWithSubscribersService

@@ -39,7 +39,7 @@ import pogorobot.service.MessageContentProcessor;
 @RestController
 public class WebhookServer {
 
-	private static final int PERIOD = 50;
+	private static final int PERIOD = 5;
 
 	@Autowired
 	private MessageContentProcessor messageContentProcessor;
@@ -109,14 +109,14 @@ public class WebhookServer {
 
 		@Override
 		public void run() {
-			 while (!eventQueue.isEmpty()) {
+			// while (!eventQueue.isEmpty()) {
 				EventMessage<?> eventMessage = eventQueue.poll();
 				if (eventMessage != null) {
 					logger.debug("processing next message: {}", eventMessage);
 					processContent(eventMessage);
 
 				}
-			}
+			// }
 			// else {
 			// logger.debug("incoming queue empty - wait a period of {} ms", PERIOD * 10);
 			// try {

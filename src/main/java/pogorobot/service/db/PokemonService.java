@@ -19,7 +19,10 @@
  */
 package pogorobot.service.db;
 
+import java.util.List;
+
 import pogorobot.entities.PokemonWithSpawnpoint;
+import pogorobot.entities.ProcessedPokemon;
 
 public interface PokemonService {
 
@@ -32,5 +35,11 @@ public interface PokemonService {
 	public void deleteProcessedPokemonOnDatabase();
 
 	public void cleanPokemonWithSpawnpointOnDatabase();
+
+	List<String> retrievePokemonWithSpawnpointEncounterIds();
+
+	List<String> retrieveProcessedPokemonEncounterIds();
+
+	List<ProcessedPokemon> retrieveProcessedPokemon();
 	
 }

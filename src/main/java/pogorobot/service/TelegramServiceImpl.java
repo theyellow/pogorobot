@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
@@ -48,6 +47,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import pogorobot.entities.EventWithSubscribers;
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
+import pogorobot.entities.Geofence;
 import pogorobot.entities.Gym;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.ProcessedPokemon;
@@ -59,6 +59,7 @@ import pogorobot.entities.UserGroup;
 import pogorobot.service.db.EventWithSubscribersService;
 import pogorobot.service.db.FilterService;
 import pogorobot.service.db.GymService;
+import pogorobot.service.db.ProcessedElementsServiceRepository;
 import pogorobot.service.db.UserService;
 import pogorobot.service.db.repositories.FilterRepository;
 import pogorobot.service.db.repositories.ProcessedPokemonRepository;
@@ -109,69 +110,20 @@ public class TelegramServiceImpl implements TelegramService {
 	@Autowired
 	private UserGroupRepository userGroupRepository;
 
+	@Autowired
+	private ProcessedElementsServiceRepository processedElementsService;
+
 	@Override
-	@Transactional(TxType.REQUIRES_NEW)
 	public void triggerPokemonMessages(PokemonWithSpawnpoint pokemon) {
 		if (pokemon.getPokemonId() != null) {
-			boolean deepScan = false;
-
-			List<ProcessedPokemon> processedPokemon = processedPokemonDAO.findByEncounterId(pokemon.getEncounterId());
-			ProcessedPokemon processedMon = null;
 			List<Long> updatedChats = new ArrayList<>();
-			if (processedPokemon != null) {
-				logger.debug("pokemon already encountered with encounterId " + pokemon.getEncounterId() + " , pokemon: "
-						+ pokemon);
-				if (pokemon.getWeight() != null && pokemon.getDisappearTime() != null) {
-					deepScan = true;
-					logger.debug("it's a detailed mon-scan, so check iv-filter again and update message...");
-					if (!processedPokemon.isEmpty()) {
-						List<Set<SendMessages>> possibleMessageIdToUpdate = processedPokemon.stream()
-								.map(x -> x.getChatsPokemonIsPosted()).collect(Collectors.toList());
-						for (Set<SendMessages> set : possibleMessageIdToUpdate) {
-							set.stream().forEach(x -> {
-								SendMessageAnswer updateMonsterMessage = updateMonsterMessage(pokemon, x, true);
-								if (updateMonsterMessage != null) {
-									updatedChats.add(x.getGroupChatId());
-								}
-							});
-						}
-						// return;
-					}
-					// if (processedMon == null) {
-					// ProcessedPokemon newPokemon = new ProcessedPokemon();
-					// newPokemon.setEncounterId(pokemon.getEncounterId());
-					// newPokemon.setEndTime(pokemon.getDisappearTime());
-					// processedMon = processedPokemonDAO.save(newPokemon);
-					// }
-				} else {
-					logger.debug("but it's no detail-scan");
-				}
-			}
+			boolean deepScan = retrieveUpdatedChats(pokemon, false, updatedChats);
+			ProcessedPokemon processedMon = generateNewProcessedMon(pokemon);
+			Map<String, Long> chatAndFilter = filterService.retrieveChatAndFilter(updatedChats);
 
-			if (processedMon == null) {
-				ProcessedPokemon newPokemon = new ProcessedPokemon();
-				newPokemon.setEncounterId(pokemon.getEncounterId());
-				newPokemon.setEndTime(pokemon.getDisappearTime());
-				processedMon = processedPokemonDAO.save(newPokemon);
-			}
-
-			// Process all users:
-			for (User user : userService.getAllUsers()) {
-				if (user.isShowPokemonMessages()) {
-					String chatId = user.getChatId() == null ? user.getTelegramId() : user.getChatId();
-					chatId = "null".equals(chatId) ? null : chatId;
-					Long userFilter = user.getUserFilter().getId();
-					if (chatId != null && !updatedChats.contains(Long.valueOf(chatId))) {
-						CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-								userFilter, deepScan, null);
-						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
-						updateProcessedMonster(processedMon, answer, chatId);
-					} else {
-						logger.debug("message was already posted (and perhaps edited), no reposting necessary");
-					}
-
-				}
-			}
+			chatAndFilter.entrySet().stream().forEach((entry) -> {
+				sendMessageAndUpdate(pokemon, processedMon, deepScan, entry.getKey(), entry.getValue());
+			});
 			// Workaround to get info about deep-scanning param to group-filters
 			final boolean onlyDeep = deepScan;
 
@@ -179,31 +131,14 @@ public class TelegramServiceImpl implements TelegramService {
 			final ProcessedPokemon processedMonFinal = processedMon;
 
 			// Retrieve groupfilter information from db
-			Map<Long, String> usergroupFilters = new HashMap<>();
-			userGroupRepository.findAll().iterator().forEachRemaining(group -> {
-				Long groupFilterId = group.getGroupFilter().getId();
-				String chatId = String.valueOf(group.getChatId());
-
-				usergroupFilters.put(groupFilterId, chatId);
-			});
+			Map<Long, String> usergroupFilters = filterService.retrieveUsergroupFilters();
 
 			// Send messages to all matching groupfilters
 			usergroupFilters.forEach((groupfilterId, chatId) -> {
 				chatId = "null".equals(chatId) ? null : chatId;
 				if (chatId != null && !updatedChats.contains(Long.valueOf(chatId))) {
 					logger.debug("chat {} will be tested with monster encounter {}", chatId, pokemon.getEncounterId());
-					CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId,
-							groupfilterId, onlyDeep, null);
-					if (monsterFuture != null) {
-						SendMessageAnswer answer = getFutureAnswer(monsterFuture);
-						if (answer != null && chatId != null) {
-							updateProcessedMonster(processedMonFinal, answer, chatId);
-						}
-
-					} else {
-						logger.debug("got no future for monster encounter {} in chat {}, filter didn't match?",
-								pokemon.getEncounterId(), chatId);
-					}
+					sendAndUpdateTransactional(pokemon, onlyDeep, processedMonFinal, groupfilterId, chatId);
 				} else {
 					logger.debug("message was already posted (and perhaps edited), no reposting necessary");
 				}
@@ -214,6 +149,161 @@ public class TelegramServiceImpl implements TelegramService {
 
 		} else {
 			logger.debug("No mon-id found");
+		}
+	}
+
+	private void sendAndUpdateTransactional(PokemonWithSpawnpoint pokemon, final boolean onlyDeep,
+			final ProcessedPokemon processedMonFinal, Long groupfilterId, String chatId) {
+		CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId, groupfilterId,
+				onlyDeep, null);
+		if (monsterFuture != null) {
+			SendMessageAnswer answer = getFutureAnswer(monsterFuture);
+			if (answer != null && chatId != null) {
+				processedElementsService.updateProcessedMonster(processedMonFinal, answer, chatId);
+			}
+
+		} else {
+			logger.debug("got no future for monster encounter {} in chat {}, filter didn't match?",
+					pokemon.getEncounterId(), chatId);
+		}
+	}
+
+	// @Transactional
+	// private Map<Long, String> retrieveUsergroupFilters() {
+	// Map<Long, String> usergroupFilters = new HashMap<>();
+	// userGroupRepository.findAll().iterator().forEachRemaining(group -> {
+	// if (group != null) {
+	// Filter groupFilter = group.getGroupFilter();
+	// if (groupFilter != null) {
+	// Long groupFilterId = groupFilter.getId();
+	// Long chatIdLong = group.getChatId();
+	// if (groupFilterId != null && chatIdLong != null) {
+	// String chatId = String.valueOf(chatIdLong);
+	// usergroupFilters.put(groupFilterId, chatId);
+	// }
+	// }
+	// }
+	// });
+	// return usergroupFilters;
+	// }
+	//
+	// @Transactional
+	// private Map<String, Long> retrieveChatAndFilter(List<Long> updatedChats) {
+	// Map<String, Long> chatAndFilter = new HashMap<>();
+	// // Process all users:
+	// for (User user : userService.getAllUsers()) {
+	// if (user.isShowPokemonMessages()) {
+	// String chatId = user.getChatId() == null ? user.getTelegramId() :
+	// user.getChatId();
+	// chatId = "null".equals(chatId) ? null : chatId;
+	// if (chatId != null && !updatedChats.contains(Long.valueOf(chatId))) {
+	// Long userFilter = user.getUserFilter().getId();
+	// chatAndFilter.put(chatId, userFilter);
+	// } else {
+	// logger.debug("message was already posted (and perhaps edited), no reposting
+	// necessary");
+	// }
+	//
+	// }
+	// }
+	// return chatAndFilter;
+	// }
+
+	private void sendMessageAndUpdate(PokemonWithSpawnpoint pokemon, ProcessedPokemon processedMon, boolean deepScan,
+			String chatId, Long userFilter) {
+		CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId, userFilter,
+				deepScan, null);
+		SendMessageAnswer answer = getFutureAnswer(monsterFuture);
+		processedElementsService.updateProcessedMonster(processedMon, answer, chatId);
+	}
+
+	/**
+	 * generate new processedPokemon
+	 * 
+	 * @param pokemon
+	 * @return processedMon
+	 */
+	private ProcessedPokemon generateNewProcessedMon(PokemonWithSpawnpoint pokemon) {
+		ProcessedPokemon newPokemon = new ProcessedPokemon();
+		newPokemon.setEncounterId(pokemon.getEncounterId());
+		newPokemon.setEndTime(pokemon.getDisappearTime());
+		ProcessedPokemon processedMon = processedPokemonDAO.save(newPokemon);
+		return processedMon;
+	}
+
+	private boolean retrieveUpdatedChats(PokemonWithSpawnpoint pokemon, boolean deepScan, List<Long> updatedChats) {
+		List<SendMessages> sendMessageAnswers = new ArrayList<>();
+		List<Set<SendMessages>> possibleMessageIdToUpdate = new ArrayList<>();
+		possibleMessageIdToUpdate = processedElementsService.retrievePossibleMessageIdToUpdate(pokemon, deepScan,
+				updatedChats,
+				sendMessageAnswers);
+		updateMonsterMessages(pokemon, updatedChats, possibleMessageIdToUpdate);
+		return deepScan;
+	}
+
+	// @Transactional(TxType.REQUIRES_NEW)
+	// private List<Set<SendMessages>>
+	// retrievePossibleMessageIdToUpdate(PokemonWithSpawnpoint pokemon, boolean
+	// deepScan,
+	// List<Long> updatedChats, List<SendMessages> sendMessageAnswers) {
+	// List<Set<SendMessages>> possibleMessageIdToUpdate = new ArrayList<>();
+	// List<ProcessedPokemon> processedPokemon =
+	// processedPokemonDAO.findByEncounterId(pokemon.getEncounterId());
+	// logger.debug(" processed pokemon for this encounter",
+	// processedPokemon.size());
+	// if (processedPokemon != null) {
+	// logger.debug("pokemon already encountered with encounterId " +
+	// pokemon.getEncounterId() + " , pokemon: "
+	// + pokemon);
+	// if (pokemon.getWeight() != null && pokemon.getDisappearTime() != null) {
+	// deepScan = true;
+	// logger.debug("it's a detailed mon-scan, so check iv-filter again and update
+	// message...");
+	//
+	// if (!processedPokemon.isEmpty()) {
+	// processedPokemon.forEach(x -> {
+	// Set<SendMessages> chatsPokemonIsPosted = x.getChatsPokemonIsPosted();
+	// logger.debug(chatsPokemonIsPosted.size() + " chats pokemon is posted");
+	// chatsPokemonIsPosted.forEach(y -> {
+	// sendMessageAnswers.add(y);
+	// // SendMessageAnswer updateMonsterMessage = updateMonsterMessage(pokemon, y,
+	// // true);
+	// // if (updateMonsterMessage != null) {
+	// // updatedChats.add(y.getGroupChatId());
+	// // }
+	// });
+	// possibleMessageIdToUpdate.add(chatsPokemonIsPosted);
+	//
+	// // return chatsPokemonIsPosted;
+	// });
+	//
+	// // collect(Collectors.toList());
+	// // return;
+	// }
+	// // if (processedMon == null) {
+	// // ProcessedPokemon newPokemon = new ProcessedPokemon();
+	// // newPokemon.setEncounterId(pokemon.getEncounterId());
+	// // newPokemon.setEndTime(pokemon.getDisappearTime());
+	// // processedMon = processedPokemonDAO.save(newPokemon);
+	// // }
+	// } else {
+	// logger.debug("but it's no detail-scan");
+	// }
+	// }
+	// return possibleMessageIdToUpdate;
+	// // return null;
+	// }
+
+	private void updateMonsterMessages(PokemonWithSpawnpoint pokemon, List<Long> updatedChats,
+			List<Set<SendMessages>> possibleMessageIdToUpdate) {
+		for (Set<SendMessages> set : possibleMessageIdToUpdate) {
+			set.stream().forEach(x -> {
+				SendMessageAnswer updateMonsterMessage = updateMonsterMessage(pokemon, x.getGroupChatId(),
+						x.getMessageId(), true);
+				if (updateMonsterMessage != null) {
+					updatedChats.add(x.getGroupChatId());
+				}
+			});
 		}
 	}
 
@@ -239,14 +329,14 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 	}
 
-	private SendMessageAnswer updateMonsterMessage(PokemonWithSpawnpoint pokemon, SendMessages sendMessage,
+	private SendMessageAnswer updateMonsterMessage(PokemonWithSpawnpoint pokemon, Long chatId, Integer messageId,
 			boolean deepScan) {
 
 		logger.info(
 				"trigger updateMonsterMessage-editmessage future from triggerMonsterMessages for processed monster ");
-		Long chatId = sendMessage.getGroupChatId();
+		// Long chatId = sendMessage.getGroupChatId();
 		CompletableFuture<SendMessageAnswer> future = startSendMonsterFuture(pokemon, chatId.toString(),
-				sendMessage.getMessageId());
+				messageId);
 		SendMessageAnswer answer = getFutureAnswer(future);
 
 		// TODO: This code is possibly missing now
@@ -265,86 +355,84 @@ public class TelegramServiceImpl implements TelegramService {
 			logger.warn("could not find filter without id");
 			return null;
 		}
-
-		logger.debug("begin filter analyze of filter {}", filterId);
-		Filter filter = filterDAO.findById(filterId).orElse(null);
-		if (filter == null) {
-			logger.warn("could not find filter {}", filterId);
-			return null;
-		}
+		Boolean matchingFilterCondition = null;
 		CompletableFuture<SendMessageAnswer> monsterFuture = null;
 		boolean withIv = pokemon.getIndividualAttack() != null && !pokemon.getIndividualAttack().isEmpty();
-		Double radiusPokemon = filter.getRadiusPokemon();
+
+		logger.debug("begin filter analyze of filter {}", filterId);
+		// Double radiusPokemon = filter.getRadiusPokemon();
+
+		// Database access for getting Filter:
+		Filter filter = filterService.retrieveMatchingFilterConditionIv(filterId);
+
+		Boolean nearbyOrInGeofence = null;
 		if (withIv) {
-			logger.debug("ivs given, begin...");
+			logger.debug("ivs given, begin analyze IV for {}", filterId);
+
 			Double minIV = filter.getMinIV();
 			Double maxIV = filter.getMaxIV();
-			if (minIV != null) {
-				logger.debug("begin analyze IV for {}", filter.getId());
-				Integer attack = Integer.valueOf(pokemon.getIndividualAttack());
-				Integer defense = Integer.valueOf(pokemon.getIndividualDefense());
-				Integer stamina = Integer.valueOf(pokemon.getIndividualStamina());
-
-				Double calculatedIVs = telegramTextService.calculateIVs(attack, defense, stamina);
-				boolean ivmatch = minIV <= calculatedIVs;
-				if (maxIV != null) {
-					ivmatch = ivmatch && maxIV >= calculatedIVs;
-				}
-				if (ivmatch) {
-					Double latitude = filter.getLatitude();
-					Double longitude = filter.getLongitude();
-					Double monLatitude = pokemon.getLatitude();
-					Double monLongitude = pokemon.getLongitude();
-					Double radiusIV = filter.getRadiusIV() == null ? radiusPokemon : filter.getRadiusIV();
-					if (radiusIV != null && radiusPokemon != null && radiusIV < radiusPokemon) {
-						radiusIV = radiusPokemon;
-					}
-					// boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude,
-					// latitude, longitude,
-					// radiusIV);
-					if (filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radiusIV)
-							|| filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude,
-									filter.getIvGeofences())
-					// || filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude,
-					// filter.getGeofences())
-					) {
-						logger.debug("start creating new future to send mon {} to {}", pokemon.getPokemonId(), chatId);
-						monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
-						return monsterFuture;
-					} else {
-						logger.info("pokemon {} isn't nearby or in a chosen iv area for filter {}",
-								pokemon.getPokemonId(), filter.getId());
-					}
-				} else {
-					logger.debug("iv didn't match for pokemon {} and filter {} : min iv is {} , calculated iv {}",
-							pokemon.getPokemonId(), filter.getId(), minIV, calculatedIVs);
-				}
-			} else {
-				logger.debug("no min iv given in filter {}", filter.getId());
-			}
-		} else {
-			logger.debug("no iv scanning for filter {} because no iv given for pokemon {} at spawnpoint {}",
-					filter.getId(), pokemon.getPokemonId(), pokemon.getSpawnpointId());
-		}
-		if (filter.getPokemons().contains(pokemon.getPokemonId().intValue())) {
-			logger.debug("begin of pokemon-search by area/nearby");
-			if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
-				logger.debug("only-iv filtering stops sending message to {}", chatId);
-				return null;
-			}
 			Double latitude = filter.getLatitude();
 			Double longitude = filter.getLongitude();
-			Double monLatitude = pokemon.getLatitude();
-			Double monLongitude = pokemon.getLongitude();
-			Double radius = radiusPokemon;
+			Double radiusPokemon = filter.getRadiusPokemon();
+			Double radiusIV = filter.getRadiusIV();
+			Set<Geofence> ivGeofences = filter.getGeofences();
+			logger.debug(ivGeofences.size() + " geofences found for this filter");
 
-			logger.debug("begin looking for nearby or geofence");
-			boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radius);
-			if (nearby || filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude, filter.getGeofences())) {
-				logger.debug("pokemon {} will be send to {}", pokemon.getPokemonId(), chatId);
-				monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
-				return monsterFuture;
-			}
+			nearbyOrInGeofence = isNearbyOrInGeofence(pokemon, withIv, filterId, minIV, maxIV, latitude, longitude,
+					radiusPokemon,
+					radiusIV, ivGeofences);
+		} else {
+			logger.debug("no iv scanning for filter {} because no iv given for pokemon {} at spawnpoint {}", filterId,
+					pokemon.getPokemonId(), pokemon.getSpawnpointId());
+			nearbyOrInGeofence = false;
+		}
+		// if (null == result) {
+		// logger.warn("could not find filter {}", filterId);
+		// return null;
+		// }
+		if (nearbyOrInGeofence) {
+			// || filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude,
+			// filter.getGeofences())
+			logger.debug("start creating new future to send mon {} to {}", pokemon.getPokemonId(), chatId);
+			monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
+			return monsterFuture;
+		}
+
+		matchingFilterCondition = null;
+
+		Double monLatitude = pokemon.getLatitude();
+		Double monLongitude = pokemon.getLongitude();
+		matchingFilterCondition = filterService.retrieveMatchingFilterConditionsForPokemon(chatId, pokemon.getId(),
+				filterId,
+				monLatitude, monLongitude);
+		// Filter filter = filterDAO.findById(filterId).orElse(null);
+		// List<Integer> pokemons = filter.getPokemons();
+		// if (pokemons.contains(pokemon.getPokemonId().intValue())) {
+		// logger.debug("begin of pokemon-search by area/nearby");
+		// if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
+		// logger.debug("only-iv filtering stops sending message to {}", chatId);
+		// return null;
+		// }
+		// Double latitude = filter.getLatitude();
+		// Double longitude = filter.getLongitude();
+		// Double radius = filter.getRadiusPokemon();
+		// Set<Geofence> geofences = filter.getGeofences();
+		//
+		// logger.debug("begin looking for nearby or geofence");
+		// Double monLatitude = pokemon.getLatitude();
+		// Double monLongitude = pokemon.getLongitude();
+		// matchingFilterCondition = retrieveNearbyOrInGeofence(latitude, longitude,
+		// monLatitude, monLongitude, radius, geofences);
+		//
+		// }
+
+		if (null != matchingFilterCondition && matchingFilterCondition) {
+			logger.debug("pokemon {} will be send to {}", pokemon.getPokemonId(), chatId);
+			monsterFuture = startSendMonsterFuture(pokemon, chatId, possibleMessageIdToUpdate);
+			return monsterFuture;
+		} else {
+			logger.debug("only-iv filtering stops sending message to {}", chatId);
+			return null;
 		}
 		// else {
 		// String msg = "no nearby- or area-search for filter " + filter.getId() + "
@@ -361,7 +449,128 @@ public class TelegramServiceImpl implements TelegramService {
 		// }
 		// logger.debug(msg);
 		// }
-		return monsterFuture;
+		// return monsterFuture;
+	}
+
+	// @Transactional
+	// private Boolean retrieveMatchingFilterConditionsForPokemon(String chatId,
+	// Long pokemonId, Long filterId,
+	// Double monLatitude, Double monLongitude) {
+	// Boolean matchingFilterCondition = null;
+	// Filter filter = filterDAO.findById(filterId).orElse(null);
+	// List<Integer> pokemons = filter.getPokemons();
+	// if (pokemons != null && pokemonId != null &&
+	// pokemons.contains(pokemonId.intValue())) {
+	// logger.debug("begin of pokemon-search by area/nearby");
+	// if (filter.getOnlyWithIV() != null && filter.getOnlyWithIV()) {
+	// logger.debug("only-iv filtering stops sending message to {}", chatId);
+	// return null;
+	// }
+	// Double latitude = filter.getLatitude();
+	// Double longitude = filter.getLongitude();
+	// Double radius = filter.getRadiusPokemon();
+	// Set<Geofence> geofences = filter.getGeofences();
+	//
+	// logger.debug("begin looking for nearby or geofence");
+	// matchingFilterCondition = retrieveNearbyOrInGeofence(latitude, longitude,
+	// monLatitude, monLongitude, radius,
+	// geofences);
+	// }
+	// return matchingFilterCondition;
+	// }
+
+	// @Transactional
+	// private Filter cloneToNewFilter(Filter filter) {
+	// Filter clonedFilter = new Filter();
+	// Double minIV = filter.getMinIV();
+	// Double maxIV = filter.getMaxIV();
+	// Double latitude = filter.getLatitude();
+	// Double longitude = filter.getLongitude();
+	// Double radiusPokemon = filter.getRadiusPokemon();
+	// Double radiusIV = filter.getRadiusIV();
+	// logger.debug(filter.getIvGeofences().size() + " geofences found for this
+	// filter");
+	// Set<Geofence> ivGeofences = filter.getIvGeofences();
+	//
+	// clonedFilter.setMinIV(minIV);
+	// clonedFilter.setMaxIV(maxIV);
+	// clonedFilter.setLatitude(latitude);
+	// clonedFilter.setLongitude(longitude);
+	// clonedFilter.setRadiusPokemon(radiusPokemon);
+	// clonedFilter.setRadiusIV(radiusIV);
+	// clonedFilter.setGeofences(ivGeofences);
+	//
+	// return clonedFilter;
+	// }
+
+
+	private boolean isNearbyOrInGeofence(PokemonWithSpawnpoint pokemon, boolean withIV, Long id, Double minIV,
+			Double maxIV,
+			Double latitude, Double longitude, Double radiusPokemon, Double radiusIV, Set<Geofence> ivGeofences) {
+		boolean nearbyOrGeofence = false;
+		if (minIV != null || maxIV != null) {
+			Integer attack = Integer.valueOf(pokemon.getIndividualAttack());
+			Integer defense = Integer.valueOf(pokemon.getIndividualDefense());
+			Integer stamina = Integer.valueOf(pokemon.getIndividualStamina());
+
+			Double calculatedIVs = telegramTextService.calculateIVs(attack, defense, stamina);
+			boolean ivmatch = minIV <= calculatedIVs;
+			if (maxIV != null) {
+				ivmatch = ivmatch && maxIV >= calculatedIVs;
+			}
+			if (ivmatch) {
+
+
+				nearbyOrGeofence = getNearbyOrGeofence(pokemon, latitude, longitude, radiusPokemon, radiusIV,
+						ivGeofences);
+				if (!nearbyOrGeofence) {
+					logger.info("pokemon {} isn't nearby or in a chosen iv area for filter {}",
+							pokemon.getPokemonId(), id);
+				}
+			} else {
+				logger.debug("iv didn't match for pokemon {} and filter {} : min iv is {} , calculated iv {}",
+						pokemon.getPokemonId(), id, minIV, calculatedIVs);
+			}
+		} else {
+			logger.debug("no min iv given in filter {}", id);
+		}
+		return nearbyOrGeofence;
+	}
+
+	private boolean retrieveNearbyOrInGeofence(Double latitude, Double longitude, Double monLatitude,
+			Double monLongitude, Double radius, Set<Geofence> geofences) {
+		boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radius);
+		boolean pointInOneOfManyGeofences = filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude,
+				geofences);
+		boolean nearbyOrInGeofence = nearby || pointInOneOfManyGeofences;
+		return nearbyOrInGeofence;
+	}
+
+	private boolean getNearbyOrGeofence(PokemonWithSpawnpoint pokemon, Double latitude, Double longitude,
+			Double radiusPokemon, Double radiusIV, Set<Geofence> ivGeofences) {
+		// Double latitude = filter.getLatitude();
+		// Double longitude = filter.getLongitude();
+		// Double radiusPokemon = filter.getRadiusPokemon();
+
+		Double monLatitude = pokemon.getLatitude();
+		Double monLongitude = pokemon.getLongitude();
+
+		radiusIV = radiusIV == null ? radiusPokemon : radiusIV;
+		if (radiusIV != null && radiusPokemon != null && radiusIV < radiusPokemon) {
+			radiusIV = radiusPokemon;
+		}
+		// boolean nearby = filterService.isDistanceNearby(monLatitude, monLongitude,
+		// latitude, longitude,
+		// radiusIV);
+		boolean nearbyOrInGeofence = getNearbyOrGeofenceFilterCondition(latitude, longitude, monLatitude,
+				monLongitude, radiusIV, ivGeofences);
+		return nearbyOrInGeofence;
+	}
+
+	private boolean getNearbyOrGeofenceFilterCondition(Double latitude, Double longitude, Double monLatitude,
+			Double monLongitude, Double radiusIV, Set<Geofence> ivGeofences) {
+		return filterService.isDistanceNearby(monLatitude, monLongitude, latitude, longitude, radiusIV)
+				|| filterService.isPointInOneOfManyGeofences(monLatitude, monLongitude, ivGeofences);
 	}
 
 	private CompletableFuture<SendMessageAnswer> startSendMonsterFuture(PokemonWithSpawnpoint pokemon, String chatId,
@@ -577,41 +786,46 @@ public class TelegramServiceImpl implements TelegramService {
 
 	}
 
-	private ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessageAnswer answer,
-			String chatId) {
-		Set<SendMessages> chatsPokemonIsPosted = processedPokemon.getChatsPokemonIsPosted();
-
-		if (chatsPokemonIsPosted == null) {
-			chatsPokemonIsPosted = new HashSet<>();
-		}
-		SendMessages e = new SendMessages();
-		e.setGroupChatId(Long.valueOf(chatId));
-		if (answer != null) {
-			logger.debug("now we have future while sending to group :) The main-message is "
-					+ answer.getMainMessageAnswer());
-			Integer mainMessageAnswer = answer.getMainMessageAnswer();
-			if (mainMessageAnswer != null) {
-				e.setMessageId(mainMessageAnswer);
-			}
-			Integer stickerAnswer = answer.getStickerAnswer();
-			if (stickerAnswer != null) {
-				e.setStickerId(stickerAnswer);
-			}
-			Integer locationAnswer = answer.getLocationAnswer();
-			if (locationAnswer != null) {
-				e.setLocationId(locationAnswer);
-			}
-		} else {
-			logger.debug("got no real answer for monster encounter {} in chat {}", processedPokemon.getEncounterId(),
-					chatId);
-		}
-
-		if (e.getMessageId() != null && e.getGroupChatId() != null) {
-			processedPokemon.addToChatsPokemonIsPosted(e);
-			processedPokemon = processedPokemonDAO.save(processedPokemon);
-		}
-		return processedPokemon;
-	}
+	// @Transactional
+	// private ProcessedPokemon updateProcessedMonster(ProcessedPokemon
+	// processedPokemon, SendMessageAnswer answer,
+	// String chatId) {
+	// Set<SendMessages> chatsPokemonIsPosted =
+	// processedPokemon.getChatsPokemonIsPosted();
+	//
+	// if (chatsPokemonIsPosted == null) {
+	// chatsPokemonIsPosted = new HashSet<>();
+	// }
+	// SendMessages e = new SendMessages();
+	// e.setGroupChatId(Long.valueOf(chatId));
+	// if (answer != null) {
+	// logger.debug("now we have future while sending to group :) The main-message
+	// is "
+	// + answer.getMainMessageAnswer());
+	// Integer mainMessageAnswer = answer.getMainMessageAnswer();
+	// if (mainMessageAnswer != null) {
+	// e.setMessageId(mainMessageAnswer);
+	// }
+	// Integer stickerAnswer = answer.getStickerAnswer();
+	// if (stickerAnswer != null) {
+	// e.setStickerId(stickerAnswer);
+	// }
+	// Integer locationAnswer = answer.getLocationAnswer();
+	// if (locationAnswer != null) {
+	// e.setLocationId(locationAnswer);
+	// }
+	// } else {
+	// logger.debug("got no real answer for monster encounter {} in chat {}",
+	// processedPokemon.getEncounterId(),
+	// chatId);
+	// }
+	//
+	// if (e.getMessageId() != null && e.getGroupChatId() != null) {
+	// processedPokemon.addToChatsPokemonIsPosted(e);
+	// processedPokemon = processedPokemonDAO.save(processedPokemon);
+	// }
+	// return processedPokemon;
+	// }
 
 	private SendMessageAnswer getFutureAnswer(CompletableFuture<SendMessageAnswer> future) {
 		if (future != null) {

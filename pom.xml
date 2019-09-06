@@ -6,7 +6,9 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
 	the specific language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.theyellow</groupId>
 	<artifactId>pogorobot</artifactId>
@@ -152,6 +154,11 @@
 			<artifactId>hibernate-c3p0</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
+		</dependency>
+
 		<!-- liquibase -->
 		<dependency>
 			<groupId>org.liquibase</groupId>
@@ -242,25 +249,55 @@
 				<targetPath>${basedir}/target/</targetPath>
 			</resource>
 		</resources>
-		<filters><filter>bintray-descriptor.json</filter></filters>
-		
+		<filters>
+			<filter>bintray-descriptor.json</filter>
+		</filters>
+
 		<plugins>
+			<plugin>
+				<groupId>org.bsc.maven</groupId>
+				<artifactId>maven-processor-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+					</execution>
+				</executions>
+				<version>3.3.3</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.hibernate</groupId>
+						<artifactId>hibernate-jpamodelgen</artifactId>
+						<version>1.2.0.Final</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<compilerArgument>-proc:none</compilerArgument>
+				</configuration>
+			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<inherited>false</inherited>
 				<configuration>
-<!-- 					<escapeString>\</escapeString> -->
-<!-- 					<outputDirectory>${basedir}/target</outputDirectory> -->
-<!-- 					<resources> -->
-<!-- 						<resource> -->
-<!-- 							<directory>${basedir}</directory> -->
-<!-- 							<include>bintray-descriptor.json</include> -->
-<!-- 							<filtering>true</filtering> -->
-<!-- 						</resource> -->
-<!-- 					</resources> -->
-<!-- 					<nonFilteredFileExtensions> -->
-<!-- 						<nonFilteredFileExtension>json</nonFilteredFileExtension> -->
-<!-- 					</nonFilteredFileExtensions> -->
+					<!-- <escapeString>\</escapeString> -->
+					<!-- <outputDirectory>${basedir}/target</outputDirectory> -->
+					<!-- <resources> -->
+					<!-- <resource> -->
+					<!-- <directory>${basedir}</directory> -->
+					<!-- <include>bintray-descriptor.json</include> -->
+					<!-- <filtering>true</filtering> -->
+					<!-- </resource> -->
+					<!-- </resources> -->
+					<!-- <nonFilteredFileExtensions> -->
+					<!-- <nonFilteredFileExtension>json</nonFilteredFileExtension> -->
+					<!-- </nonFilteredFileExtensions> -->
 				</configuration>
 			</plugin>
 

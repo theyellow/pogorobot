@@ -20,6 +20,7 @@
 package pogorobot.service.db;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.bbn.openmap.geo.GeoArray;
@@ -108,5 +109,14 @@ public interface FilterService {
 	Filter setUserIvRadius(Long telegramId, String radius);
 
 	Double calculateDistanceInKilometer(Double latitude, Double longitude, Double latitude2, Double longitude2);
+
+	Filter retrieveMatchingFilterConditionIv(Long filterId);
+
+	Map<String, Long> retrieveChatAndFilter(List<Long> updatedChats);
+
+	Map<Long, String> retrieveUsergroupFilters();
+
+	Boolean retrieveMatchingFilterConditionsForPokemon(String chatId, Long pokemonId, Long filterId, Double monLatitude,
+			Double monLongitude);
 
 }
