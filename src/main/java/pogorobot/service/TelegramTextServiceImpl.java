@@ -161,7 +161,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		} catch (JSONException ex) {
 			if (!"0".equals(formId)) {
 				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
-						+ "*" + pokemonId + "* -> send message to developer to update internal configuration.");
+						+ " *" + pokemonId + "* -> send message to developer to update internal configuration.");
 			}
 			return result;
 		}
@@ -171,7 +171,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		} else {
 			if (!"0".equals(formId)) {
 				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
-						+ "*" + pokemonId + "* -> send message to developer to update internal configuration.");
+						+ " *" + pokemonId + "* -> send message to developer to update internal configuration.");
 			}
 		}
 		return result;
@@ -186,8 +186,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	private JSONObject getTranslatorFile(String name) {
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		InputStream localeJson = classLoader.getResourceAsStream(name);
+		InputStream localeJson = this.getClass().getClassLoader().getResourceAsStream(name);
 		JSONTokener tokener = new JSONTokener(localeJson);
 		JSONObject json = new JSONObject(tokener);
 		return json;
