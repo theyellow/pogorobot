@@ -309,7 +309,6 @@ public class ProcessedElementsServiceRepositoryImpl implements ProcessedElements
 	 *            before this moment all entries get deleted.
 	 * @param all
 	 * 
-	 * @return deleted messages marked for "telegram deletion"
 	 */
 	@Transactional
 	public void cleanupSendMessagesAndProcessedElementsOnDatabase(long nowInSeconds,

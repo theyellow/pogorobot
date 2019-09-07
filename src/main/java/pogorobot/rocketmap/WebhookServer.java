@@ -85,12 +85,12 @@ public class WebhookServer {
 		return HttpStatus.OK;
 	}
 	
-	/**
-	 * Temporary turn on for debugging raw webhook data
-	 * 
-	 * @param messages
-	 * @return
-	 */
+	// /**
+	// * Temporary turn on for debugging raw webhook data
+	// *
+	// * @param messages
+	// * @return
+	// */
 	// public HttpStatus readFromWebhook(@RequestBody String messages) {
 	// if (messages.contains("invasion")) {
 	// logger.info(messages.toString());

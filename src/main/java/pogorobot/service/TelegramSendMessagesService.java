@@ -63,7 +63,7 @@ public interface TelegramSendMessagesService {
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
 	/**
-	 * Use {@link TelegramSendMessagesService.sendMessageTimed(Long chatId,
+	 * Use {@code TelegramSendMessagesService.sendMessageTimed(Long chatId,
 	 * PartialBotApiMethod<Message> message)} instead.
 	 * 
 	 * @param message
