@@ -140,15 +140,9 @@
 		</dependency>
 
 		<!-- database -->
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-		</dependency>
+		
 
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-		</dependency>
+		
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -407,7 +401,9 @@
 	</build>
 
 	<profiles>
-
+	
+		<!-- Liquibase profiles -->
+		
 		<profile>
 			<id>postgresql-settings</id>
 			<properties>
@@ -641,6 +637,34 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		
+		<!-- Profiles for different databases -->
+		<profile>
+			<id>mysql</id>
+			<build>
+				<finalName>${project.name}-mysql-${project.version}</finalName>
+			</build>
+			<dependencies>
+				<dependency>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+					<version>${mysql.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>postgres</id>
+			<build>
+				<finalName>${project.name}-postgres-${project.version}</finalName>
+			</build>
+			<dependencies>
+				<dependency>
+					<groupId>org.postgresql</groupId>
+					<artifactId>postgresql</artifactId>
+					<version>${postgresql.version}</version>
+				</dependency>
+			</dependencies>
 		</profile>
 	</profiles>
 

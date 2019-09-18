@@ -256,7 +256,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				} else {
 					logger.error(e.getMessage(), e);
 					if (sendMessageAnswer != null) {
-						sendMessages.put(sendMessageAnswer, null);
+						sendMessages.put(sendMessageAnswer, 0);
 					}
 				}
 				if (sendMessageSemaphore != null) {
