@@ -132,10 +132,7 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 		gym.setTeamId(team);
 
 		Boolean exraidEglible;
-		if (park != null) {
-			exraidEglible = park;
-		}
-		exraidEglible = ex_raid_eligible != null ? ex_raid_eligible : park;
+		exraidEglible = ex_raid_eligible;
 
 		if (exraidEglible != null) {
 			if (ex_raid_eligible) {
