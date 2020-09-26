@@ -7,7 +7,7 @@ public class RdmInvasion implements EventMessage<Invasion> {
 
 	@Override
 	public Invasion transformToEntity() {
-		// TODO Auto-generated method stub
+		// TODO Implement invasion
 		return null;
 	}
 
