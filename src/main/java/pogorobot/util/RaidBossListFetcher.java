@@ -171,6 +171,9 @@ public class RaidBossListFetcher {
 		List<String> result = new ArrayList<>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
+		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, ""); // compliant
+		
 		// disable external entities
 		factory.setExpandEntityReferences(false);
 		try {

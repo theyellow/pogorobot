@@ -1,5 +1,5 @@
 /**
- Copyright 2019 Benjamin Marstaller
+ Copyright 2020 Benjamin Marstaller
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -104,12 +104,13 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 					subscriber.setSubscriber(user);
 					mergedSubscribers.add(entityManager.merge(subscriber));
 				} else {
-					System.out.println("Don't know why, but the user is null");
+					logger.warn("Don't know why, but the user is null");
 				}
 			}
 			eventWithSubscribers.getSubscribers().clear();
 			eventWithSubscribers.getSubscribers().addAll(mergedSubscribers);
 			EventWithSubscribers merge = entityManager.merge(eventWithSubscribers);
+			logger.trace("Merged eventWithSubscriber has id: {}", merge.getId());
 		}
 		if (raid != null) {
 			// raid.setEventsWithSubscribers(eventsForRaid);
@@ -144,7 +145,6 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 	}
 
 	@Override
-	@Transactional
 	public void modifyEvent(String commandOrGymId, User user, String gymId, String time) {
 
 		// Gym fullGym = gymService.getGym(gymId);
