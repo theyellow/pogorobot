@@ -32,6 +32,7 @@ import pogorobot.events.EventMessage;
 		@JsonSubTypes.Type(value = WebserviceEventQuest.class, name = "quest"),
 		@JsonSubTypes.Type(value = WebserviceEventInvasion.class, name = "invasion"),
 		@JsonSubTypes.Type(value = WebserviceEventWeather.class, name = "weather"),
+		@JsonSubTypes.Type(value = RdmEventAccount.class, name = "account"),
 		@JsonSubTypes.Type(value = RdmEventPokestop.class, name = "pokestop") })
 public abstract class IncomingEvent<T extends EventMessage<?>> {
 

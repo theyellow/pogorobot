@@ -1,5 +1,5 @@
 /**
- Copyright 2019 Benjamin Marstaller
+ Copyright 2020 Benjamin Marstaller
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public interface PokemonService {
 
 	public PokemonWithSpawnpoint updateOrInsertPokemon(PokemonWithSpawnpoint pokemon);
 
-	public void deleteProcessedPokemonOnDatabase();
+//	public void deleteProcessedPokemonOnDatabase();
 
 	public void cleanPokemonWithSpawnpointOnDatabase();
 

@@ -564,7 +564,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		if (data.length > 1) {
 			String level = data[1];
 			User user = userService.getOrCreateUser(telegramId.toString());
-			String raidLevel = user.getUserFilter().getRaidLevel() == null || user.getUserFilter().getRaidLevel() > 5
+			String raidLevel = user.getUserFilter().getRaidLevel() == null || user.getUserFilter().getRaidLevel() > 6
 					? "keins"
 					: user.getUserFilter().getRaidLevel().toString();
 			if (level.equals(raidLevel)) {

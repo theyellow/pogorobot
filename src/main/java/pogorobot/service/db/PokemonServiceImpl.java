@@ -1,5 +1,5 @@
 /**
- Copyright 2019 Benjamin Marstaller
+ Copyright 2020 Benjamin Marstaller
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -100,44 +100,44 @@ public class PokemonServiceImpl implements PokemonService {
 		return encounterIds;
 	}
 
-	/**
-	 * Not used and also does nothing
-	 */
-	@Override
-	@Deprecated
-	public void deleteProcessedPokemonOnDatabase() {
-		List<String> encounterIds = retrievePokemonWithSpawnpointEncounterIds();
-		List<String> processedMons = retrieveProcessedPokemonEncounterIds();
-
-		int numberOfSavedPokemon = 0;
-
-		for (String encounterId : encounterIds) {
-			if (processedMons.remove(encounterId)) {
-				numberOfSavedPokemon++;
-			}
-		}
-		List<ProcessedPokemon> processedPokemon = retrieveProcessedPokemon();
-
-		List<Set<SendMessages>> processedMessages = processedPokemon.stream()
-				.map(processed -> processed.getChatsPokemonIsPosted()).collect(Collectors.toList());
-
-		StopWatch stopWatch = StopWatch.createStarted();
-		logger.info("Cleaning up processed Pokemon - to delete: " + processedMessages.size() + ", to save: "
-				+ numberOfSavedPokemon);
-		int numberOfDeleted = 0;
-		for (Set<SendMessages> mon : processedMessages) {
-			// processedPokemonDAO.deleteById(mon);
-			// numberOfDeleted++;
-		}
-		// for (Long mon : processedMons) {
-		// processedPokemonDAO.deleteById(mon);
-		// numberOfDeleted++;
-		// }
-		stopWatch.stop();
-		long time = stopWatch.getTime(TimeUnit.SECONDS);
-		logger.info("Cleaning up processed Pokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
-		logger.info("Just a fake, no processedPokemon deleted on database - saved " + numberOfDeleted);
-	}
+//	/**
+//	 * Not used and also does nothing
+//	 */
+//	@Override
+//	@Deprecated
+//	public void deleteProcessedPokemonOnDatabase() {
+//		List<String> encounterIds = retrievePokemonWithSpawnpointEncounterIds();
+//		List<String> processedMons = retrieveProcessedPokemonEncounterIds();
+//
+//		int numberOfSavedPokemon = 0;
+//
+//		for (String encounterId : encounterIds) {
+//			if (processedMons.remove(encounterId)) {
+//				numberOfSavedPokemon++;
+//			}
+//		}
+//		List<ProcessedPokemon> processedPokemon = retrieveProcessedPokemon();
+//
+//		List<Set<SendMessages>> processedMessages = processedPokemon.stream()
+//				.map(processed -> processed.getChatsPokemonIsPosted()).collect(Collectors.toList());
+//
+//		StopWatch stopWatch = StopWatch.createStarted();
+//		logger.info("Cleaning up processed Pokemon - to delete: " + processedMessages.size() + ", to save: "
+//				+ numberOfSavedPokemon);
+//		int numberOfDeleted = 0;
+//		for (Set<SendMessages> mon : processedMessages) {
+//			// processedPokemonDAO.deleteById(mon);
+//			// numberOfDeleted++;
+//		}
+//		// for (Long mon : processedMons) {
+//		// processedPokemonDAO.deleteById(mon);
+//		// numberOfDeleted++;
+//		// }
+//		stopWatch.stop();
+//		long time = stopWatch.getTime(TimeUnit.SECONDS);
+//		logger.info("Cleaning up processed Pokemon - deleted: " + numberOfDeleted + "\nused time: " + time + " secs");
+//		logger.info("Just a fake, no processedPokemon deleted on database - saved " + numberOfDeleted);
+//	}
 
 	@Override
 	@Transactional(TxType.REQUIRES_NEW)

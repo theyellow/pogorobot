@@ -60,6 +60,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional
 	public User createAdmin() {
 		User user = getOrCreateUser("259390556");
 		user.setAdmin(true);
