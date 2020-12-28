@@ -25,7 +25,7 @@ import pogorobot.events.EventMessage;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonSubTypes({ @JsonSubTypes.Type(value = QuestCondition.class, name = "condition"),
 		@JsonSubTypes.Type(value = QuestReward.class, name = "reward") })
-public class RdmQuest implements EventMessage<Quest> {
+public class WebserviceQuest implements EventMessage<Quest> {
 
 	private String pokestop_id;
 	private String pokestop_name;

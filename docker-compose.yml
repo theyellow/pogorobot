@@ -1,0 +1,24 @@
+version: '3.4'
+services:
+  postgres:
+    image: postgres:11
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=telegramdb
+      - POSTGRES_USER=telegram
+      - POSTGRES_PASSWORD=telegram
+      - POSTGRES_SCHEMA=telegram
+    ports:
+      - "5431:5432"
+  pogorobot:
+    container_name: pogorobot_1
+    build: 
+      context: ./
+      args:
+        - JAR_FILE=pogorobot-postgres-1.1.1-SNAPSHOT-exec.jar
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+      - "4711:8000"
+    

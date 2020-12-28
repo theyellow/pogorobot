@@ -16,20 +16,20 @@
 
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.RdmQuest;
+import pogorobot.events.rocketmap.WebserviceQuest;
 
-public class RdmEventQuest extends IncomingEvent<RdmQuest> {
+public class WebserviceEventQuest extends IncomingEvent<WebserviceQuest> {
 
 
-	private RdmQuest message;
+	private WebserviceQuest message;
 	
 	@Override
-	public final RdmQuest getMessage() {
+	public final WebserviceQuest getMessage() {
 		return message;
 	}
 
 	@Override
-	public final void setMessage(RdmQuest message) {
+	public final void setMessage(WebserviceQuest message) {
 		this.message = message;
 	}
 	

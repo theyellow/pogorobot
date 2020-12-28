@@ -144,7 +144,7 @@ public class EventWithSubscribersServiceImpl implements EventWithSubscribersServ
 	}
 
 	@Override
-	@Transactional
+	@Transactional(TxType.REQUIRES_NEW)
 	public void modifyEvent(String commandOrGymId, User user, String gymId, String time) {
 
 		// Gym fullGym = gymService.getGym(gymId);

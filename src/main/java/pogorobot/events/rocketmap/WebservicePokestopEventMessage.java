@@ -19,7 +19,7 @@ package pogorobot.events.rocketmap;
 import pogorobot.entities.Gym;
 import pogorobot.events.EventMessage;
 
-public class RdmPokestop implements EventMessage<Gym> {
+public class WebservicePokestopEventMessage implements EventMessage<Gym> {
 
 	private String gym_id;
 	private Double latitude;

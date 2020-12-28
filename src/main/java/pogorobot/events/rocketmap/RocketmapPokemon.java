@@ -242,7 +242,7 @@ public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
 
 		// Hack: misuse of field playerLevel with pokemon level
 		// pokemon.setPlayerLevel(player_level);
-		pokemon.setPlayerLevel(pokemon_level != null ? Long.valueOf(pokemon_level) : -1);
+		pokemon.setPlayerLevel(extractLongFromFloatString(pokemon_level));
 		pokemon.setLatitude(latitude);
 		pokemon.setLongitude(longitude);
 
@@ -273,6 +273,14 @@ public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
 		pokemon.setMove2(move_2);
 		pokemon.setWeatherBoosted(weather_boosted_condition);
 		return pokemon;
+	}
+
+	private Long extractLongFromFloatString(String floatString) {
+		long returnValue = -1;
+		if (floatString != null) {
+			returnValue = Math.round(Float.valueOf(floatString)); 
+		}
+		return returnValue;
 	}
 
 	public final String getCp() {

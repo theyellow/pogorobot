@@ -16,19 +16,19 @@
 
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.RdmPokestop;
+import pogorobot.events.rocketmap.WebservicePokestopEventMessage;
 
-public class RdmEventPokestop extends IncomingEvent<RdmPokestop> {
+public class RdmEventPokestop extends IncomingEvent<WebservicePokestopEventMessage> {
 
-	private RdmPokestop message;
+	private WebservicePokestopEventMessage message;
 	
 	@Override
-	public final RdmPokestop getMessage() {
+	public final WebservicePokestopEventMessage getMessage() {
 		return message;
 	}
 
 	@Override
-	public final void setMessage(RdmPokestop message) {
+	public final void setMessage(WebservicePokestopEventMessage message) {
 		this.message = message;
 	}
 	

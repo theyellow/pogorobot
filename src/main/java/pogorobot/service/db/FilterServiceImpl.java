@@ -15,6 +15,7 @@
 */
 package pogorobot.service.db;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,12 +27,16 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaBuilder.In;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
@@ -47,12 +52,15 @@ import com.bbn.openmap.geo.Intersection;
 import pogorobot.entities.EggWithGym;
 import pogorobot.entities.Filter;
 import pogorobot.entities.FilterType;
+import pogorobot.entities.Filter_;
 import pogorobot.entities.Geofence;
 import pogorobot.entities.Gym;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.PossibleRaidPokemon;
 import pogorobot.entities.RaidWithGym;
 import pogorobot.entities.User;
+import pogorobot.entities.UserGroup;
+import pogorobot.entities.UserGroup_;
 import pogorobot.events.EventMessage;
 import pogorobot.events.rocketmap.RocketmapEgg;
 import pogorobot.events.rocketmap.RocketmapGym;
@@ -62,6 +70,7 @@ import pogorobot.service.db.repositories.GeofenceRepository;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
 import pogorobot.service.db.repositories.UserGroupRepository;
 import pogorobot.telegram.util.Type;
+import pogorobot.util.Pair;
 
 @Service("filterService")
 public class FilterServiceImpl implements FilterService {
@@ -636,21 +645,110 @@ public class FilterServiceImpl implements FilterService {
 	@Override
 	@Transactional
 	public Map<Long, String> retrieveUsergroupFilters() {
-		Map<Long, String> usergroupFilters = new HashMap<>();
-		userGroupRepository.findAll().iterator().forEachRemaining(group -> {
-			if (group != null) {
-				Filter groupFilter = group.getGroupFilter();
-				if (groupFilter != null) {
-					Long groupFilterId = groupFilter.getId();
-					Long chatIdLong = group.getChatId();
-					if (groupFilterId != null && chatIdLong != null) {
-						String chatId = String.valueOf(chatIdLong);
-						usergroupFilters.put(groupFilterId, chatId);
-					}
-				}
-			}
-		});
-		return usergroupFilters;
+		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		CriteriaQuery<Tuple> criteriaQuery = cb.createTupleQuery();
+		Root<UserGroup> group = criteriaQuery.from(UserGroup.class);
+		Join<UserGroup, Filter> groupFilter = group.join(UserGroup_.groupFilter);
+//		Path<Filter> path = group.get(UserGroup_.groupFilter); // field to map with sub-query
+////		Fetch<UserGroup, Long> fetch = from.fetch(UserGroup_.chatId);
+//
+//		groupFilter.
+//		Subquery<Filter> subquery = criteriaQuery.subquery(Filter.class);
+//
+//		Root<Filter> fromProject = subquery.from(Filter.class);
+//
+//		Path<Serializable> filterId = fromProject.get(Filter_.id);
+//
+//		Path<Filter> expression = fromProject.get(Filter_.id.getName());
+//
+//		subquery.select(expression); // field to map with main-query
+//		// subquery.where(cb.and(cb.equal(,name_value),cb.equal("id",id_value)));
+//
+//		cb.construct(UserGroup.class, subquery.getSelection());
+
+		CriteriaQuery<Tuple> select = criteriaQuery.multiselect(groupFilter.get(Filter_.id), group.get(UserGroup_.chatId));
+//		select.where(groupFilter);
+
+
+		// criteriaQuery = criteriaQuery.where(cb.equal(from.get("group"), group));
+
+		TypedQuery<Tuple> query = entityManager.createQuery(select);
+
+		List<Tuple> resultList = query.getResultList();
+
+//		List<Pair<UserGroup, Long>> usergroupFilters = new ArrayList<>();
+//
+//		for (Tuple tuple : resultList) {
+//			Pair<UserGroup, Long> pair = new Pair<>();
+//			pair.setKey((UserGroup) tuple.get(0));
+//
+//			pair.setValue((Long) tuple.get(1));
+//			usergroupFilters.add(pair);
+//		}
+		// List<Filter> resultList = query.getResultList();
+		// resultList.stream().forEach(groupFilter -> {
+		// if (groupFilter != null) {
+		// Long groupFilterId = groupFilter.getId();
+		// Long chatIdLong = groupFilter.getChatId();
+		// if (groupFilterId != null && chatIdLong != null) {
+		// String chatId = String.valueOf(chatIdLong);
+		// usergroupFilters.put(groupFilterId, chatId);
+		// }
+		// }
+		// });
+
+		// CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+		// CriteriaQuery<UserGroup> criteriaQuery = cb.createQuery(UserGroup.class);
+		// Root<UserGroup> from = criteriaQuery.from(UserGroup.class);
+		// Path<Filter> path = from.get(UserGroup_.groupFilter); // field to map with
+		// sub-query
+		// Fetch<UserGroup, Long> fetch = from.fetch(UserGroup_.chatId);
+		//
+		// CriteriaQuery<UserGroup> select = criteriaQuery.select(from);
+		//
+		// Subquery<Filter> subquery = criteriaQuery.subquery(Filter.class);
+		//
+		// Root<Filter> fromProject = subquery.from(Filter.class);
+		// Path<Serializable> filterId = fromProject.get(Filter_.id);
+		//
+		// subquery.select(fromProject.get(Filter_.id.getName())); // field to map with
+		// main-query
+		// // subquery.where(cb.and(cb.equal(,name_value),cb.equal("id",id_value)));
+		//
+		// select.where(cb.in(path).value(subquery));
+		//
+		// // criteriaQuery = criteriaQuery.where(cb.equal(from.get("group"), group));
+		//
+		// Map<Long, String> usergroupFilters = new HashMap<>();
+		// TypedQuery<Filter> query = entityManager.createQuery(select);
+		// List<Filter> resultList = query.getResultList();
+		// resultList.stream().forEach(groupFilter -> {
+		// if (groupFilter != null) {
+		// Long groupFilterId = groupFilter.getId();
+		// Long chatIdLong = groupFilter.getChatId();
+		// if (groupFilterId != null && chatIdLong != null) {
+		// String chatId = String.valueOf(chatIdLong);
+		// usergroupFilters.put(groupFilterId, chatId);
+		// }
+		// }
+		// });
+
+		// userGroupRepository.findAll().iterator().forEachRemaining(group -> {
+		// if (group != null) {
+		// Filter groupFilter = group.getGroupFilter();
+		// if (groupFilter != null) {
+		// Long groupFilterId = groupFilter.getId();
+		// Long chatIdLong = group.getChatId();
+		// if (groupFilterId != null && chatIdLong != null) {
+		// String chatId = String.valueOf(chatIdLong);
+		// usergroupFilters.put(groupFilterId, chatId);
+		// }
+		// }
+		// }
+		// });
+		Map<Long, String> typedUsergroupFilters = new HashMap<Long, String>();
+		resultList.stream().forEach(p -> typedUsergroupFilters.put(Long.valueOf(String.valueOf(p.get(0))), String.valueOf(p.get(1))));
+		return typedUsergroupFilters;
 	}
 
 	@Override

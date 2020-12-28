@@ -27,8 +27,8 @@ import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.RaidWithGym;
 import pogorobot.events.EventMessage;
-import pogorobot.events.rocketmap.RdmInvasion;
-import pogorobot.events.rocketmap.RdmQuest;
+import pogorobot.events.rocketmap.WebserviceInvasionEventMessage;
+import pogorobot.events.rocketmap.WebserviceQuest;
 import pogorobot.events.rocketmap.RocketmapEgg;
 import pogorobot.events.rocketmap.RocketmapGym;
 import pogorobot.events.rocketmap.RocketmapRaid;
@@ -118,11 +118,11 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 		} else if (entity instanceof PokemonWithSpawnpoint) {
 			pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
 			telegramService.triggerPokemonMessages((PokemonWithSpawnpoint) entity);
-		} else if (message instanceof RdmQuest) {
-			logger.trace("Quest found " + ((RdmQuest) message).toString());
+		} else if (message instanceof WebserviceQuest) {
+			logger.trace("Quest found " + ((WebserviceQuest) message).toString());
 			// logger.info(message + "");
-		} else if (message instanceof RdmInvasion) {
-			logger.trace("Invasion found " + ((RdmInvasion) message).toString());
+		} else if (message instanceof WebserviceInvasionEventMessage) {
+			logger.trace("Invasion found " + ((WebserviceInvasionEventMessage) message).toString());
 			// logger.info(message.toString());
 		}
 		return message;

@@ -293,14 +293,14 @@ public class PoGoRobotApplication implements ApplicationRunner {
 						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesiv.txt")).toMillis();
 			} catch (IOException e) {
 				timestampGroupGeofencesFileIv = 0;
-				logger.error("Couldn't retrieve timestamps for individual iv geofences settings at " + relativePath);
+				logger.debug("Couldn't retrieve timestamps for individual iv geofences settings at " + relativePath);
 			}
 			try {
 				timestampGroupGeofencesFileMonster = Files
 						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesmonsters.txt")).toMillis();
 			} catch (IOException e) {
 				timestampGroupGeofencesFileMonster = 0;
-				logger.error(
+				logger.debug(
 						"Couldn't retrieve timestamps for individual monster geofences settings at " + relativePath);
 			}
 			try {
@@ -309,7 +309,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 			} catch (IOException e) {
 				timestampGroupGeofencesFileRaids = 0;
-				logger.error("Couldn't retrieve timestamps for special raid geofences settings at " + relativePath);
+				logger.debug("Couldn't retrieve timestamps for special raid geofences settings at " + relativePath);
 			}
 
 		}
