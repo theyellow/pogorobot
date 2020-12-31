@@ -1,5 +1,5 @@
 language: java
-jdk: openjdk8
+jdk: openjdk11
 install: true
 script:
   - export DATE_TIME=`date +'%y.%m.%d %H:%M:%S'`
