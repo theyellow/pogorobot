@@ -14,12 +14,12 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.events.EventMessage;
 
-public class RocketmapPokemon implements EventMessage<PokemonWithSpawnpoint> {
+public class WebservicePokemon implements EventMessage<PokemonWithSpawnpoint> {
 
 	private String spawnpoint_id;
 	private String encounter_id;

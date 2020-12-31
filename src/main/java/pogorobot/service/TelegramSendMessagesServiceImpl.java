@@ -270,19 +270,55 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			}
 			mutex.release();
 		} else if (message instanceof EditMessageText) {
-			EditMessageText editMessage = ((EditMessageText) message).enableMarkdown(true);
+			EditMessageText editMessage = ((EditMessageText) message);
+			editMessage.enableMarkdown(true);
 			Integer next = sendMessageIterator.next();
 			pogoBot.putSendMessages(next, 0);
 			pogoBot.sendTimed(Long.valueOf(editMessage.getChatId()), editMessage, next, mutex);
 			mutex.acquire();
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
-			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE
+				|| sendMessagesInternalId == Integer.MAX_VALUE) {
 				pogoBot.removeSendMessage(next);
 			} else {
 				answer.setMainMessageAnswer(sendMessagesInternalId);
 				pogoBot.removeSendMessage(next);
 			}
 			mutex.release();
+		} else if (message instanceof DeleteMessage) {
+			Integer sendMessagesInternalId = null;
+			DeleteMessage deleteMessage = (DeleteMessage) message;
+//			Semaphore mutex = new Semaphore(1);
+			try {
+				// pogoBot.execute(deleteMessage);
+				// Hack for not mixing up ids:
+				// TODO: cleanup
+				Integer next = sendMessageIterator.next() - Integer.MIN_VALUE + 2;
+				pogoBot.putSendMessages(next, 0);
+				pogoBot.sendTimed(Long.valueOf(deleteMessage.getChatId()), deleteMessage, next, mutex);
+				logger.info("waiting delete message " + deleteMessage.getMessageId() + " for chat '" + deleteMessage.getChatId() + "'");
+				// waitUntilPosted(next);
+				boolean acquired = mutex.tryAcquire(1000, TimeUnit.MILLISECONDS);
+				if (acquired) {
+					sendMessagesInternalId = pogoBot.getSendMessages(next);
+					if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE 
+							|| sendMessagesInternalId == Integer.MAX_VALUE) {
+						pogoBot.removeSendMessage(next);
+					} else {
+						answer.setMainMessageAnswer(sendMessagesInternalId);
+						pogoBot.removeSendMessage(next);
+					}
+					mutex.release();
+				}
+			} catch (Exception e) {
+				logger.error("delete message " + deleteMessage.getMessageId() + " failed in chat: '" + deleteMessage.getChatId() + "'", e.getCause());
+				logger.error("message: " + e.getMessage(), e);
+				if (e instanceof TelegramApiException) {
+					throw (TelegramApiException) e;
+				} else if (e instanceof Exception) {
+					throw new TelegramApiException(e);
+				}
+			}
 		}
 		if (location != null) {
 			if (!isGroupMessage) {
@@ -293,7 +329,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			pogoBot.sendTimed(Long.valueOf(location.getChatId()), location, next, mutex);
 			mutex.acquire();
 			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
-			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE) {
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE 
+					|| sendMessagesInternalId == Integer.MAX_VALUE) {
 				pogoBot.removeSendMessage(next);
 			} else {
 				answer.setMainMessageAnswer(sendMessagesInternalId);
@@ -330,28 +367,25 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		// TODO: Refactor with this raidPokemon and call to different methods for
 		// monsters and egg/raids
 		Type type = null;
-		Boolean raidPokemon = null;
 		if (pokemon == null && fullGym != null) {
-			raidPokemon = true;
 			type = Type.RAID;
 		} else if (pokemon != null && fullGym == null) {
-			raidPokemon = false;
 			type = Type.POKEMON;
 		} else {
 			logger.warn("tried to send mon-message without mon or gym...");
 			return null;
 		}
 
-		Double latitude = raidPokemon ? fullGym.getLatitude() : pokemon.getLatitude();
-		Double longitude = raidPokemon ? fullGym.getLongitude() : pokemon.getLongitude();
-		Raid raid = raidPokemon ? fullGym.getRaid() : null;
+		Double latitude = type.equals(Type.RAID) ? fullGym.getLatitude() : pokemon.getLatitude();
+		Double longitude = type.equals(Type.RAID) ? fullGym.getLongitude() : pokemon.getLongitude();
+		Raid raid = type.equals(Type.RAID) ? fullGym.getRaid() : null;
 
 		// Meanings (if it's a raid, for monsters it's always positive):
 		// idForSticker > 0 -> monster-sticker
 		// idForSticker < 0 -> egg-sticker
 		// idForSticker = 0 -> shouldn't happen
 		int stickerId = 0;
-		if (raidPokemon) {
+		if (type.equals(Type.RAID)) {
 			Long pokemonId = raid.getPokemonId();
 			boolean isEgg = pokemonId == null || pokemonId <= 0L;
 			logger.debug("get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
@@ -363,7 +397,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 
 		String gymId = fullGym == null ? null : fullGym.getGymId();
 		String messageText = "";
-		if (raidPokemon) {
+		if (type.equals(Type.RAID)) {
 			String raidMessagePokemonText = telegramTextService.getRaidMessagePokemonText(fullGym);
 			String participantsText = telegramTextService.getParticipantsText(eventWithSubscribers);
 			messageText = raidMessagePokemonText + participantsText;
@@ -374,7 +408,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
 		String stUrl = telegramTextService.getStickerUrl(stickerId);
-		return sendMessages(chatId, stUrl, latitude, longitude, messageText, !raidPokemon, eventWithSubscribers, gymId,
+		return sendMessages(chatId, stUrl, latitude, longitude, messageText, type.equals(Type.POKEMON), eventWithSubscribers, gymId,
 				possibleMessageIdToUpdate);
 	}
 
@@ -478,7 +512,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		SendSticker stickerMessage = new SendSticker();
 		stickerMessage.setChatId(chatId);
 		stickerMessage.disableNotification();
-		stickerMessage.setSticker(stickerUrl);
+		
+		// TODO: reenable stickers
+//		stickerMessage.setSticker(stickerUrl);
 		return stickerMessage;
 	}
 
@@ -486,8 +522,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		SendLocation location = new SendLocation();
 		location.setChatId(chatId);
 		location.disableNotification();
-		location.setLatitude(latitude.floatValue());
-		location.setLongitude(longitude.floatValue());
+		location.setLatitude(latitude);
+		location.setLongitude(longitude);
 		return location;
 	}
 
@@ -601,34 +637,20 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	public boolean deleteMessage(Long groupChatId, Integer messageId) throws TelegramApiException {
 		DeleteMessage deleteMessage;
 		if (messageId != null) {
-			deleteMessage = new DeleteMessage(groupChatId, messageId);
-			Integer sendMessagesInternalId = null;
-			Semaphore mutex = new Semaphore(1);
+			deleteMessage = new DeleteMessage(Long.toString(groupChatId), messageId);
+			SendMessageAnswer sendMessageAnswer = null;
 			try {
-				// pogoBot.execute(deleteMessage);
-				// Hack for not mixing up ids:
-				// TODO: cleanup
-				Integer next = sendMessageIterator.next() - Integer.MIN_VALUE + 2;
-				pogoBot.putSendMessages(next, 0);
-				pogoBot.sendTimed(groupChatId, deleteMessage, next, mutex);
-				logger.info("waiting delete message " + messageId + " for chat '" + groupChatId + "'");
-				// waitUntilPosted(next);
-				boolean acquired = mutex.tryAcquire(1000, TimeUnit.MILLISECONDS);
-				if (acquired) {
-					sendMessagesInternalId = pogoBot.getSendMessages(next);
-				}
-				pogoBot.removeSendMessage(next);
-				mutex.release();
-			} catch (Exception e) {
-				logger.error("delete message " + messageId + " failed in chat: '" + groupChatId + "'", e.getCause());
-				logger.error("message: " + e.getMessage(), e);
-				if (e instanceof TelegramApiException) {
-					throw (TelegramApiException) e;
-				} else if (e instanceof Exception) {
-					throw new TelegramApiException(e);
-				}
+				sendMessageAnswer = sendAllMessagesForEventInternally(null, deleteMessage, null, true);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				logger.warn("InterruptedException: Errors while sending deleteMessage to telegram. Sytem threw ", e1.getLocalizedMessage());
+			} catch (TelegramApiException tae) {
+				// TODO Auto-generated catch block
+				throw tae;
 			}
-			if (sendMessagesInternalId != null && sendMessagesInternalId == Integer.MAX_VALUE) {
+			if (sendMessageAnswer != null && sendMessageAnswer.getMainMessageAnswer() != null)
+			{
+				logger.info("deleteMessage in telegram gave true with mainAnswer: " + sendMessageAnswer.getMainMessageAnswer());
 				return true;
 			} else {
 				return false;

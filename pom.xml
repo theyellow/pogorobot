@@ -43,7 +43,7 @@
 		<dbunit.operation.type>CLEAN_INSERT</dbunit.operation.type>
 
 		<liquibase-maven-plugin.version>3.6.3</liquibase-maven-plugin.version>
-		
+
 		<mysql.version>8.0.17</mysql.version>
 		<postgresql.version>42.2.5</postgresql.version>
 		<liquibase.hibernate.version>3.6</liquibase.hibernate.version>
@@ -52,8 +52,8 @@
 		<dockerfile-maven-version>1.4.10</dockerfile-maven-version>
 		<docker.image.prefix>theyellow</docker.image.prefix>
 
-		<telegrambots.version>4.1.2</telegrambots.version>
-		<telegrambots-extensions.version>4.1.2</telegrambots-extensions.version>
+		<telegrambots.version>5.0.1</telegrambots.version>
+		<telegrambots-extensions.version>5.0.1</telegrambots-extensions.version>
 
 		<javax.interceptor-api.version>1.2</javax.interceptor-api.version>
 
@@ -140,9 +140,9 @@
 		</dependency>
 
 		<!-- database -->
-		
 
-		
+
+
 
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -250,17 +250,40 @@
 
 		<plugins>
 			<plugin>
-				<groupId>org.bsc.maven</groupId>
-				<artifactId>maven-processor-plugin</artifactId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<!-- <version>2.4.1</version> -->
 				<executions>
 					<execution>
+						<id>default-clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+					<!-- Added to clean up any precompiled classes before generating sources 
+						to prevent duplicate class errors. -->
+					<execution>
+						<id>clean-before-generate-sources</id>
 						<phase>generate-sources</phase>
 						<goals>
-							<goal>process</goal>
+							<goal>clean</goal>
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.bsc.maven</groupId>
+				<artifactId>maven-processor-plugin</artifactId>
 				<version>3.3.3</version>
+				<executions>
+					<execution>
+						<id>process</id>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<phase>generate-sources</phase>
+					</execution>
+				</executions>
 				<dependencies>
 					<dependency>
 						<groupId>org.hibernate</groupId>
@@ -401,9 +424,9 @@
 	</build>
 
 	<profiles>
-	
+
 		<!-- Liquibase profiles -->
-		
+
 		<profile>
 			<id>postgresql-settings</id>
 			<properties>
@@ -638,7 +661,7 @@
 				</plugins>
 			</build>
 		</profile>
-		
+
 		<!-- Profiles for different databases -->
 		<profile>
 			<id>mysql</id>

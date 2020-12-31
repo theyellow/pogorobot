@@ -16,17 +16,17 @@
 
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.RocketmapRaid;
+import pogorobot.events.webservice.WebserviceRaid;
 
-public class RocketmapEventRaid extends IncomingEvent<RocketmapRaid> {
+public class RocketmapEventRaid extends IncomingEvent<WebserviceRaid> {
 
-	private RocketmapRaid message;
+	private WebserviceRaid message;
 	
-	public final RocketmapRaid getMessage() {
+	public final WebserviceRaid getMessage() {
 		return message;
 	}
 
-	public final void setMessage(RocketmapRaid message) {
+	public final void setMessage(WebserviceRaid message) {
 		this.message = message;
 	}
 	

@@ -27,11 +27,11 @@ import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.RaidWithGym;
 import pogorobot.events.EventMessage;
-import pogorobot.events.rocketmap.WebserviceInvasionEventMessage;
-import pogorobot.events.rocketmap.WebserviceQuest;
-import pogorobot.events.rocketmap.RocketmapEgg;
-import pogorobot.events.rocketmap.RocketmapGym;
-import pogorobot.events.rocketmap.RocketmapRaid;
+import pogorobot.events.webservice.WebserviceEgg;
+import pogorobot.events.webservice.WebserviceGym;
+import pogorobot.events.webservice.WebserviceInvasionEventMessage;
+import pogorobot.events.webservice.WebserviceQuest;
+import pogorobot.events.webservice.WebserviceRaid;
 import pogorobot.service.db.GymService;
 import pogorobot.service.db.PokemonService;
 
@@ -53,10 +53,10 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 	public <T> EventMessage<T> processContent(EventMessage<T> message) {
 		T entity = message.transformToEntity();
 		// Hack: if gym not exists with lat/long we have a problem -> pgss
-		if (message instanceof RocketmapRaid) {
-			RocketmapRaid rocketmapRaid = ((RocketmapRaid) message);
+		if (message instanceof WebserviceRaid) {
+			WebserviceRaid rocketmapRaid = ((WebserviceRaid) message);
 			if (rocketmapRaid.getName() != null && !rocketmapRaid.getName().isEmpty()) {
-				RocketmapGym rocketmapGym = new RocketmapGym();
+				WebserviceGym rocketmapGym = new WebserviceGym();
 				rocketmapGym.setGym_id(rocketmapRaid.getGym_id());
 				rocketmapGym.setName(rocketmapRaid.getName());
 				rocketmapGym.setMove_1(rocketmapRaid.getMove_1());
@@ -69,10 +69,10 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				logger.debug(message.toString());
 				processContent(rocketmapGym);
 			}
-		} else if (message instanceof RocketmapEgg) {
-			RocketmapEgg rocketmapEgg = ((RocketmapEgg) message);
+		} else if (message instanceof WebserviceEgg) {
+			WebserviceEgg rocketmapEgg = ((WebserviceEgg) message);
 			if (rocketmapEgg.getName() != null && !rocketmapEgg.getName().isEmpty()) {
-				RocketmapGym rocketmapGym = new RocketmapGym();
+				WebserviceGym rocketmapGym = new WebserviceGym();
 				rocketmapGym.setGym_id(rocketmapEgg.getGym_id());
 				rocketmapGym.setName(rocketmapEgg.getName());
 				rocketmapGym.setUrl(rocketmapEgg.getUrl());

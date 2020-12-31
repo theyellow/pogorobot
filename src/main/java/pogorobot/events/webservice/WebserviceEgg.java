@@ -14,13 +14,13 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
+import pogorobot.entities.EggWithGym;
 import pogorobot.entities.Raid;
-import pogorobot.entities.RaidWithGym;
 import pogorobot.events.EventMessage;
 
-public class RocketmapRaid implements EventMessage<Raid> {
+public class WebserviceEgg implements EventMessage<Raid> {
 
 	private String gym_id;
 	private Double latitude;
@@ -30,29 +30,20 @@ public class RocketmapRaid implements EventMessage<Raid> {
 	private Long end;
 	private Long level;
 	private Long pokemon_id;
-	private Long cp;
-	private String name;
-	private String gym_name;
-	private String url;
-	private String move_1;
-	private String move_2;
-	private String ex_raid_eligible;
+	private String exraid_eglible;
 	private String sponsor_id;
+	private String url;
+//	private Long cp;
+//	private String move_1;
+//	private String move_2;
+	private String name;
 
-	public String getEx_raid_eligible() {
-		return ex_raid_eligible;
+	public final String getGym_id() {
+		return gym_id;
 	}
 
-	public void setEx_raid_eligible(String ex_raid_eligible) {
-		this.ex_raid_eligible = ex_raid_eligible;
-	}
-
-	public String getSponsor_id() {
-		return sponsor_id;
-	}
-
-	public void setSponsor_id(String sponsor_id) {
-		this.sponsor_id = sponsor_id;
+	public final void setGym_id(String gym_id) {
+		this.gym_id = gym_id;
 	}
 
 	public final String getUrl() {
@@ -69,14 +60,6 @@ public class RocketmapRaid implements EventMessage<Raid> {
 
 	public final void setName(String name) {
 		this.name = name;
-	}
-
-	public final String getGym_id() {
-		return gym_id;
-	}
-
-	public final void setGym_id(String gym_id) {
-		this.gym_id = gym_id;
 	}
 
 	public final Double getLatitude() {
@@ -135,70 +118,75 @@ public class RocketmapRaid implements EventMessage<Raid> {
 		this.pokemon_id = pokemon_id;
 	}
 
-	public final Long getCp() {
-		return cp;
+//	public final Long getCp() {
+//		return cp;
+//	}
+//
+//	public final void setCp(Long cp) {
+//		this.cp = cp;
+//	}
+
+//	public final String getMove_1() {
+//		return move_1;
+//	}
+//
+//	public final void setMove_1(String move_1) {
+//		this.move_1 = move_1;
+//	}
+//
+//	public final String getMove_2() {
+//		return move_2;
+//	}
+//
+//	public final void setMove_2(String move_2) {
+//		this.move_2 = move_2;
+//	}
+
+	public String getExraid_eglible() {
+		return exraid_eglible;
 	}
 
-	public final void setCp(Long cp) {
-		this.cp = cp;
+	public void setExraid_eglible(String exraid_eglible) {
+		this.exraid_eglible = exraid_eglible;
 	}
 
-	public final String getMove_1() {
-		return move_1;
+	public String getSponsor_id() {
+		return sponsor_id;
 	}
 
-	public final void setMove_1(String move_1) {
-		this.move_1 = move_1;
-	}
-
-	public final String getMove_2() {
-		return move_2;
-	}
-
-	public final void setMove_2(String move_2) {
-		this.move_2 = move_2;
-	}
-
-	public String getGym_name() {
-		return gym_name;
-	}
-
-	public void setGym_name(String gym_name) {
-		this.gym_name = gym_name;
+	public void setSponsor_id(String sponsor_id) {
+		this.sponsor_id = sponsor_id;
 	}
 
 	@Override
 	public Raid transformToEntity() {
-		Raid raid = new RaidWithGym(gym_id);
-		// raid.setCp(cp);
-//		raid.setGymId(gym_id);
-		raid.setRaidLevel(level);
-		raid.setMove1(move_1);
-		raid.setMove2(move_2);
-		raid.setPokemonId(pokemon_id);
-		raid.setSpawn(spawn);
-		raid.setStart(start);
-		raid.setEnd(end);
-		if (ex_raid_eligible != null) {
-			// raid.setExRaidEligible(ex_raid_eligible);
+		Raid egg = new EggWithGym(gym_id);
+//		egg.setCp(cp);
+		egg.setEnd(end);
+//		egg.setGymId(gym_id);
+//		egg.setLatitude(latitude);
+//		egg.setLongitude(longitude);
+//		egg.setMove1(move_1);
+//		egg.setMove2(move_2);
+		egg.setRaidLevel(level);
+		egg.setStart(start);
+		egg.setPokemonId(pokemon_id);
+		egg.setSpawn(spawn);
+		if (exraid_eglible != null) {
+			// egg.setExRaidEligible(exraid_eglible);
 		}
-		raid.setSponsorId(sponsor_id);
-		return raid;
+		egg.setSponsorId(sponsor_id);
+		return egg;
 	}
 
 	@Override
 	public String toString() {
-		return "RocketmapRaid [" + (gym_id != null ? "gym_id=" + gym_id + ", " : "")
+		return "RocketmapEgg [" + (gym_id != null ? "gym_id=" + gym_id + ", " : "")
 				+ (latitude != null ? "latitude=" + latitude + ", " : "")
 				+ (longitude != null ? "longitude=" + longitude + ", " : "")
 				+ (spawn != null ? "spawn=" + spawn + ", " : "") + (start != null ? "start=" + start + ", " : "")
 				+ (end != null ? "end=" + end + ", " : "") + (level != null ? "level=" + level + ", " : "")
-				+ (pokemon_id != null ? "pokemon_id=" + pokemon_id + ", " : "") + (cp != null ? "cp=" + cp + ", " : "")
-				+ (name != null ? "name=" + name + ", " : "") + (url != null ? "url=" + url + ", " : "")
-				+ (move_1 != null ? "move_1=" + move_1 + ", " : "") + (move_2 != null ? "move_2=" + move_2 + ", " : "")
-				+ (ex_raid_eligible != null ? "ex_raid_eligible=" + ex_raid_eligible + ", " : "")
-				+ (sponsor_id != null ? "sponsor_id=" + sponsor_id : "") + "]";
+				+ (pokemon_id != null ? "pokemon_id=" + pokemon_id + ", " : "") + "]";
 	}
-
-
+	
 }

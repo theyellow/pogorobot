@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -23,9 +23,9 @@ import org.slf4j.LoggerFactory;
 import pogorobot.entities.Gym;
 import pogorobot.events.EventMessage;
 
-public class RocketmapGym implements EventMessage<Gym> {
+public class WebserviceGym implements EventMessage<Gym> {
 
-	private Logger logger = LoggerFactory.getLogger(RocketmapGym.class);
+	private Logger logger = LoggerFactory.getLogger(WebserviceGym.class);
 
 	private String gym_id;
 	private Double latitude;

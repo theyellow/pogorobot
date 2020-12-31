@@ -1,6 +1,6 @@
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.WebserviceWeatherEventMessage;
+import pogorobot.events.webservice.WebserviceWeatherEventMessage;
 
 public class WebserviceEventWeather extends IncomingEvent<WebserviceWeatherEventMessage> {
 

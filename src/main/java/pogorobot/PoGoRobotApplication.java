@@ -49,13 +49,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.PeriodicTrigger;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.telegram.telegrambots.ApiContextInitializer;
+import org.telegram.telegrambots.bots.DefaultBotOptions;
+//import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
@@ -480,7 +482,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 			taskScheduler.schedule(new CleanupMessageTask(processedElementsService, telegramSendMessagesService),
 					new PeriodicTrigger(60 * 1000L));
-			taskScheduler.schedule(new CleanupPokemonTask(pokemonService), new PeriodicTrigger(10 * 60 * 1000L));
+//			taskScheduler.schedule(new CleanupPokemonTask(pokemonService), new PeriodicTrigger(10 * 60 * 1000L));
 
 			
 			
@@ -628,7 +630,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		String botname = standardConfiguration.getBotname();
 		String bottoken = standardConfiguration.getBottoken();
 		TelegramBotsApi botAPI = ctx.getBean(TelegramBotsApi.class);
-		PogoBot pogoBot = new PogoBot(botname, bottoken);
+		DefaultBotOptions options = new DefaultBotOptions();
+	
+		PogoBot pogoBot = new PogoBot(options, botname, bottoken);
 		pogoBot.setConfiguration(standardConfiguration);
 		try {
 			botAPI.registerBot(pogoBot);
@@ -663,8 +667,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 	public TelegramBotsApi telegramBotsApi() {
 		// Boolean usewebhook = standardConfiguration.getUsewebhook();
 		try {
-			ApiContextInitializer.init();
-			TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+			TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
 			return telegramBotsApi;
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

@@ -1,4 +1,4 @@
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import pogorobot.entities.WeatherMessage;
 import pogorobot.events.EventMessage;

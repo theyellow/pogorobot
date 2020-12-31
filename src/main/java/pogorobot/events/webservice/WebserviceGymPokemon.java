@@ -14,12 +14,12 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import pogorobot.entities.GymPokemon;
 import pogorobot.events.EventMessage;
 
-public class RocketmapGymPokemon implements EventMessage<GymPokemon> {
+public class WebserviceGymPokemon implements EventMessage<GymPokemon> {
 
 	private String trainer_name;
 	private Long trainer_level;
@@ -240,7 +240,7 @@ public class RocketmapGymPokemon implements EventMessage<GymPokemon> {
 
 	@Override
 	public String toString() {
-		return "RocketmapGymPokemon [" + (trainer_name != null ? "trainer_name=" + trainer_name + ", " : "")
+		return "WebserviceGymPokemon [" + (trainer_name != null ? "trainer_name=" + trainer_name + ", " : "")
 				+ (trainer_level != null ? "trainer_level=" + trainer_level + ", " : "")
 				+ (pokemon_uid != null ? "pokemon_uid=" + pokemon_uid + ", " : "")
 				+ (pokemon_id != null ? "pokemon_id=" + pokemon_id + ", " : "") + (cp != null ? "cp=" + cp + ", " : "")

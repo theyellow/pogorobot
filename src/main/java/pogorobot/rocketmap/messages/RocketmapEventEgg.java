@@ -16,18 +16,18 @@
 
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.RocketmapEgg;
+import pogorobot.events.webservice.WebserviceEgg;
 
-public class RocketmapEventEgg extends IncomingEvent<RocketmapEgg> {
+public class RocketmapEventEgg extends IncomingEvent<WebserviceEgg> {
 
 
-	private RocketmapEgg message;
+	private WebserviceEgg message;
 	
-	public final RocketmapEgg getMessage() {
+	public final WebserviceEgg getMessage() {
 		return message;
 	}
 
-	public final void setMessage(RocketmapEgg message) {
+	public final void setMessage(WebserviceEgg message) {
 		this.message = message;
 	}
 	

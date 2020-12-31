@@ -16,7 +16,7 @@
 
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.WebservicePokestopEventMessage;
+import pogorobot.events.webservice.WebservicePokestopEventMessage;
 
 public class RdmEventPokestop extends IncomingEvent<WebservicePokestopEventMessage> {
 

@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +27,9 @@ import pogorobot.entities.Gym;
 import pogorobot.entities.GymPokemon;
 import pogorobot.events.EventMessage;
 
-public class RocketmapGymInfo implements EventMessage<Gym> {
+public class WebserviceGymInfo implements EventMessage<Gym> {
 
-	private Logger logger = LoggerFactory.getLogger(RocketmapGymInfo.class);
+	private Logger logger = LoggerFactory.getLogger(WebserviceGymInfo.class);
 
 	private String id;
 	private String name;
@@ -40,7 +40,7 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 	private Double latitude;
 	private Double longitude;
 	private Long team;
-	private List<RocketmapGymPokemon> pokemon;
+	private List<WebserviceGymPokemon> pokemon;
 
 	public final String getId() {
 		return id;
@@ -114,11 +114,11 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 		this.team = team;
 	}
 
-	public final List<RocketmapGymPokemon> getPokemon() {
+	public final List<WebserviceGymPokemon> getPokemon() {
 		return pokemon;
 	}
 
-	public final void setPokemon(List<RocketmapGymPokemon> pokemon) {
+	public final void setPokemon(List<WebserviceGymPokemon> pokemon) {
 		this.pokemon = pokemon;
 	}
 
@@ -153,7 +153,7 @@ public class RocketmapGymInfo implements EventMessage<Gym> {
 
 	@Override
 	public String toString() {
-		return "RocketmapGymInfo [" + (logger != null ? "logger=" + logger + ", " : "")
+		return "WebserviceGymInfo [" + (logger != null ? "logger=" + logger + ", " : "")
 				+ (id != null ? "id=" + id + ", " : "") + (name != null ? "name=" + name + ", " : "")
 				+ (description != null ? "description=" + description + ", " : "")
 				+ (url != null ? "url=" + url + ", " : "") + (park != null ? "park=" + park + ", " : "")

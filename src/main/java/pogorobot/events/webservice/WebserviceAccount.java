@@ -1,9 +1,9 @@
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import pogorobot.entities.Account;
 import pogorobot.events.EventMessage;
 
-public class RdmAccount implements EventMessage<Account> {
+public class WebserviceAccount implements EventMessage<Account> {
 
 	@Override
 	public Account transformToEntity() {

@@ -16,7 +16,7 @@
 
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.WebserviceQuest;
+import pogorobot.events.webservice.WebserviceQuest;
 
 public class WebserviceEventQuest extends IncomingEvent<WebserviceQuest> {
 

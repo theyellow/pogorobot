@@ -1,14 +1,14 @@
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
-// @JsonSubTypes({ @JsonSubTypes.Type(value = QuestCondition.class, name =
+// @JsonSubTypes({ @JsonSubTypes.Type(value = WebserviceQuestCondition.class, name =
 // "info"),
-// @JsonSubTypes.Type(value = QuestReward.class, name = "reward") })
-public class QuestCondition {
+// @JsonSubTypes.Type(value = WebserviceQuestReward.class, name = "reward") })
+public class WebserviceQuestCondition {
 
 	private String type;
 

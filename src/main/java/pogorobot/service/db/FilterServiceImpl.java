@@ -62,9 +62,9 @@ import pogorobot.entities.User;
 import pogorobot.entities.UserGroup;
 import pogorobot.entities.UserGroup_;
 import pogorobot.events.EventMessage;
-import pogorobot.events.rocketmap.RocketmapEgg;
-import pogorobot.events.rocketmap.RocketmapGym;
-import pogorobot.events.rocketmap.RocketmapPokemon;
+import pogorobot.events.webservice.WebserviceEgg;
+import pogorobot.events.webservice.WebserviceGym;
+import pogorobot.events.webservice.WebservicePokemon;
 import pogorobot.service.db.repositories.FilterRepository;
 import pogorobot.service.db.repositories.GeofenceRepository;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
@@ -116,17 +116,17 @@ public class FilterServiceImpl implements FilterService {
 	}
 
 	@Override
-	public boolean processGymFilter(Filter filter, RocketmapGym gym) {
+	public boolean processGymFilter(Filter filter, WebserviceGym gym) {
 		return false;
 	}
 
 	@Override
-	public boolean processEggFilter(Filter filter, RocketmapEgg egg) {
+	public boolean processEggFilter(Filter filter, WebserviceEgg egg) {
 		return false;
 	}
 
 	@Override
-	public boolean processPokemonFilter(Filter filter, RocketmapPokemon pokemon) {
+	public boolean processPokemonFilter(Filter filter, WebservicePokemon pokemon) {
 		return false;
 	}
 

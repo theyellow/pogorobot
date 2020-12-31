@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import pogorobot.entities.Gym;
 import pogorobot.events.EventMessage;

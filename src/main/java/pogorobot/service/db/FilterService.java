@@ -31,9 +31,9 @@ import pogorobot.entities.Geofence;
 import pogorobot.entities.Gym;
 import pogorobot.entities.User;
 import pogorobot.events.EventMessage;
-import pogorobot.events.rocketmap.RocketmapEgg;
-import pogorobot.events.rocketmap.RocketmapGym;
-import pogorobot.events.rocketmap.RocketmapPokemon;
+import pogorobot.events.webservice.WebserviceEgg;
+import pogorobot.events.webservice.WebserviceGym;
+import pogorobot.events.webservice.WebservicePokemon;
 import pogorobot.telegram.util.Type;
 
 public interface FilterService {
@@ -58,11 +58,11 @@ public interface FilterService {
 
 	Filter removeRaidPokemonFromUserfilter(String telegramId, int pokemonId);
 
-	boolean processGymFilter(Filter filter, RocketmapGym gym);
+	boolean processGymFilter(Filter filter, WebserviceGym gym);
 
-	boolean processEggFilter(Filter filter, RocketmapEgg egg);
+	boolean processEggFilter(Filter filter, WebserviceEgg egg);
 
-	boolean processPokemonFilter(Filter filter, RocketmapPokemon pokemon);
+	boolean processPokemonFilter(Filter filter, WebservicePokemon pokemon);
 
 	Filter createFilter(List<User> receivers, List<Integer> pokemon, List<Gym> gyms,
 			Double latitude, Double longitude, Double radius, Integer raidLevel);

@@ -337,30 +337,35 @@ public class ProcessedElementsServiceRepositoryImpl implements ProcessedElements
 		if (chatsPokemonIsPosted == null) {
 			chatsPokemonIsPosted = new HashSet<>();
 		}
-		SendMessages e = new SendMessages();
-		e.setGroupChatId(Long.valueOf(chatId));
+		SendMessages sentMessage = new SendMessages();
+		sentMessage.setGroupChatId(Long.valueOf(chatId));
 		if (answer != null) {
 			logger.debug("now we have future while sending to group :) The main-message is "
 					+ answer.getMainMessageAnswer());
 			Integer mainMessageAnswer = answer.getMainMessageAnswer();
 			if (mainMessageAnswer != null) {
-				e.setMessageId(mainMessageAnswer);
+				if (mainMessageAnswer == 2147483647) {
+					logger.warn("In chat {} the answer was: 2147483647 (a special prime) - "
+							+ "Don't save SendMessages and ProcessedPokemon", chatId);
+				} else {
+					sentMessage.setMessageId(mainMessageAnswer);
+				}
 			}
 			Integer stickerAnswer = answer.getStickerAnswer();
 			if (stickerAnswer != null) {
-				e.setStickerId(stickerAnswer);
+				sentMessage.setStickerId(stickerAnswer);
 			}
 			Integer locationAnswer = answer.getLocationAnswer();
 			if (locationAnswer != null) {
-				e.setLocationId(locationAnswer);
+				sentMessage.setLocationId(locationAnswer);
 			}
 		} else {
 			logger.debug("got no real answer for monster encounter {} in chat {}", processedPokemon.getEncounterId(),
 					chatId);
 		}
 
-		if (e.getMessageId() != null && e.getGroupChatId() != null) {
-			processedPokemon.addToChatsPokemonIsPosted(e);
+		if (sentMessage.getMessageId() != null && sentMessage.getGroupChatId() != null) {
+			processedPokemon.addToChatsPokemonIsPosted(sentMessage);
 			processedPokemon = processedPokemonRepository.save(processedPokemon);
 		}
 		return processedPokemon;

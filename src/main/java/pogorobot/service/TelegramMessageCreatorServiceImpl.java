@@ -133,7 +133,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 			offsetOrPokemon = 0;
 		}
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackquery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackquery.getMessage().getChatId()));
 		editMessage.setMessageId(callbackquery.getMessage().getMessageId());
 		editMessage.enableMarkdown(true);
 
@@ -189,7 +189,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		}
 
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackquery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackquery.getMessage().getChatId()));
 		editMessage.setMessageId(callbackquery.getMessage().getMessageId());
 		editMessage.enableMarkdown(true);
 
@@ -208,7 +208,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		//
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -225,7 +225,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	public EditMessageText getChooseRaidOrEggDialog(CallbackQuery callbackQuery, String[] data) {
 		Integer messageId = callbackQuery.getMessage().getMessageId();
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -246,7 +246,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		//
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -268,7 +268,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		System.out.println(Arrays.toString(data));
 
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackquery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackquery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		String filteredPokemon = "";
@@ -355,7 +355,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		user = userService.updateOrInsertUser(user);
 		String filteredPokemon = getFilteredRaidPokemonForUser(telegramId);
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(message.getChatId());
+		editMessage.setChatId(Long.toString(message.getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(message.getMessageId());
 		Filter filter = user.getUserFilter();
@@ -378,7 +378,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	public EditMessageText getRaidPokemonDialog(CallbackQuery callbackquery) {
 		EditMessageText editMessage = new EditMessageText();
 		Long telegramId = callbackquery.getMessage().getChatId();
-		editMessage.setChatId(telegramId);
+		editMessage.setChatId(Long.toString(telegramId));
 		editMessage.setMessageId(callbackquery.getMessage().getMessageId());
 		editMessage.enableMarkdown(true);
 		String text = "*Bisher ausgewählte Raid-Pokémon im Filter:*                     \n";
@@ -400,7 +400,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		}
 		SendMessage echoMessage = new SendMessage();
 		Long chatId = message.getChatId();
-		echoMessage.setChatId(chatId);
+		echoMessage.setChatId(Long.toString(chatId));
 		echoMessage.enableMarkdown(true);
 		echoMessage.disableNotification();
 		String inputText = "";
@@ -499,7 +499,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		user.setShowRaidMessages(false);
 		user = userService.updateOrInsertUser(user);
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(message.getChatId());
+		editMessage.setChatId(Long.toString(message.getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(message.getMessageId());
 		editMessage.setText("*Du hast Raids im Moment deaktiviert. Zum aktivieren den Button unten verwenden.*");
@@ -547,7 +547,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 			}
 		}
 		EditMessageText message = new EditMessageText();
-		message.setChatId(telegramId);
+		message.setChatId(Long.toString(telegramId));
 		message.setMessageId(callbackquery.getMessage().getMessageId());
 		message.enableMarkdown(true);
 		String text = "Maximale Entfernung " + typeText + " im Filter einstellen: ";
@@ -575,7 +575,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 			}
 		}
 		EditMessageText message = new EditMessageText();
-		message.setChatId(telegramId);
+		message.setChatId(Long.toString(telegramId));
 		message.setMessageId(callbackquery.getMessage().getMessageId());
 		message.enableMarkdown(true);
 		String text = "*Raid-Level* im Filter einstellen: *";
@@ -590,7 +590,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	public BotApiMethod<? extends Serializable> getIvSettingDialog(CallbackQuery callbackquery, String[] data) {
 		Long telegramId = callbackquery.getMessage().getChatId();
 		EditMessageText message = new EditMessageText();
-		message.setChatId(callbackquery.getMessage().getChatId());
+		message.setChatId(Long.toString(callbackquery.getMessage().getChatId()));
 		message.setMessageId(callbackquery.getMessage().getMessageId());
 		message.enableMarkdown(true);
 		String text = "Minimale IV, ab denen alle gefundenen Pokémon gezeigt werden: ";
@@ -741,7 +741,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		//
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -766,7 +766,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		//
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -791,7 +791,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		//
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -815,7 +815,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		//
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -842,7 +842,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		// + SPACE + time + SPACE + date.getDayOfYear()
 		// }
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -910,7 +910,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 		String dayOfYear = data.length > 5 ? data[5] : null;
 
 		EditMessageText editMessage = new EditMessageText();
-		editMessage.setChatId(callbackQuery.getMessage().getChatId());
+		editMessage.setChatId(Long.toString(callbackQuery.getMessage().getChatId()));
 		editMessage.enableMarkdown(true);
 		editMessage.setMessageId(messageId);
 		editMessage.disableWebPagePreview();
@@ -989,7 +989,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 			String participantsText = telegramTextService.getParticipantsText(eventWithSubscribers);
 			EditMessageText editMessage = new EditMessageText();
 			editMessage.setText(pokemonText + participantsText);
-			editMessage.setChatId(sendMessage.getGroupChatId());
+			editMessage.setChatId(Long.toString(sendMessage.getGroupChatId()));
 			editMessage.enableMarkdown(true);
 			editMessage.setMessageId(sendMessage.getMessageId());
 			editMessage.disableWebPagePreview();
@@ -1094,7 +1094,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	}
 
 	// @Transactional
-	private void modif2yEvent(String commandOrGymId, User user, String gymId, String time) {
+	private void modifyEvent(String commandOrGymId, User user, String gymId, String time) {
 
 		// Gym fullGym = gymService.getGym(gymId);
 		SortedSet<EventWithSubscribers> eventsWithSubscribers = eventWithSubscribersService

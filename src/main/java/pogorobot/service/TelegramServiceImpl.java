@@ -769,7 +769,12 @@ public class TelegramServiceImpl implements TelegramService {
 
 		Integer mainMessageAnswer = answer.getMainMessageAnswer();
 		if (mainMessageAnswer != null) {
-			sentMessage.setMessageId(mainMessageAnswer);
+			if (mainMessageAnswer == 2147483647) {
+				logger.warn("In chat {} the answer was: 2147483647 (a special prime) - "
+						+ "Don't save SendMessages and ProcessedRaid", chatId);
+			} else {
+				sentMessage.setMessageId(mainMessageAnswer);
+			}
 		}
 		Integer stickerAnswer = answer.getStickerAnswer();
 		if (stickerAnswer != null) {
@@ -780,8 +785,10 @@ public class TelegramServiceImpl implements TelegramService {
 			sentMessage.setLocationId(locationAnswer);
 		}
 
-		processedRaid.addToGroupsRaidIsPosted(sentMessage);
-		processedRaid = processedRaidRepository.save(processedRaid);
+		if (sentMessage.getMessageId() != null && sentMessage.getGroupChatId() != null) {
+			processedRaid.addToGroupsRaidIsPosted(sentMessage);
+			processedRaid = processedRaidRepository.save(processedRaid);
+		}
 		return processedRaid;
 
 	}

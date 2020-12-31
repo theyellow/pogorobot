@@ -14,7 +14,7 @@
  limitations under the License.
 */
 
-package pogorobot.events.rocketmap;
+package pogorobot.events.webservice;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -23,20 +23,20 @@ import pogorobot.entities.Quest;
 import pogorobot.events.EventMessage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonSubTypes({ @JsonSubTypes.Type(value = QuestCondition.class, name = "condition"),
-		@JsonSubTypes.Type(value = QuestReward.class, name = "reward") })
+@JsonSubTypes({ @JsonSubTypes.Type(value = WebserviceQuestCondition.class, name = "condition"),
+		@JsonSubTypes.Type(value = WebserviceQuestReward.class, name = "reward") })
 public class WebserviceQuest implements EventMessage<Quest> {
 
 	private String pokestop_id;
 	private String pokestop_name;
 	private String template;
 	private String pokestop_url;
-	private QuestCondition conditions; // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
+	private WebserviceQuestCondition conditions; // ": [ {"type":7,"info":{"raid_levels":[1,2,3,4,5]} },{"type":6}],
 	private Double latitude;
 	private Double longitude;
 	private String type;
 	private String target;
-	private QuestReward rewards; // ":
+	private WebserviceQuestReward rewards; // ":
 					// [{"type":7,"info":{"shiny":false,"costume_id":0,"pokemon_id":25,"form_id":0,"gender_id":0}
 					// }],
 	private Long updated;

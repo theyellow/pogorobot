@@ -1,6 +1,6 @@
 package pogorobot.rocketmap.messages;
 
-import pogorobot.events.rocketmap.WebserviceInvasionEventMessage;
+import pogorobot.events.webservice.WebserviceInvasionEventMessage;
 
 public class WebserviceEventInvasion extends IncomingEvent<WebserviceInvasionEventMessage> {
 
