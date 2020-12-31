@@ -60,7 +60,7 @@
 		<jsoup.version>1.10.3</jsoup.version>
 		<protobuf-java.version>3.7.1</protobuf-java.version>
 		<google-maps-services.version>0.2.6</google-maps-services.version>
-		<openmap.version>5.1.13-1</openmap.version>
+		<openmap.version>5.1.15</openmap.version>
 		<pogoprotos.version>2.38.5</pogoprotos.version>
 
 		<selenium-override.version>3.141.59</selenium-override.version>
@@ -705,7 +705,7 @@
 		<repository>
 			<id>nuiton.release</id>
 			<name>NuitonReleaseRepository</name>
-			<url>http://maven.nuiton.org/release</url>
+			<url>https://nexus.nuiton.org/nexus/content/repositories/thirdparty</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
