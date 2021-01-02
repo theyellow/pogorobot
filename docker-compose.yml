@@ -11,7 +11,8 @@ services:
     ports:
       - "5431:5432"
   pogorobot:
-    container_name: pogorobot_1
+#    container_name: pogorobot_1
+    image: pogorobot:latest
     build: 
       context: ./
       args:

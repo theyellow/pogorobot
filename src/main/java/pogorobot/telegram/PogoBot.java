@@ -142,6 +142,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		
 	private final class MessageSenderTask extends TimerTask {
 
+		private static final int HTTP_FORBIDDEN = 403;
+		private static final int HTTP_TOO_MANY_MESSAGES = 429;
+
 		@Override
 		public void run() {
 			// mSendRequested used for optimisation to not traverse all
@@ -243,10 +246,18 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					Integer errorCode = requestException.getErrorCode();
 					ResponseParameters parameters = requestException.getParameters();
 					
-					if (errorCode == 429) {
+					if (errorCode == HTTP_TOO_MANY_MESSAGES) {
 						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
 						Integer retryAfter = parameters.getRetryAfter();
 						logger.warn(RETRY_TIMEOUT, retryAfter);
+					} else if (errorCode == HTTP_FORBIDDEN) {
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+						logger.warn("Telegram returned ");
+						if (parameters != null) {
+							String optionalParameters = "migrateToChatId - " + parameters.getMigrateToChatId()
+											+ " | retry after " + parameters.getRetryAfter();
+							logger.warn("Parameters where given: {}", optionalParameters);
+						}
 					}
 					else if (BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND.equals(apiResponse)) {
 						logger.error("Message " + ((DeleteMessage) message).getMessageId() + " in chat " + chatId
