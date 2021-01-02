@@ -1,4 +1,4 @@
-# pogorobot [![Build Status](https://travis-ci.org/theyellow/pogorobot.svg?branch=master)](https://travis-ci.org/theyellow/pogorobot) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=alert_status)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)
+# pogorobot [![Build Status](https://travis-ci.com/theyellow/pogorobot.svg?branch=master)](https://travis-ci.com/theyellow/pogorobot) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=theyellow_pogorobot&metric=alert_status)](https://sonarcloud.io/dashboard?id=theyellow_pogorobot)
 
 the telegrambot for Pokemon Go
 
