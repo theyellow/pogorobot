@@ -13,6 +13,8 @@ services:
   pogorobot:
 #    container_name: pogorobot_1
     image: pogorobot:latest
+    environment:
+      - TZ=Europe/Berlin
     build: 
       context: ./
       args:

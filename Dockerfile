@@ -5,6 +5,8 @@ VOLUME /tmp
 #COPY ${DEPENDENCY}/META-INF /pogorobot/META-INF
 #COPY ${DEPENDENCY}/BOOT-INF/classes /pogorobot
 #ENTRYPOINT ["java","-cp","pogorobot:pogorobot/lib/*","pogorobot.PoGoRobotApplication"]
+# timezone env with default
+ENV TZ Europe/Berlin
 ARG JAR_FILE
 COPY config /config
 COPY target/${JAR_FILE} pogorobot.jar

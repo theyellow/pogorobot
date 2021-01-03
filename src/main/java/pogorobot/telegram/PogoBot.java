@@ -147,7 +147,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 		@Override
 		public void run() {
-			// mSendRequested used for optimisation to not traverse all
+			// mSendRequested used for optimization to not traverse all
 			// mMessagesMap 30 times per second all the time
 			if (!mSendRequested.getAndSet(false))
 				return;
@@ -201,9 +201,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			BotApiMethod<? extends Serializable> message = answer.getMessage();
 			Semaphore sendMessageSemaphore = answer.getAnswer();
 			Integer sendMessageAnswer = answer.getMessageId();
+			Message response = null;
 			try {
+				
 				Serializable result = execute(message);
-				Message response = null;
+				
 				if (result instanceof Message) {
 					response = (Message) result;
 				} else if (message instanceof DeleteMessage) {
@@ -215,10 +217,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					logger.warn("response of PogoBot.execute(...) is no message but " + result + " | sent message was "
 							+ message);
 				}
+				
 				if (response == null || (sendMessageAnswer != null && sendMessageAnswer == Integer.MIN_VALUE)
 						|| (sendMessageAnswer != null && sendMessageAnswer == Integer.MAX_VALUE)
 						|| (sendMessageAnswer != null && sendMessageAnswer == 0)) {
-					logger.info("wrote message in chat " + chatId + " with answer " + sendMessageAnswer);
+					logger.info("wrote message in chat " + chatId + " without answer or with special return-value: " + sendMessageAnswer);
 					sendMessageAnswer = null;
 				} else {
 					Integer messageId = response.getMessageId();
@@ -237,9 +240,17 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
 					}
 				} else if (MESSAGE_ALREADY_DELETED.equals(e.getMessage())) {
-					logger.warn("in chat " + sendQueue.getChatId() + " message "
-							+ ((DeleteMessage) message).getMessageId() + " couldn't be deleted.");
-					sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+					if ((sendMessageAnswer != null && sendMessageAnswer == Integer.MIN_VALUE)
+							|| (sendMessageAnswer != null && sendMessageAnswer == Integer.MAX_VALUE)
+							|| (sendMessageAnswer != null && sendMessageAnswer == 0)) {
+						logger.warn("tried to delete message "
+								+ ((DeleteMessage) message).getMessageId() + " in chat " + chatId + " wich couldn't be deleted and with special return-value: " + sendMessageAnswer);
+						sendMessageAnswer = null;
+					} else {
+						logger.warn("in chat " + sendQueue.getChatId() + " message "
+								+ ((DeleteMessage) message).getMessageId() + " couldn't be deleted.");
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);						
+					}
 				} else if (e instanceof TelegramApiRequestException) {
 					TelegramApiRequestException requestException = (TelegramApiRequestException) e;
 					String apiResponse = requestException.getApiResponse();

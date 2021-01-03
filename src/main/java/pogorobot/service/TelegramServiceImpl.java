@@ -140,7 +140,7 @@ public class TelegramServiceImpl implements TelegramService {
 					logger.debug("chat {} will be tested with monster encounter {}", chatId, pokemon.getEncounterId());
 					sendAndUpdateTransactional(pokemon, onlyDeep, processedMonFinal, groupfilterId, chatId);
 				} else {
-					logger.debug("message was already posted (and perhaps edited), no reposting necessary");
+					logger.debug("(usergroup-) message was already posted (and perhaps edited), no reposting necessary");
 				}
 			});
 

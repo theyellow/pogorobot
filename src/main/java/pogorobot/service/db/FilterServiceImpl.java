@@ -764,7 +764,7 @@ public class FilterServiceImpl implements FilterService {
 					Long userFilter = user.getUserFilter().getId();
 					chatAndFilter.put(chatId, userFilter);
 				} else {
-					logger.debug("message was already posted (and perhaps edited), no reposting necessary");
+					logger.debug("There is either no chat with telegram user " + user.getTelegramId() + " or this user isn't in updatedChats");
 				}
 
 			}
