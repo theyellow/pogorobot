@@ -72,7 +72,7 @@ public interface TelegramSendMessagesService {
 	@Deprecated
 	Message sendMessage(PartialBotApiMethod<Message> message);
 
-	void sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message);
+	Message sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message);
 
 	// void cleanupSendMessage() throws TelegramApiException;
 	// String getPokemonName(String pokemon);

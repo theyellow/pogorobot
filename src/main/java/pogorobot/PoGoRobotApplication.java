@@ -154,9 +154,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		private ProcessedElementsServiceRepository processedElementsService;
 		private TelegramSendMessagesService telegramSendMessagesService;
 
-		public CleanupMessageTask(ProcessedElementsServiceRepository telegramSendMessagesService1,
+		public CleanupMessageTask(ProcessedElementsServiceRepository processedElementsService,
 				TelegramSendMessagesService telegramSendMessagesService) {
-			this.processedElementsService = telegramSendMessagesService1;
+			this.processedElementsService = processedElementsService;
 			this.telegramSendMessagesService = telegramSendMessagesService;
 		}
 

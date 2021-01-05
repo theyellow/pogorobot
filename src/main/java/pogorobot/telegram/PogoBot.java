@@ -31,6 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,13 +106,16 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	// private static final long MANY_CHATS_SEND_INTERVAL = 33;
 	private static final long MANY_CHATS_SEND_INTERVAL = 33;
-	private static final long ONE_CHAT_SEND_INTERVAL = 1000;
+	private static final long MAXIMUM_NR_OF_MESSAGES_PER_MINUTE = 29;
+	private static final long ONE_CHAT_SEND_INTERVAL = 2000;
 	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10L;
 	private final Timer mSendTimer = new Timer(true);
 	private final ConcurrentHashMap<Long, MessageQueue> mMessagesMap = new ConcurrentHashMap<>(32, 0.75f, 1);
 	private final ArrayList<MessageQueue> mSendQueues = new ArrayList<>();
 	private final AtomicBoolean mSendRequested = new AtomicBoolean(false);
-
+	private final static AtomicLong mNrOfMessagesInMinute = new AtomicLong(0);
+	private final static AtomicLong mLastSendingTimeInMinutes = new AtomicLong(System.currentTimeMillis() / 1000 / 60);
+	
 	private String bottoken;
 
 	private static Configuration configuration;
@@ -157,13 +161,15 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			boolean processNext = false;
 
 			// First step - find all chats in which already allowed to send
-			// message (passed more than 1000 ms from previuos send)
+			// message (passed more than 1000 ms from previous send)
 			Iterator<Map.Entry<Long, MessageQueue>> it = mMessagesMap.entrySet().iterator();
 			while (it.hasNext()) {
 				MessageQueue queue = it.next().getValue();
 				int state = queue.getCurrentState(currentTime); // Actual check
 																// here
 				if (state == MessageQueue.GET_MESSAGE) {
+					mNrOfMessagesInMinute.incrementAndGet();
+					mLastSendingTimeInMinutes.set(currentTime / 1000 / 60);
 					mSendQueues.add(queue);
 					processNext = true;
 				} else if (state == MessageQueue.WAIT_SIG) {
@@ -346,6 +352,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		private final Long mChatId;
 		private long mLastSendTime; // Time of last peek from queue
 		private volatile long mLastPutTime; // Time of last put into queue
+		
 
 		public MessageQueue(Long chatId) {
 			mChatId = chatId;
@@ -366,9 +373,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public synchronized int getCurrentState(long currentTime) {
 			// currentTime is passed as parameter for optimisation to do not
 			// recall currentTimeMillis() many times
+			if (System.currentTimeMillis() / 1000 / 60 < mLastSendingTimeInMinutes.get()) {
+				mNrOfMessagesInMinute.lazySet(0);
+			}
+			boolean maxMessagesAllowed = mNrOfMessagesInMinute.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
 			long interval = currentTime - mLastSendTime;
 			boolean empty = mQueue.isEmpty();
-			if (!empty && interval > ONE_CHAT_SEND_INTERVAL)
+			if (!empty && interval > ONE_CHAT_SEND_INTERVAL && maxMessagesAllowed)
 				return GET_MESSAGE;
 			else if (interval > CHAT_INACTIVE_INTERVAL)
 				return DELETE;
@@ -495,6 +506,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					logger.error("somebody deleted bot conversation?");
 					throw new TelegramApiException(INVALID_CHAT);
 				} else if (apiResponse.contains(BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND)) {
+					logger.warn(MESSAGE_ALREADY_DELETED);
+					throw new TelegramApiException(MESSAGE_ALREADY_DELETED);
+				} else if (apiResponse.contains("Unable to execute editmessagetext method")) {
 					logger.warn(MESSAGE_ALREADY_DELETED);
 					throw new TelegramApiException(MESSAGE_ALREADY_DELETED);
 				} else {

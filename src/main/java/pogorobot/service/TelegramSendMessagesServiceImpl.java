@@ -196,7 +196,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	}
 
 	@Override
-	public void sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message) {
+	public Message sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message) {
 		Message result = null;
 		try {
 			if (message instanceof SendSticker) {
@@ -233,6 +233,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (null != result) {
 			logger.info("Got result " + result);
 		}
+		return result;
 	}
 
 	private SendMessageAnswer sendAllMessagesForEventInternally(SendSticker stickerMessage,
@@ -241,7 +242,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		SendMessageAnswer answer = new SendMessageAnswer();
 		if (stickerMessage != null) {
 			Thread.sleep(100);
-			Message sendMessage = sendMessage(stickerMessage);
+			Message sendMessage = sendMessageTimed(Long.valueOf(stickerMessage.getChatId()),stickerMessage);
 			answer.setLocationAnswer(sendMessage.getMessageId());
 			Thread.sleep(100);
 		}
