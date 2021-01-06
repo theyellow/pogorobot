@@ -114,7 +114,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	private final ArrayList<MessageQueue> mSendQueues = new ArrayList<>();
 	private final AtomicBoolean mSendRequested = new AtomicBoolean(false);
 	private final static AtomicLong mNrOfMessagesInMinute = new AtomicLong(0);
-	private final static AtomicLong mLastSendingTimeInMinutes = new AtomicLong(System.currentTimeMillis() / 1000 / 60);
+	private final static AtomicLong mLastSendingTimeInSeconds = new AtomicLong(System.currentTimeMillis() / 1000);
 	
 	private String bottoken;
 
@@ -169,7 +169,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 																// here
 				if (state == MessageQueue.GET_MESSAGE) {
 					mNrOfMessagesInMinute.incrementAndGet();
-					mLastSendingTimeInMinutes.set(currentTime / 1000 / 60);
+					mLastSendingTimeInSeconds.set(currentTime / 1000);
 					mSendQueues.add(queue);
 					processNext = true;
 				} else if (state == MessageQueue.WAIT_SIG) {
@@ -373,13 +373,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public synchronized int getCurrentState(long currentTime) {
 			// currentTime is passed as parameter for optimisation to do not
 			// recall currentTimeMillis() many times
-			if (System.currentTimeMillis() / 1000 / 60 < mLastSendingTimeInMinutes.get()) {
+			if (System.currentTimeMillis() / 1000 > mLastSendingTimeInSeconds.get()) {
 				mNrOfMessagesInMinute.lazySet(0);
 			}
-			boolean maxMessagesAllowed = mNrOfMessagesInMinute.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
+			boolean maxMessagesPerSecondAllowed = mNrOfMessagesInMinute.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
 			long interval = currentTime - mLastSendTime;
 			boolean empty = mQueue.isEmpty();
-			if (!empty && interval > ONE_CHAT_SEND_INTERVAL && maxMessagesAllowed)
+			if (!empty && interval > ONE_CHAT_SEND_INTERVAL && maxMessagesPerSecondAllowed)
 				return GET_MESSAGE;
 			else if (interval > CHAT_INACTIVE_INTERVAL)
 				return DELETE;
