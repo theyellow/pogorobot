@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8u212-jre-alpine
 VOLUME /tmp
 #ARG DEPENDENCY=target/dependency
 #COPY ${DEPENDENCY}/BOOT-INF/lib /pogorobot/lib
@@ -8,6 +8,7 @@ VOLUME /tmp
 # timezone env with default
 ENV TZ Europe/Berlin
 ARG JAR_FILE
+RUN apk -U --no-cache upgrade
 COPY config /config
 COPY target/${JAR_FILE} pogorobot.jar
 #ENTRYPOINT ["java","-jar","/pogorobot.jar"]
