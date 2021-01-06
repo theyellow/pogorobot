@@ -441,52 +441,55 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 			echoMessage.setText("*Bisher hast du folgende ausgewählt:*\n" + filteredPokemon
 					+ "\n*Pokémon zum Filter hinzufügen oder entfernen?*");
 			echoMessage.setReplyMarkup(telegramKeyboardService.getPokemonSettingKeyboard(false));
-		} else if (inputText.equalsIgnoreCase("Raids")) {
-			Integer telegramId = message.getFrom().getId();
-			String filteredPokemon = getFilteredRaidPokemonForUser(telegramId);
-			boolean showRaidsActiceForUser = isShowRaidsActiceForUser(telegramId);
-			if (showRaidsActiceForUser) {
-				Integer raidLevel = user.getUserFilter().getRaidLevel();
-				String text = "*Bisher hast du folgende Raids ausgewählt:*\n" + filteredPokemon + "\nEs werden ";
-				if (raidLevel == null || raidLevel > 5) {
-					text += "*keine weiteren Raids";
-				} else {
-					text += "Raids ab *Level " + raidLevel;
-
-				}
-				text += "* angezeigt.";
-				echoMessage.setText(text + "* \nRaids im Filter konfigurieren:* ");
-			} else {
-				echoMessage
-						.setText("*Du hast Raids im Moment deaktiviert. Zum Aktivieren den Button unten verwenden.*");
-			}
-			echoMessage.setReplyMarkup(telegramKeyboardService.getRaidSettingKeyboard(showRaidsActiceForUser));
-		} else if (inputText.equalsIgnoreCase("Raid hinzufügen")) {
-			// Integer telegramId = message.getFrom().getId();
-			// List<Gym> gymsAround = getGymsAround(telegramId.toString(), 1.5);
-			// echoMessage.setText(telegramTextService.getGymsAroundMessageText(gymsAround));
-			echoMessage.setText(telegramTextService.getGymsOrEggChoiceText());
-			echoMessage.setReplyMarkup(telegramKeyboardService.getChooseRaidOrEggKeyboard());
-			echoMessage.disableWebPagePreview();
-		} else if (inputText.equalsIgnoreCase("IV")) {
-			Double minIV = user.getUserFilter().getMinIV();
-			if (minIV == null) {
-				minIV = 101.0;
-			}
-			String minIvText = 100.0 < minIV ? "Deaktiviert\n"
-					: "Ab " + String.valueOf(minIV + 1.0) + "% werden dir alle Pokémon "
-							+ "im ausgewählten Gebiet angezeigt.\n";
-
-			echoMessage.setText("*Einstellungen zur IV-Suche:* " + minIvText
-					+ "Falls noch nicht geschehen suche dir am besten gleich jetzt "
-					+ "ein Suchgebiet für IV aus oder aktualisiere deinen Umkreis.");
-			echoMessage.setReplyMarkup(telegramKeyboardService.getIVSettingKeyboard(minIV));
-		} else if (inputText.equalsIgnoreCase("Standort") || inputText.isEmpty()) {
-			// Nothing to to, if location was shared it is already set on
-			// database
 		} else {
-			echoMessage.setText("Huhu " + from.getUserName() + ", deine Nachricht:\n" + inputText
-					+ "\nIch weiß nichts damit anzufangen. Wolltest du vielleicht /start oder /stop eingeben?");
+			Filter  userFilter = user.getUserFilter();
+			if (inputText.equalsIgnoreCase("Raids")) {
+				Integer telegramId = message.getFrom().getId();
+				String filteredPokemon = getFilteredRaidPokemonForUser(telegramId);
+				boolean showRaidsActiceForUser = isShowRaidsActiceForUser(telegramId);
+				if (showRaidsActiceForUser) {
+					Integer raidLevel = null != userFilter ? userFilter.getRaidLevel() : null;
+					String text = "*Bisher hast du folgende Raids ausgewählt:*\n" + filteredPokemon + "\nEs werden ";
+					if (raidLevel == null || raidLevel > 5) {
+						text += "*keine weiteren Raids";
+					} else {
+						text += "Raids ab *Level " + raidLevel;
+
+					}
+					text += "* angezeigt.";
+					echoMessage.setText(text + "* \nRaids im Filter konfigurieren:* ");
+				} else {
+					echoMessage
+							.setText("*Du hast Raids im Moment deaktiviert. Zum Aktivieren den Button unten verwenden.*");
+				}
+				echoMessage.setReplyMarkup(telegramKeyboardService.getRaidSettingKeyboard(showRaidsActiceForUser));
+			} else if (inputText.equalsIgnoreCase("Raid hinzufügen")) {
+				// Integer telegramId = message.getFrom().getId();
+				// List<Gym> gymsAround = getGymsAround(telegramId.toString(), 1.5);
+				// echoMessage.setText(telegramTextService.getGymsAroundMessageText(gymsAround));
+				echoMessage.setText(telegramTextService.getGymsOrEggChoiceText());
+				echoMessage.setReplyMarkup(telegramKeyboardService.getChooseRaidOrEggKeyboard());
+				echoMessage.disableWebPagePreview();
+			} else if (inputText.equalsIgnoreCase("IV")) {
+				Double minIV = null != userFilter ? userFilter.getMinIV() : null;
+				if (minIV == null) {
+					minIV = 101.0;
+				}
+				String minIvText = 100.0 < minIV ? "Deaktiviert\n"
+						: "Ab " + String.valueOf(minIV + 1.0) + "% werden dir alle Pokémon "
+								+ "im ausgewählten Gebiet angezeigt.\n";
+
+				echoMessage.setText("*Einstellungen zur IV-Suche:* " + minIvText
+						+ "Falls noch nicht geschehen suche dir am besten gleich jetzt "
+						+ "ein Suchgebiet für IV aus oder aktualisiere deinen Umkreis.");
+				echoMessage.setReplyMarkup(telegramKeyboardService.getIVSettingKeyboard(minIV));
+			} else if (inputText.equalsIgnoreCase("Standort") || inputText.isEmpty()) {
+				// Nothing to to, if location was shared it is already set on
+				// database
+			} else {
+				echoMessage.setText("Huhu " + from.getUserName() + ", deine Nachricht:\n" + inputText
+						+ "\nIch weiß nichts damit anzufangen. Wolltest du vielleicht /start oder /stop eingeben?");
+			}
 		}
 		return echoMessage;
 	}
