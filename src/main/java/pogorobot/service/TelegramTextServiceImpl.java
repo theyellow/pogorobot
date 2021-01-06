@@ -230,7 +230,14 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String result = "";
 		User user = userService.getOrCreateUser(telegramId.toString());
 		Filter filter = user.getUserFilter();
-		List<Integer> pokemons = filter.getPokemons();
+		
+		List<Integer> pokemons = new ArrayList<Integer>();
+		if (filter != null) {
+			pokemons.addAll(filter.getPokemons()); ;
+		} else {
+			logger.warn("filter for user " + telegramId + " doesn't exist.");
+		}
+				
 		for (Integer pokemon : pokemons) {
 			String pokemonName = getPokemonName(pokemon.toString());
 			result += pokemonName + ", ";

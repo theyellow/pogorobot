@@ -286,6 +286,10 @@ public class FilterServiceImpl implements FilterService {
 	public List<Integer> getFilterRaidsForTelegramId(String telegramId) {
 		User user = userService.getOrCreateUser(telegramId);
 		Filter filter = user.getUserFilter();
+		if (null == filter) {
+			logger.warn("No filter found for user " + telegramId + ". Perhaps user should restart by /start");
+			return new ArrayList<Integer>();
+		}
 		filter = entityManager.find(Filter.class, filter.getId());
 		List<Integer> raidPokemon = filter.getRaidPokemon();
 		raidPokemon.size();
