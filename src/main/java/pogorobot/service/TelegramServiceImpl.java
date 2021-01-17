@@ -633,6 +633,10 @@ public class TelegramServiceImpl implements TelegramService {
 						if (null == groupChatId) {
 							logger.warn("can't edit message " + messageId + " of unknown chat");
 							continue;
+						} else if (null == messageId || Integer.MAX_VALUE == messageId || Integer.MIN_VALUE == messageId) {
+							logger.warn("can't edit special message-id '" + messageId + "' of chat " + groupChatId);
+							continue;
+							
 						}
 
 						// magic number: pokemonId -1 means "egg"

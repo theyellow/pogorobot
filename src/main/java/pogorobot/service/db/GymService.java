@@ -35,9 +35,9 @@ public interface GymService {
 
 	public void deleteGym(Gym gym);
 
-	public Gym updateOrInsertGym(Gym gym);
+	public boolean updateOrInsertGym(Gym gym);
 	
-	public Gym updateOrInsertGymWithRaid(RaidAtGymEvent raid);
+	public boolean updateOrInsertGymWithRaid(RaidAtGymEvent raid);
 
 	public void deleteOldGymPokemonOnDatabase();
 

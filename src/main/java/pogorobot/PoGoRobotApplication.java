@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
@@ -73,7 +72,6 @@ import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.TelegramSendMessagesService;
 import pogorobot.service.db.FilterService;
 import pogorobot.service.db.GymService;
-import pogorobot.service.db.PokemonService;
 import pogorobot.service.db.ProcessedElementsServiceRepository;
 import pogorobot.service.db.UserService;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
@@ -105,7 +103,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 	private GroupfilesTimestamps groufileTimestamp;
 
-	private final Timer deleteMessageTimer = new Timer(true);
+//	private final Timer deleteMessageTimer = new Timer(true);
 
 	public static void main(String[] args) {
 		SpringApplication.run(PoGoRobotApplication.class, args);
@@ -206,20 +204,20 @@ public class PoGoRobotApplication implements ApplicationRunner {
 	}
 	
 
-	private final class CleanupPokemonTask implements Runnable {
-
-		private PokemonService pokemonService;
-
-		public CleanupPokemonTask(PokemonService telegramSendMessagesService) {
-			this.pokemonService = telegramSendMessagesService;
-		}
-
-		@Override
-		public void run() {
-			pokemonService.cleanPokemonWithSpawnpointOnDatabase();
-			logger.debug("Cleaned pokemon...");
-		}
-	}
+//	private final class CleanupPokemonTask implements Runnable {
+//
+//		private PokemonService pokemonService;
+//
+//		public CleanupPokemonTask(PokemonService telegramSendMessagesService) {
+//			this.pokemonService = telegramSendMessagesService;
+//		}
+//
+//		@Override
+//		public void run() {
+//			pokemonService.cleanPokemonWithSpawnpointOnDatabase();
+//			logger.debug("Cleaned pokemon...");
+//		}
+//	}
 
 	private class GroupfilesTimestamps implements Comparable<GroupfilesTimestamps> {
 		private long timestampGroupRaidLevelFile;
@@ -461,7 +459,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 			// setup cron for database cleanup jobs:
 
-			PokemonService pokemonService = ctx.getBean(PokemonService.class);
+//			PokemonService pokemonService = ctx.getBean(PokemonService.class);
 			GymService gymService = ctx.getBean(GymService.class);
 			PossibleRaidPokemonRepository raidBossRepository = ctx.getBean(PossibleRaidPokemonRepository.class);
 			ProcessedElementsServiceRepository processedElementsService = ctx.getBean(ProcessedElementsServiceRepository.class);

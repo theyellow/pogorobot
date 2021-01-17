@@ -39,7 +39,7 @@ import pogorobot.service.MessageContentProcessor;
 @RestController
 public class WebhookServer {
 
-	private static final int PERIOD = 5;
+	private static final int PERIOD = 1;
 
 	@Autowired
 	private MessageContentProcessor messageContentProcessor;
@@ -60,7 +60,7 @@ public class WebhookServer {
 
 	Runnable messagePoller = new Runnable() {
 
-		Timer messageSendTimer = new Timer(true);
+		Timer messageSendTimer = new Timer("Webhook-MessagePoller",true);
 
 		@Override
 		public void run() {
@@ -79,7 +79,7 @@ public class WebhookServer {
 	@ResponseBody
 	public HttpStatus readFromWebhook(@RequestBody List<IncomingEvent<EventMessage<?>>> messages) {
 		messages.stream().map((event) -> event.getMessage()).forEach((message) -> {
-			logger.debug("message: " + message.toString());
+//			logger.debug("message: " + message.toString());
 			eventQueue.add(message);
 		});
 		return HttpStatus.OK;

@@ -105,16 +105,16 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	private Map<Integer, Integer> sendMessages = new ConcurrentHashMap<>();
 
 	// private static final long MANY_CHATS_SEND_INTERVAL = 33;
-	private static final long MANY_CHATS_SEND_INTERVAL = 33;
+	private static final long MANY_CHATS_SEND_INTERVAL = 100;
 	private static final long MAXIMUM_NR_OF_MESSAGES_PER_MINUTE = 29;
 	private static final long ONE_CHAT_SEND_INTERVAL = 2000;
 	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10L;
-	private final Timer mSendTimer = new Timer(true);
+	private final Timer mSendTimer = new Timer("Shutdown-listener",true);
 	private final ConcurrentHashMap<Long, MessageQueue> mMessagesMap = new ConcurrentHashMap<>(32, 0.75f, 1);
 	private final ArrayList<MessageQueue> mSendQueues = new ArrayList<>();
 	private final AtomicBoolean mSendRequested = new AtomicBoolean(false);
-	private final static AtomicLong mNrOfMessagesInMinute = new AtomicLong(0);
-	private final static AtomicLong mLastSendingTimeInSeconds = new AtomicLong(System.currentTimeMillis() / 1000);
+	private final static AtomicLong NR_OF_MESSAGES_IN_LAST_SECOND = new AtomicLong(0);
+	private final static AtomicLong LAST_SENDING_TIME_IN_SECONDS = new AtomicLong(System.currentTimeMillis() / 1000);
 	
 	private String bottoken;
 
@@ -168,8 +168,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				int state = queue.getCurrentState(currentTime); // Actual check
 																// here
 				if (state == MessageQueue.GET_MESSAGE) {
-					mNrOfMessagesInMinute.incrementAndGet();
-					mLastSendingTimeInSeconds.set(currentTime / 1000);
+					NR_OF_MESSAGES_IN_LAST_SECOND.incrementAndGet();
+					LAST_SENDING_TIME_IN_SECONDS.set(currentTime / 1000);
 					mSendQueues.add(queue);
 					processNext = true;
 				} else if (state == MessageQueue.WAIT_SIG) {
@@ -373,10 +373,10 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public synchronized int getCurrentState(long currentTime) {
 			// currentTime is passed as parameter for optimisation to do not
 			// recall currentTimeMillis() many times
-			if (System.currentTimeMillis() / 1000 > mLastSendingTimeInSeconds.get()) {
-				mNrOfMessagesInMinute.lazySet(0);
+			if (System.currentTimeMillis() / 1000 > LAST_SENDING_TIME_IN_SECONDS.get()) {
+				NR_OF_MESSAGES_IN_LAST_SECOND.lazySet(0);
 			}
-			boolean maxMessagesPerSecondAllowed = mNrOfMessagesInMinute.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
+			boolean maxMessagesPerSecondAllowed = NR_OF_MESSAGES_IN_LAST_SECOND.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
 			long interval = currentTime - mLastSendTime;
 			boolean empty = mQueue.isEmpty();
 			if (!empty && interval > ONE_CHAT_SEND_INTERVAL && maxMessagesPerSecondAllowed)
@@ -583,7 +583,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 			@Override
 			public void run() {
-				Timer messageSendTimer = new Timer(true);
+				Timer messageSendTimer = new Timer("MessageSenderTask", true);
 				// messageSendTimer = new Timer(true);
 				messageSendTimer.schedule(new MessageSenderTask(), MANY_CHATS_SEND_INTERVAL, MANY_CHATS_SEND_INTERVAL);
 			}
@@ -1176,8 +1176,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	@Override
 	public String getBotUsername() {
-		// TODO Auto-generated method stub
-		return "TestUserName";
+		return "PoGoRobot";
 	}
 
 }
