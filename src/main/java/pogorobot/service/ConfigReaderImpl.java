@@ -474,7 +474,6 @@ public class ConfigReaderImpl implements ConfigReader {
 		return result;
 	}
 
-
 	private <T> Map<String, List<T>> parseGroupConfigFile(String fileName, Function<String, T> function)
 			throws IOException {
 		Map<String, List<T>> result = new HashMap<>();
@@ -493,7 +492,7 @@ public class ConfigReaderImpl implements ConfigReader {
 				}
 				groupNames.add(readLine.substring(1, readLine.length() - 1));
 				valuePerFilter = new ArrayList<>();
-			} else if (readLine.isEmpty()) {
+			} else if (readLine.isEmpty() || readLine.trim().isEmpty()) {
 				// logger.debug("Empty line in " + fileName);
 			} else {
 				String content = readLine.trim();
