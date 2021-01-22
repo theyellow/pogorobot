@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pogorobot.entities.PokemonWithSpawnpoint;
+import pogorobot.entities.PokemonWithSpawnpoint_;
 import pogorobot.entities.ProcessedPokemon;
 import pogorobot.entities.SendMessages;
 import pogorobot.service.db.repositories.ProcessedPokemonRepository;
@@ -148,7 +149,7 @@ public class PokemonServiceImpl implements PokemonService {
 		CriteriaDelete<PokemonWithSpawnpoint> retrieveSpawnpointsWithMon = cb
 				.createCriteriaDelete(PokemonWithSpawnpoint.class);
 		Root<PokemonWithSpawnpoint> from = retrieveSpawnpointsWithMon.from(PokemonWithSpawnpoint.class);
-		Predicate spawnpointIdEqual = cb.lessThan(from.get("disappearTime"), System.currentTimeMillis() / 1000 - 65);
+		Predicate spawnpointIdEqual = cb.lessThan(from.get(PokemonWithSpawnpoint_.disappearTime), System.currentTimeMillis() / 1000 - 65);
 		retrieveSpawnpointsWithMon = retrieveSpawnpointsWithMon.where(spawnpointIdEqual);
 		int deadPokemon = entityManager.createQuery(retrieveSpawnpointsWithMon).executeUpdate();
 		stopWatch.stop();

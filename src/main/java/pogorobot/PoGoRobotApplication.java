@@ -72,6 +72,7 @@ import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.TelegramSendMessagesService;
 import pogorobot.service.db.FilterService;
 import pogorobot.service.db.GymService;
+import pogorobot.service.db.PokemonService;
 import pogorobot.service.db.ProcessedElementsServiceRepository;
 import pogorobot.service.db.UserService;
 import pogorobot.service.db.repositories.PossibleRaidPokemonRepository;
@@ -114,12 +115,12 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		this.args = args.getSourceArgs();
 	}
 
-	// private Runnable getDeleteOldProcessedMonsTask(PokemonService pokemonService)
-	// {
-	// return () -> {
-	// pokemonService.deleteProcessedPokemonOnDatabase();
-	// };
-	// }
+	 private Runnable getDeleteOldProcessedMonsTask(PokemonService pokemonService)
+	 {
+	 return () -> {
+		 pokemonService.cleanPokemonWithSpawnpointOnDatabase();
+	 };
+	 }
 
 	private Runnable getDeleteOldGymMonsTask(GymService gymService) {
 		return () -> {
@@ -468,8 +469,9 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			taskScheduler = new ThreadPoolTaskScheduler();
 			taskScheduler.setPoolSize(8);
 			taskScheduler.initialize();
-			// taskScheduler.schedule(getDeleteOldProcessedMonsTask(pokemonService), new
-			// CronTrigger("0 4 * * * *"));
+			 PokemonService pokemonService = ctx.getBean(PokemonService.class) ;
+			taskScheduler.schedule(getDeleteOldProcessedMonsTask(pokemonService), new
+			 CronTrigger("0 */4 * * * *"));
 			taskScheduler.schedule(getDeleteOldGymMonsTask(gymService), new CronTrigger("0 18 22 1 1 *"));
 			taskScheduler.schedule(getUpdateRaidBossListTask(raidBossRepository),
 					new CronTrigger("0 16 5,11,17,23 * * *"));
