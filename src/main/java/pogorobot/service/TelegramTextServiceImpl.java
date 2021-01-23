@@ -160,8 +160,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			pokemonForms = jsonForms.getJSONObject(pokemonIdInForm);
 		} catch (JSONException ex) {
 			if (!"0".equals(formId)) {
-				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
-						+ " *" + pokemonId + "* -> send message to developer to update internal configuration.");
+				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
+						+ pokemonId + "* -> send message to developer to update internal configuration.");
 			}
 			return result;
 		}
@@ -170,8 +170,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 		} else {
 			if (!"0".equals(formId)) {
-				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId)
-						+ " *" + pokemonId + "* -> send message to developer to update internal configuration.");
+				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
+						+ pokemonId + "* -> send message to developer to update internal configuration.");
 			}
 		}
 		return result;
@@ -230,14 +230,15 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String result = "";
 		User user = userService.getOrCreateUser(telegramId.toString());
 		Filter filter = user.getUserFilter();
-		
+
 		List<Integer> pokemons = new ArrayList<Integer>();
 		if (filter != null) {
-			pokemons.addAll(filter.getPokemons()); ;
+			pokemons.addAll(filter.getPokemons());
+			;
 		} else {
 			logger.warn("filter for user " + telegramId + " doesn't exist.");
 		}
-				
+
 		for (Integer pokemon : pokemons) {
 			String pokemonName = getPokemonName(pokemon.toString());
 			result += pokemonName + ", ";
@@ -613,6 +614,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		String imageUrl = gym.getUrl();
 		String googleLink = getGoogleUrl(gym.getLatitude(), gym.getLongitude());
 		String appleLink = getAppleLink(gym.getLatitude(), gym.getLongitude());
+		String raidText = Integer.valueOf(level) == 6 ? "Mega-Raid" : "Raid Level " + level;
 		if (placeholderString != null) {
 			String result = "default: " + placeholderString;
 			logger.debug("Searching for " + placeholderString);
@@ -636,6 +638,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				result = getJsonMoves().getString(chargemove);
 			} else if (placeholderString.equals("level")) {
 				result = level;
+			} else if (placeholderString.equals("raidtitle")) {
+				result = raidText;
 			} else if (placeholderString.equals("begin") || placeholderString.equals("start")) {
 				result = begin;
 			} else if (placeholderString.equals("end")) {

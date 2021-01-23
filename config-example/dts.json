@@ -10,12 +10,12 @@
 		"description": "\n  [Google Maps]({{{googlemap}}}) {{globeEmoji}} [Apple Maps]({{{applemap}}})"
 	},
 	"raid": {
-		"text": "{{exraidFlagEmoji}}*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}} \n[{{gymname}}]({{{imgurl}}}){{flagemoji}}",
+		"text": "{{exraidFlagEmoji}}*{{raidtitle}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}} \n[{{gymname}}]({{{imgurl}}}){{flagemoji}}",
 		"description": "\n{{globeEmoji}} [Google Maps]({{{mapurl}}})     {{pushpinEmoji}} [Apple Maps]({{{applemap}}})",
 		"icon_url": "{{{imgurl}}}"
 	},
 	"egg": {
-		"text": "{{exraidFlagEmoji}}*Raid Level {{level}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}}\n[{{gymname}}]({{{imgurl}}})",
+		"text": "{{exraidFlagEmoji}}*{{raidtitle}} - {{name}}* {{clockEmoji}} {{begin}} - {{end}} {{weatherEmoji}}\n[{{gymname}}]({{{imgurl}}})",
 		"description": "\n{{globeEmoji}} [Google Maps]({{{mapurl}}})     {{pushpinEmoji}} [Apple Maps]({{{applemap}}})",
 		"icon_url": "{{{imgurl}}}"
 	},
