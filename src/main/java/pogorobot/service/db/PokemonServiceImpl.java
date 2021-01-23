@@ -146,12 +146,12 @@ public class PokemonServiceImpl implements PokemonService {
 		logger.info("start cleaning up PokemonWithSpawnpoint ");
 		StopWatch stopWatch = StopWatch.createStarted();
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-		CriteriaDelete<PokemonWithSpawnpoint> retrieveSpawnpointsWithMon = cb
+		CriteriaDelete<PokemonWithSpawnpoint> deleteCriteria = cb
 				.createCriteriaDelete(PokemonWithSpawnpoint.class);
-		Root<PokemonWithSpawnpoint> from = retrieveSpawnpointsWithMon.from(PokemonWithSpawnpoint.class);
-		Predicate spawnpointIdEqual = cb.lessThan(from.get(PokemonWithSpawnpoint_.disappearTime), System.currentTimeMillis() / 1000 - 65);
-		retrieveSpawnpointsWithMon = retrieveSpawnpointsWithMon.where(spawnpointIdEqual);
-		int deadPokemon = entityManager.createQuery(retrieveSpawnpointsWithMon).executeUpdate();
+		Root<PokemonWithSpawnpoint> from = deleteCriteria.from(PokemonWithSpawnpoint.class);
+		Predicate spawnpointIdEqual = cb.lessThan(from.get(PokemonWithSpawnpoint_.disappearTime), System.currentTimeMillis() / 1000 - 180);
+		deleteCriteria = deleteCriteria.where(spawnpointIdEqual);
+		int deadPokemon = entityManager.createQuery(deleteCriteria).executeUpdate();
 		stopWatch.stop();
 		long time = stopWatch.getTime(TimeUnit.SECONDS);
 		logger.info("cleaning up PokemonWithSpawnpoint - deleted: " + deadPokemon + " | used time: " + time + " secs");
@@ -209,15 +209,9 @@ public class PokemonServiceImpl implements PokemonService {
 			dbPokemon.setVerified(pokemon.getVerified());
 			changedPokemon = true;
 		}
-		if (pokemon.getSpawnpointId() != null && !pokemon.getSpawnpointId().equals(dbPokemon.getSpawnpointId())) {
-			dbPokemon.setSpawnpointId(pokemon.getSpawnpointId());
-		}
 		if (pokemon.getPokemonId() != null && !pokemon.getPokemonId().equals(dbPokemon.getPokemonId())) {
 			dbPokemon.setPokemonId(pokemon.getPokemonId());
 			changedPokemon = true;
-		}
-		if (pokemon.getEncounterId() != null && !pokemon.getEncounterId().equals(dbPokemon.getEncounterId())) {
-			dbPokemon.setEncounterId(pokemon.getEncounterId());
 		}
 		if (pokemon.getLatitude() != null && !pokemon.getLatitude().equals(dbPokemon.getLatitude()) ) {
 			dbPokemon.setLatitude(pokemon.getLatitude());
@@ -231,9 +225,6 @@ public class PokemonServiceImpl implements PokemonService {
 			dbPokemon.setDisappearTime(pokemon.getDisappearTime());
 			changedPokemon = true;
 		}
-		if (pokemon.getSecondsUntilDespawn() != null && !pokemon.getSecondsUntilDespawn().equals(dbPokemon.getSecondsUntilDespawn()) ) {
-			dbPokemon.setSecondsUntilDespawn(pokemon.getSecondsUntilDespawn());
-		}
 		if (pokemon.getSpawnStart() != null && !pokemon.getSpawnStart().equals(dbPokemon.getSpawnStart())) {
 			dbPokemon.setSpawnStart(pokemon.getSpawnStart());
 			changedPokemon = true;
@@ -241,12 +232,6 @@ public class PokemonServiceImpl implements PokemonService {
 		if (pokemon.getSpawnEnd() != null && !pokemon.getSpawnEnd().equals(dbPokemon.getSpawnEnd())) {
 			dbPokemon.setSpawnEnd(pokemon.getSpawnEnd());
 			changedPokemon = true;
-		}
-		if (pokemon.getTimeUntilHidden_ms() != null && !pokemon.getTimeUntilHidden_ms().equals(dbPokemon.getTimeUntilHidden_ms())) {
-			dbPokemon.setTimeUntilHidden_ms(pokemon.getTimeUntilHidden_ms());
-		}
-		if (pokemon.getLastModified() != null && !pokemon.getLastModified().equals(dbPokemon.getLastModified())) {
-			dbPokemon.setLastModified(pokemon.getLastModified());
 		}
 		if (pokemon.getCpMultiplier() != null && pokemon.getCpMultiplier() != 0 && !pokemon.getCpMultiplier().equals(dbPokemon.getCpMultiplier())) {
 			dbPokemon.setCpMultiplier(pokemon.getCpMultiplier());
@@ -288,18 +273,31 @@ public class PokemonServiceImpl implements PokemonService {
 			dbPokemon.setMove2(pokemon.getMove2());
 			changedPokemon = true;
 		}
-		if (pokemon.getPlayerLevel() != null && !pokemon.getPlayerLevel().equals(dbPokemon.getPlayerLevel())) {
-			dbPokemon.setPlayerLevel(pokemon.getPlayerLevel());
-		}
-		// if (pokemon.getPokemonEncounterId() != null) {
-		// dbPokemon.setPokemonEncounterId(pokemon.getPokemonEncounterId());
-		// }
 		if (changedPokemon) {
+			if (pokemon.getTimeUntilHidden_ms() != null && !pokemon.getTimeUntilHidden_ms().equals(dbPokemon.getTimeUntilHidden_ms())) {
+				dbPokemon.setTimeUntilHidden_ms(pokemon.getTimeUntilHidden_ms());
+			}
+			if (pokemon.getLastModified() != null && !pokemon.getLastModified().equals(dbPokemon.getLastModified())) {
+				dbPokemon.setLastModified(pokemon.getLastModified());
+			}
+			if (pokemon.getSpawnpointId() != null && !pokemon.getSpawnpointId().equals(dbPokemon.getSpawnpointId())) {
+				dbPokemon.setSpawnpointId(pokemon.getSpawnpointId());
+			}
+			if (pokemon.getEncounterId() != null && !pokemon.getEncounterId().equals(dbPokemon.getEncounterId())) {
+				dbPokemon.setEncounterId(pokemon.getEncounterId());
+			}
+			if (pokemon.getSecondsUntilDespawn() != null && !pokemon.getSecondsUntilDespawn().equals(dbPokemon.getSecondsUntilDespawn()) ) {
+				dbPokemon.setSecondsUntilDespawn(pokemon.getSecondsUntilDespawn());
+			}
+			if (pokemon.getPlayerLevel() != null && !pokemon.getPlayerLevel().equals(dbPokemon.getPlayerLevel())) {
+				dbPokemon.setPlayerLevel(pokemon.getPlayerLevel());
+			}
+			// if (pokemon.getPokemonEncounterId() != null) {
+			// dbPokemon.setPokemonEncounterId(pokemon.getPokemonEncounterId());
+			// }
 			pokemon = entityManager.merge(dbPokemon);
-		}
-		}
-		if (changedPokemon) {
 			entityManager.flush();
+			}
 		}
 		return pokemon;
 	}
