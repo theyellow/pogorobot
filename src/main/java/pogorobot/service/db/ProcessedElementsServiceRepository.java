@@ -14,8 +14,7 @@ public interface ProcessedElementsServiceRepository {
 
 	public void cleanupSendMessage(List<SendMessages> messagesWithTimeOver, long nowInSeconds);
 
-	public ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessageAnswer answer,
-			String chatId);
+	public ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessages sentMessage);
 
 	public List<Set<SendMessages>> retrievePossibleMessageIdToUpdate(PokemonWithSpawnpoint pokemon, boolean deepScan,
 			List<Long> updatedChats, List<SendMessages> sendMessageAnswers);

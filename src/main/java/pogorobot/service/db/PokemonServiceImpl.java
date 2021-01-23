@@ -141,7 +141,7 @@ public class PokemonServiceImpl implements PokemonService {
 //	}
 
 	@Override
-	@Transactional(TxType.REQUIRES_NEW)
+	@Transactional(TxType.REQUIRED)
 	public void cleanPokemonWithSpawnpointOnDatabase() {
 		logger.info("start cleaning up PokemonWithSpawnpoint ");
 		StopWatch stopWatch = StopWatch.createStarted();

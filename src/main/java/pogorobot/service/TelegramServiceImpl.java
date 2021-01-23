@@ -122,7 +122,7 @@ public class TelegramServiceImpl implements TelegramService {
 			Map<String, Long> chatAndFilter = filterService.retrieveChatAndFilter(updatedChats);
 
 			chatAndFilter.entrySet().stream().forEach((entry) -> {
-				sendMessageAndUpdate(pokemon, processedMon, deepScan, entry.getKey(), entry.getValue());
+				sendAndUpdateTransactional(pokemon, deepScan, processedMon, entry.getValue(), entry.getKey());
 			});
 			// Workaround to get info about deep-scanning param to group-filters
 			final boolean onlyDeep = deepScan;
@@ -159,7 +159,8 @@ public class TelegramServiceImpl implements TelegramService {
 		if (monsterFuture != null) {
 			SendMessageAnswer answer = getFutureAnswer(monsterFuture);
 			if (answer != null && chatId != null) {
-				processedElementsService.updateProcessedMonster(processedMonFinal, answer, chatId);
+				SendMessages sentMessage = getSendMessagesAnswers(answer, chatId);
+				processedElementsService.updateProcessedMonster(processedMonFinal, sentMessage);
 			}
 
 		} else {
@@ -168,6 +169,35 @@ public class TelegramServiceImpl implements TelegramService {
 		}
 	}
 
+	private SendMessages getSendMessagesAnswers(SendMessageAnswer answer, String chatId) {
+		SendMessages sentMessage = new SendMessages();
+		sentMessage.setGroupChatId(Long.valueOf(chatId));
+		if (answer != null) {
+			logger.debug("now we have future while sending to group :) The main-message is "
+					+ answer.getMainMessageAnswer());
+			Integer mainMessageAnswer = answer.getMainMessageAnswer();
+			if (mainMessageAnswer != null) {
+				if (mainMessageAnswer == 2147483647) {
+					logger.warn("In chat {} the answer was: 2147483647 (a special prime) - "
+							+ "Don't save SendMessages and ProcessedPokemon", chatId);
+				} else {
+					sentMessage.setMessageId(mainMessageAnswer);
+				}
+			}
+			Integer stickerAnswer = answer.getStickerAnswer();
+			if (stickerAnswer != null) {
+				sentMessage.setStickerId(stickerAnswer);
+			}
+			Integer locationAnswer = answer.getLocationAnswer();
+			if (locationAnswer != null) {
+				sentMessage.setLocationId(locationAnswer);
+			}
+		} else {
+			logger.debug("got no real answer for monster encounter {} in chat {}", "", //processedPokemon.getEncounterId()
+					chatId);
+		}
+		return sentMessage;
+	}
 	// @Transactional
 	// private Map<Long, String> retrieveUsergroupFilters() {
 	// Map<Long, String> usergroupFilters = new HashMap<>();
@@ -209,13 +239,16 @@ public class TelegramServiceImpl implements TelegramService {
 	// return chatAndFilter;
 	// }
 
-	private void sendMessageAndUpdate(PokemonWithSpawnpoint pokemon, ProcessedPokemon processedMon, boolean deepScan,
-			String chatId, Long userFilter) {
-		CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId, userFilter,
-				deepScan, null);
-		SendMessageAnswer answer = getFutureAnswer(monsterFuture);
-		processedElementsService.updateProcessedMonster(processedMon, answer, chatId);
-	}
+//	private void sendMessageAndUpdate(PokemonWithSpawnpoint pokemon, ProcessedPokemon processedMon, boolean deepScan,
+//			String chatId, Long userFilter) {
+//		CompletableFuture<SendMessageAnswer> monsterFuture = sendPokemonIfFilterMatch(pokemon, chatId, userFilter,
+//				deepScan, null);
+//		SendMessageAnswer answer = getFutureAnswer(monsterFuture);
+//		if (answer != null && chatId != null) {
+//			SendMessages sentMessage = getSendMessagesAnswers(answer, chatId);
+//			processedElementsService.updateProcessedMonster(processedMon, sentMessage);
+//		}
+//	}
 
 	/**
 	 * generate new processedPokemon

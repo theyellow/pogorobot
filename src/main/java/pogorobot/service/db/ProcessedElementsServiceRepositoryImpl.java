@@ -330,46 +330,15 @@ public class ProcessedElementsServiceRepositoryImpl implements ProcessedElements
 
 	@Override
 	@Transactional
-	public ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessageAnswer answer,
-			String chatId) {
-		Set<SendMessages> chatsPokemonIsPosted = processedPokemon.getChatsPokemonIsPosted();
-
-		if (chatsPokemonIsPosted == null) {
-			chatsPokemonIsPosted = new HashSet<>();
-		}
-		SendMessages sentMessage = new SendMessages();
-		sentMessage.setGroupChatId(Long.valueOf(chatId));
-		if (answer != null) {
-			logger.debug("now we have future while sending to group :) The main-message is "
-					+ answer.getMainMessageAnswer());
-			Integer mainMessageAnswer = answer.getMainMessageAnswer();
-			if (mainMessageAnswer != null) {
-				if (mainMessageAnswer == 2147483647) {
-					logger.warn("In chat {} the answer was: 2147483647 (a special prime) - "
-							+ "Don't save SendMessages and ProcessedPokemon", chatId);
-				} else {
-					sentMessage.setMessageId(mainMessageAnswer);
-				}
-			}
-			Integer stickerAnswer = answer.getStickerAnswer();
-			if (stickerAnswer != null) {
-				sentMessage.setStickerId(stickerAnswer);
-			}
-			Integer locationAnswer = answer.getLocationAnswer();
-			if (locationAnswer != null) {
-				sentMessage.setLocationId(locationAnswer);
-			}
-		} else {
-			logger.debug("got no real answer for monster encounter {} in chat {}", processedPokemon.getEncounterId(),
-					chatId);
-		}
-
+	public ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessages sentMessage) {
 		if (sentMessage.getMessageId() != null && sentMessage.getGroupChatId() != null) {
 			processedPokemon.addToChatsPokemonIsPosted(sentMessage);
 			processedPokemon = processedPokemonRepository.save(processedPokemon);
 		}
 		return processedPokemon;
 	}
+
+
 
 	@Override
 	@Transactional
