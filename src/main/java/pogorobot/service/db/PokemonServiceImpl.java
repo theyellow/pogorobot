@@ -28,6 +28,7 @@ import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.OptimisticLockException;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
@@ -169,7 +170,7 @@ public class PokemonServiceImpl implements PokemonService {
 	// }
 
 	@Override
-	@Transactional(TxType.REQUIRES_NEW)
+	@Transactional(dontRollbackOn = OptimisticLockException.class)
 	public PokemonWithSpawnpoint updateOrInsertPokemon(PokemonWithSpawnpoint pokemon) {
 		if ("None".equalsIgnoreCase(pokemon.getSpawnpointId())) {
 			pokemon.setSpawnpointId(String.valueOf(System.nanoTime()));
@@ -295,11 +296,34 @@ public class PokemonServiceImpl implements PokemonService {
 			// if (pokemon.getPokemonEncounterId() != null) {
 			// dbPokemon.setPokemonEncounterId(pokemon.getPokemonEncounterId());
 			// }
-			pokemon = entityManager.merge(dbPokemon);
-			entityManager.flush();
+			try {
+				pokemon = entityManager.merge(dbPokemon);
+				entityManager.flush();
+			} catch (OptimisticLockException ex) {
+				logger.error("updateOrInsert caused OptimisticLockException: {}", ex.getMessage());
+				String methodName = "updateOrInsert";
+				logStacktraceForMethod(ex.getStackTrace(), methodName);
+				if (ex.getCause() != null) {
+					logger.error("caused by {}: {}", ex.getCause().getClass().getSimpleName(), ex.getCause().getMessage());
+				}
+				logger.error("Entity with problems {}: {}", ex.getEntity().getClass().getSimpleName(), ex.getEntity());
 			}
 		}
+		}
 		return pokemon;
+	}
+
+	private void logStacktraceForMethod(StackTraceElement[] stackTrace, String methodName) {
+		boolean lastLineMatched = false;
+		for (StackTraceElement stackTraceElement : stackTrace) {
+			if (stackTraceElement.getMethodName().contains(methodName)) {
+				logger.error("Stacktrace: {}", stackTraceElement.getClassName());
+				lastLineMatched = true;
+			} else if (lastLineMatched) {
+				logger.error("Stacktrace: {}", stackTraceElement.getClassName());
+				lastLineMatched = false;
+			}
+		}
 	}
 
 }
