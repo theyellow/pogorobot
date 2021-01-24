@@ -170,7 +170,7 @@ public class PokemonServiceImpl implements PokemonService {
 	// }
 
 	@Override
-	@Transactional(dontRollbackOn = OptimisticLockException.class)
+	@Transactional(dontRollbackOn = OptimisticLockException.class, value =  TxType.REQUIRES_NEW)
 	public PokemonWithSpawnpoint updateOrInsertPokemon(PokemonWithSpawnpoint pokemon) {
 		if ("None".equalsIgnoreCase(pokemon.getSpawnpointId())) {
 			pokemon.setSpawnpointId(String.valueOf(System.nanoTime()));
