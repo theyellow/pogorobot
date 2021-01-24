@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -44,7 +45,10 @@ import org.xml.sax.SAXException;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.css.StyleElement;
 import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNodeList;
+import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 public class RaidBossListFetcher {
@@ -66,20 +70,29 @@ public class RaidBossListFetcher {
 		waitForFetch = true;
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(java.util.logging.Level.OFF);
 		StringBuilder sb = new StringBuilder("<all>\n");
-		String url = "https://pokemongo.gamepress.gg/raid-boss-list";
+		String url = "https://gamepress.gg/pokemongo/raid-boss-list";
 		Runnable r = () -> {
 			WebClient webClient = new WebClient(BrowserVersion.BEST_SUPPORTED);
 			webClient.getOptions().setThrowExceptionOnScriptError(false);
 			try {
 				final HtmlPage startPage = webClient.getPage(url);
-				DomElement raidbosstable = startPage.getElementById("raid-boss-table");
+				DomElement raidbosstable = startPage.getElementById("raid-pokemon-list");
 				try {
 					TimeUnit.SECONDS.sleep(20);
 				} catch (InterruptedException e) {
 					logger.warn("Got interrupted");
 					Thread.currentThread().interrupt();
 				}
-				raidbosstable.getElementsByTagName("tr").stream().filter(row -> row.isDisplayed()).forEach(row -> {
+//				raidbosstable.getElemen
+				DomNodeList<HtmlElement> tableRows = raidbosstable.getElementsByTagName("tr");
+				Predicate<? super HtmlElement> displayedRow = row -> {
+					StyleElement styleElementCaseInSensitive = row.getStyleElementCaseInSensitive("display");
+					if (styleElementCaseInSensitive != null && styleElementCaseInSensitive.getValue() != null) {
+						return styleElementCaseInSensitive.getValue().contains("none");						
+					}
+					return true;
+				};
+				tableRows.stream().filter(displayedRow).forEach(row -> {
 					System.out.println(row);
 					sb.append("  <row>\n");
 					row.getElementsByTagName("td").stream().forEach(td -> {
@@ -87,7 +100,7 @@ public class RaidBossListFetcher {
 						if (td.hasChildNodes()) {
 							td.getChildElements().forEach(subelement -> {
 								// Is it the pokemon?
-								if (subelement.getTagName().equals("a") && subelement.hasAttribute("hreflang")) {
+								if (subelement.getTagName().equals("a") && subelement.hasAttribute("href")) {
 									sb.append(parsePokemon(subelement));
 								} else
 								// Or is it the level?
@@ -171,15 +184,23 @@ public class RaidBossListFetcher {
 		List<String> result = new ArrayList<>();
 
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
-		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, ""); // compliant
 		
+		try {
+			factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, ""); // Compliant
+		} catch (IllegalArgumentException ex) {
+			logger.warn("Unsetting acess external dtd failed with '{}'", factory.getClass().getCanonicalName());
+		}
+		try {
+			factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, ""); // compliant
+		} catch (IllegalArgumentException ex) {
+			logger.warn("Unsetting acess external schema failed with '{}'", factory.getClass().getCanonicalName());
+		}
 		// disable external entities
 		factory.setExpandEntityReferences(false);
 		try {
 			factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
 		} catch (ParserConfigurationException e1) {
-			logger.warn("WARN: Setting FEATURE_SECURE_PROCESSING to true failed while parsing XML");
+			logger.warn("Setting FEATURE_SECURE_PROCESSING to true failed while parsing XML");
 		}
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder;
@@ -221,13 +242,17 @@ public class RaidBossListFetcher {
 	}
 
 	private String parseLevel(DomElement subelement) {
-		String level = "   <level>" + subelement.getTextContent().trim() + "</level>\n";
-		return level;
+		// Change Level "Mega" to 6
+		String possibleLevel = subelement.getTextContent().trim();
+		possibleLevel = possibleLevel.trim().equalsIgnoreCase("mega") ? "6" : possibleLevel;
+		// xml
+		String xmlLevel = "   <level>" + possibleLevel + "</level>\n";
+		return xmlLevel;
 	}
 
 	private String parsePokemon(DomElement subelement) {
 		String nodeValue = subelement.getAttribute("href");
-		nodeValue = "   <pokemon>" + nodeValue.substring(9, nodeValue.length()) + "</pokemon>\n";
+		nodeValue = "   <pokemon>" + nodeValue.substring(nodeValue.lastIndexOf("/") + 1, nodeValue.length()) + "</pokemon>\n";
 		return nodeValue;
 	}
 
