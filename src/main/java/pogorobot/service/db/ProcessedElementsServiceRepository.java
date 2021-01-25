@@ -12,7 +12,7 @@ public interface ProcessedElementsServiceRepository {
 
 	public List<SendMessages> retrievePostedMessagesForGymId(String gymId);
 
-	public void cleanupSendMessage(List<SendMessages> messagesWithTimeOver, long nowInSeconds);
+	public List<SendMessages>  cleanupSendMessage(long nowInSeconds);
 
 	public ProcessedPokemon updateProcessedMonster(ProcessedPokemon processedPokemon, SendMessages sentMessage);
 

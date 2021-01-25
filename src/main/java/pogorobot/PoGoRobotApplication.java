@@ -162,38 +162,17 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		@Override
 		public void run() {
 			long nowInSeconds = System.currentTimeMillis() / 1000;
-			// ProcessedRaids owningRaid = null;
-			// ProcessedPokemon owningMon = null;
-			// String errorsWhileDeleting = "";
-			// StopWatch stopWatch = StopWatch.createStarted();
+
+			List<SendMessages> messagesWithTimeOver = processedElementsService.cleanupSendMessage(nowInSeconds);
 
 			StopWatch stopWatch = StopWatch.createStarted();
-			List<SendMessages> messagesWithTimeOver = processedElementsService
-					.retrievePostedMonsterMessagesWithTimeOver(nowInSeconds);
-			messagesWithTimeOver.addAll(processedElementsService.retrievePostedRaidMessagesWithTimeOver(nowInSeconds));
-			// all.addAll(processedElementsService.retrievePostedMessagesWithoutExistingProcessedElement());
-			// try {
-			processedElementsService.cleanupSendMessage(messagesWithTimeOver, nowInSeconds);
-			logger.debug("Cleaned messages...");
-			// toDeleteOnTelegram = deleteMessagesOnTelegram(sendMessagesClone, nowInSeconds
-			// - endTime);
-
-			stopWatch.stop();
-			long time = stopWatch.getTime(TimeUnit.SECONDS);
-			if (time > 10) {
-				logger.warn("slow database and message cleanup took {} seconds", time);
-			} else if (time > 5) {
-				logger.info("database and message cleanup took {} seconds", time);
-			} else {
-				logger.debug("fast database and message cleanup took {} seconds", time);
-			}
-			stopWatch.reset();
+			
 			stopWatch.start();
 			messagesWithTimeOver.forEach(x -> {
 				telegramSendMessagesService.deleteMessagesOnTelegram(x, 1);
 			});
 			stopWatch.stop();
-			time = stopWatch.getTime(TimeUnit.SECONDS);
+			long time = stopWatch.getTime(TimeUnit.SECONDS);
 			if (time > 10) {
 				logger.warn("slow telegram cleanup took {} seconds", time);
 			} else if (time > 5) {
@@ -201,6 +180,8 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			} else {
 				logger.debug("fast telegram cleanup took {} seconds", time);
 			}
+			
+			
 		}
 	}
 	

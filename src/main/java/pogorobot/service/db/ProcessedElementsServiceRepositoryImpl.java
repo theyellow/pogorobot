@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -17,6 +18,7 @@ import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
+import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +95,12 @@ public class ProcessedElementsServiceRepositoryImpl implements ProcessedElements
 	 */
 	@Override
 	@Transactional(TxType.REQUIRES_NEW)
-	public void cleanupSendMessage(List<SendMessages> messagesWithTimeOver, long nowInSeconds) {
+	public List<SendMessages>  cleanupSendMessage(long nowInSeconds) {
+
+		List<SendMessages> messagesWithTimeOver = retrievePostedMonsterMessagesWithTimeOver(nowInSeconds);
+		messagesWithTimeOver.addAll(retrievePostedRaidMessagesWithTimeOver(nowInSeconds));
+		
+		StopWatch stopWatch = StopWatch.createStarted();
 
 		// Delete sendMessages and ProcessedRaids or ProcessedPokemon
 		cleanupSendMessagesAndProcessedElementsOnDatabase(nowInSeconds, messagesWithTimeOver);
@@ -106,6 +113,21 @@ public class ProcessedElementsServiceRepositoryImpl implements ProcessedElements
 
 		// Delete not posted processed raids:
 		deleteNonPostedProcessedRaidsOnDatabase();
+		
+		logger.debug("Cleaned messages...");
+
+		stopWatch.stop();
+		long time = stopWatch.getTime(TimeUnit.SECONDS);
+		if (time > 10) {
+			logger.warn("slow database and message cleanup took {} seconds", time);
+		} else if (time > 5) {
+			logger.info("database and message cleanup took {} seconds", time);
+		} else {
+			logger.debug("fast database and message cleanup took {} seconds", time);
+		}
+		messagesWithTimeOver.stream().forEach(message -> entityManager.detach(message));
+		return messagesWithTimeOver;
+		
 	}
 
 	/**
