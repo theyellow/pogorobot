@@ -167,7 +167,6 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 			StopWatch stopWatch = StopWatch.createStarted();
 			
-			stopWatch.start();
 			messagesWithTimeOver.forEach(x -> {
 				telegramSendMessagesService.deleteMessagesOnTelegram(x, 1);
 			});
