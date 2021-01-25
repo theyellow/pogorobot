@@ -306,7 +306,10 @@ public class PokemonServiceImpl implements PokemonService {
 				if (ex.getCause() != null) {
 					logger.error("caused by {}: {}", ex.getCause().getClass().getSimpleName(), ex.getCause().getMessage());
 				}
-				logger.error("Entity with problems {}: {}", ex.getEntity().getClass().getSimpleName(), ex.getEntity());
+				if (ex.getEntity() != null) {
+					logger.error("Entity with problems {}: {}", ex.getEntity().getClass().getSimpleName(), ex.getEntity());
+					
+				}
 			}
 		}
 		}
@@ -317,10 +320,10 @@ public class PokemonServiceImpl implements PokemonService {
 		boolean lastLineMatched = false;
 		for (StackTraceElement stackTraceElement : stackTrace) {
 			if (stackTraceElement.getMethodName().contains(methodName)) {
-				logger.error("Stacktrace: {}", stackTraceElement.getClassName());
+				logger.error("Stacktrace: {} (line {})", stackTraceElement.getClassName(), stackTraceElement.getLineNumber());
 				lastLineMatched = true;
 			} else if (lastLineMatched) {
-				logger.error("Stacktrace: {}", stackTraceElement.getClassName());
+				logger.error("Stacktrace: {} (line {})", stackTraceElement.getClassName(), stackTraceElement.getLineNumber());
 				lastLineMatched = false;
 			}
 		}
