@@ -170,7 +170,7 @@ public class PokemonServiceImpl implements PokemonService {
 	// }
 
 	@Override
-	@Transactional(dontRollbackOn = OptimisticLockException.class, value = TxType.REQUIRES_NEW)
+	@Transactional(value = TxType.REQUIRES_NEW)
 	public PokemonWithSpawnpoint updateOrInsertPokemon(PokemonWithSpawnpoint pokemon) {
 		if ("None".equalsIgnoreCase(pokemon.getSpawnpointId())) {
 			pokemon.setSpawnpointId(String.valueOf(System.nanoTime()));
@@ -300,33 +300,42 @@ public class PokemonServiceImpl implements PokemonService {
 				pokemon = entityManager.merge(dbPokemon);
 				entityManager.flush();
 			} catch (OptimisticLockException ex) {
-				logger.error("updateOrInsert caused OptimisticLockException: {}", ex.getMessage());
 				String methodName = "updateOrInsert";
-				logStacktraceForMethod(ex.getStackTrace(), methodName);
-				if (ex.getCause() != null) {
-					logger.error("caused by {}: {}", ex.getCause().getClass().getSimpleName(), ex.getCause().getMessage());
-				}
-				if (ex.getEntity() != null) {
-					logger.error("Entity with problems {}: {}", ex.getEntity().getClass().getSimpleName(), ex.getEntity());
-					
-				}
+				logOptimisticLockException(ex, methodName);
 			}
 		}
 		}
 		return pokemon;
 	}
 
+	private void logOptimisticLockException(OptimisticLockException ex, String methodName) {
+		logger.error("{} caused OptimisticLockException: ", methodName);
+		logger.error("{}", ex.getMessage());
+		logStacktraceForMethod(ex.getStackTrace(), methodName);
+		if (ex.getCause() != null) {
+			logger.error("caused by {}: {}", ex.getCause().getClass().getSimpleName(), ex.getCause().getMessage());
+		}
+		if (ex.getEntity() != null) {
+			logger.error("Entity with problems {}: {}", ex.getEntity().getClass().getSimpleName(), ex.getEntity());
+			
+		}
+	}
+
 	private void logStacktraceForMethod(StackTraceElement[] stackTrace, String methodName) {
 		boolean lastLineMatched = false;
 		for (StackTraceElement stackTraceElement : stackTrace) {
 			if (stackTraceElement.getMethodName().contains(methodName)) {
-				logger.error("Stacktrace: {} (line {})", stackTraceElement.getClassName(), stackTraceElement.getLineNumber());
+				logStacktraceElement(stackTraceElement);
 				lastLineMatched = true;
 			} else if (lastLineMatched) {
-				logger.error("Stacktrace: {} (line {})", stackTraceElement.getClassName(), stackTraceElement.getLineNumber());
+				logStacktraceElement(stackTraceElement);
 				lastLineMatched = false;
 			}
 		}
+	}
+
+	private void logStacktraceElement(StackTraceElement stackTraceElement) {
+		logger.error("tracelog: {}.{} (line {})", stackTraceElement.getClassName(), stackTraceElement.getMethodName(), stackTraceElement.getLineNumber());
 	}
 
 }
