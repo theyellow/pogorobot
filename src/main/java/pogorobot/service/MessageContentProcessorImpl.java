@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 import pogorobot.entities.EggWithGym;
 import pogorobot.entities.Gym;
@@ -116,8 +118,16 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				logger.debug(message.toString());
 			}
 		} else if (entity instanceof PokemonWithSpawnpoint) {
-			pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
-			telegramService.triggerPokemonMessages((PokemonWithSpawnpoint) entity);
+			try {
+				pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
+				telegramService.triggerPokemonMessages((PokemonWithSpawnpoint) entity);
+			} catch (TransactionException ex) {
+				logger.error("Transactional {}: {}", ex.getClass().getName(), ex.getMessage());
+				logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
+			} catch (Exception ex) {
+				logger.error("{}: {}", ex.getClass().getName(), ex.getMessage());
+				logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
+			}
 		} else if (message instanceof WebserviceQuest) {
 			logger.trace("Quest found " + ((WebserviceQuest) message).toString());
 			// logger.info(message + "");
@@ -128,4 +138,20 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 		return message;
 	}
 
+	private void logStacktraceForMethod(StackTraceElement[] stackTrace, String methodName) {
+		boolean lastLineMatched = false;
+		for (StackTraceElement stackTraceElement : stackTrace) {
+			if (stackTraceElement.getMethodName().contains(methodName)) {
+				logStacktraceElement(stackTraceElement);
+				lastLineMatched = true;
+			} else if (lastLineMatched) {
+				logStacktraceElement(stackTraceElement);
+				lastLineMatched = false;
+			}
+		}
+	}
+
+	private void logStacktraceElement(StackTraceElement stackTraceElement) {
+		logger.error("tracelog: {}.{} (line {})", stackTraceElement.getClassName(), stackTraceElement.getMethodName(), stackTraceElement.getLineNumber());
+	}
 }
