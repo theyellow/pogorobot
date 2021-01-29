@@ -57,6 +57,7 @@ public class PokemonServiceImpl implements PokemonService {
 	private ProcessedPokemonRepository processedPokemonDAO;
 
 	@Override
+	@Transactional
 	public Iterable<PokemonWithSpawnpoint> getAllPokemon() {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		return entityManager.createQuery(cb.createQuery(PokemonWithSpawnpoint.class)).getResultList();
