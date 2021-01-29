@@ -66,7 +66,7 @@ public class GymServiceImpl implements GymService {
 	@SuppressWarnings("squid:S3749")
 	@PersistenceContext
 	private EntityManager entityManager;
-	
+
 	@Autowired
 	@Qualifier("standard")
 	private StandardConfiguration standardConfiguration;
@@ -97,7 +97,7 @@ public class GymServiceImpl implements GymService {
 		List<Gym> resultList = entityManager.createQuery(gymCriteria).getResultList();
 
 		boolean changedGym = false;
-		boolean onlyLastModifiedChanged = false;
+		boolean unvisibleChange = false;
 
 		if (resultList.isEmpty()) {
 			logger.info("new gym/stop found");
@@ -118,8 +118,7 @@ public class GymServiceImpl implements GymService {
 				} else {
 					int bestGuessedCount = filteredStream.size();
 					if (bestGuessedCount > 1) {
-						logger.warn("found " + bestGuessedCount + " potential matches: "
-								+ filteredStream);
+						logger.warn("found " + bestGuessedCount + " potential matches: " + filteredStream);
 					}
 					oldGym = filteredStream.get(0);
 					logger.warn("Take match with id " + oldGym.getId());
@@ -132,6 +131,7 @@ public class GymServiceImpl implements GymService {
 				if (!gym.getGymId().equals(oldGym.getGymId())) {
 					oldGym.setGymId(gym.getGymId());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 
@@ -151,19 +151,21 @@ public class GymServiceImpl implements GymService {
 				if (gym.getLastModified() != oldGym.getLastModified()) {
 					oldGym.setLastModified(gym.getLastModified());
 					changedGym = true;
-					onlyLastModifiedChanged = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getLatitude() != null) {
 				if (gym.getLatitude() != oldGym.getLatitude()) {
 					oldGym.setLatitude(gym.getLatitude());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getLongitude() != null) {
 				if (gym.getLongitude() != oldGym.getLongitude()) {
 					oldGym.setLongitude(gym.getLongitude());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (StringUtils.isNotEmpty(gym.getName())) {
@@ -176,6 +178,7 @@ public class GymServiceImpl implements GymService {
 				if (gym.getOccupiedSince() != oldGym.getOccupiedSince()) {
 					oldGym.setOccupiedSince(gym.getOccupiedSince());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getPokemon() != null && !gym.getPokemon().isEmpty()) {
@@ -186,35 +189,40 @@ public class GymServiceImpl implements GymService {
 				}
 				oldGym.setPokemon(temp);
 				changedGym = true;
+				unvisibleChange = true;
 			}
 			if (gym.getRaidActiveUntil() != null) {
 				if (gym.getRaidActiveUntil() != oldGym.getRaidActiveUntil()) {
 					oldGym.setRaidActiveUntil(gym.getRaidActiveUntil());
-					changedGym = true;					
+					changedGym = true;
 				}
 			}
 			if (gym.getSlotsAvailable() != null) {
 				if (gym.getSlotsAvailable() != oldGym.getSlotsAvailable()) {
 					oldGym.setSlotsAvailable(gym.getSlotsAvailable());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getTeamId() != null) {
 				if (gym.getTeamId() != oldGym.getTeamId()) {
 					oldGym.setTeamId(gym.getTeamId());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getUrl() != null) {
 				if (gym.getUrl() != oldGym.getUrl()) {
 					oldGym.setUrl(gym.getUrl());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getRaid() != null) {
 				if (!gym.getRaid().equals(oldGym.getRaid())) {
 					oldGym.setRaid(gym.getRaid());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getExraidEglible() != null) {
@@ -224,6 +232,7 @@ public class GymServiceImpl implements GymService {
 					}
 					oldGym.setExraidEglible(gym.getExraidEglible());
 					changedGym = true;
+					unvisibleChange = true;
 				}
 			}
 			if (oldGym.getAddress() == null || oldGym.getAddress().isEmpty()) {
@@ -231,15 +240,15 @@ public class GymServiceImpl implements GymService {
 				// oldGym.setAddress(createAddressFromGeo(oldGym.getLatitude(),
 				// oldGym.getLongitude()));
 			}
-			if (changedGym && !onlyLastModifiedChanged) {
+			if (changedGym) {
 				gym = entityManager.merge(oldGym);
 			}
 		}
 
-		if (changedGym && !onlyLastModifiedChanged) {
+		if (changedGym) {
 			entityManager.flush();
 		}
-		return changedGym && !onlyLastModifiedChanged;
+		return changedGym && !unvisibleChange;
 	}
 
 	private CriteriaQuery<Gym> queryGymExisting(Gym gym, CriteriaBuilder cb) {
@@ -289,7 +298,7 @@ public class GymServiceImpl implements GymService {
 
 		SortedSet<EventWithSubscribers> eventsWithSubscribers = null;
 		boolean raidEventChanged = false;
-		
+
 		if (resultList.isEmpty()) {
 			String id = raidEvent.getId() != null ? raidEvent.getId() : raidEvent.getGymId();
 			raidEvent.setId(id);
@@ -320,7 +329,7 @@ public class GymServiceImpl implements GymService {
 				}
 			}
 			if (raidEvent.getGymId() != null) {
-				if (raidEvent.getGymId() != oldEvent.getGymId()){
+				if (raidEvent.getGymId() != oldEvent.getGymId()) {
 					oldEvent.setGymId(raidEvent.getGymId());
 					raidEventChanged = true;
 				}
@@ -358,7 +367,7 @@ public class GymServiceImpl implements GymService {
 		// TODO: rework for getting suburb-names
 		String result = "";
 		GeoApiContext context = new Builder().apiKey(standardConfiguration.getGmapsKey()).disableRetries().build();
-		
+
 		LatLng latlng = new LatLng(latitude, longitude);
 		GeocodingApiRequest request = new GeocodingApiRequest(context).latlng(latlng);
 		try {
@@ -371,7 +380,8 @@ public class GymServiceImpl implements GymService {
 					break;
 				}
 				logger.info("adress: " + geocodingResult.formattedAddress);
-				result += geocodingResult.formattedAddress != null ?  geocodingResult.formattedAddress + " " : result + " ";
+				result += geocodingResult.formattedAddress != null ? geocodingResult.formattedAddress + " "
+						: result + " ";
 			}
 		} catch (ApiException | InterruptedException | IOException e) {
 			if (e instanceof InterruptedException) {
@@ -387,13 +397,12 @@ public class GymServiceImpl implements GymService {
 	@Transactional(TxType.REQUIRES_NEW)
 	public boolean updateOrInsertGymWithRaid(RaidAtGymEvent raidAtGymEvent) {
 		Gym gym = transformRaidEventToGy(raidAtGymEvent);
-		
+
 		boolean changed = updateOrInsertGym(gym);
 
 		// Think i don't need this:
 		// entityManager.flush();
 
-		
 		raidAtGymEvent.setLatitude(gym.getLatitude());
 		raidAtGymEvent.setLongitude(gym.getLongitude());
 		raidAtGymEvent.setGymId(gym.getGymId());
@@ -487,9 +496,8 @@ public class GymServiceImpl implements GymService {
 		long seconds = stopwatch.getTime(TimeUnit.SECONDS);
 		long ending = stopwatch.getTime(TimeUnit.MILLISECONDS) % 100;
 
-		logger.info(
-				"cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + seconds + "," + ending
-						+ " secs");
+		logger.info("cleaning up old GymPokemon - deleted: " + numberOfDeleted + "\nused time: " + seconds + ","
+				+ ending + " secs");
 	}
 
 	@Override
