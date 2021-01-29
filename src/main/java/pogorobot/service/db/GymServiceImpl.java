@@ -393,6 +393,7 @@ public class GymServiceImpl implements GymService {
 		// Think i don't need this:
 		// entityManager.flush();
 
+		
 		raidAtGymEvent.setLatitude(gym.getLatitude());
 		raidAtGymEvent.setLongitude(gym.getLongitude());
 		raidAtGymEvent.setGymId(gym.getGymId());

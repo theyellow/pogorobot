@@ -57,6 +57,7 @@ public class PokemonServiceImpl implements PokemonService {
 	private ProcessedPokemonRepository processedPokemonDAO;
 
 	@Override
+	@Transactional
 	public Iterable<PokemonWithSpawnpoint> getAllPokemon() {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		return entityManager.createQuery(cb.createQuery(PokemonWithSpawnpoint.class)).getResultList();
@@ -142,7 +143,7 @@ public class PokemonServiceImpl implements PokemonService {
 //	}
 
 	@Override
-	@Transactional(TxType.REQUIRED)
+	@Transactional(TxType.REQUIRES_NEW)
 	public void cleanPokemonWithSpawnpointOnDatabase() {
 		logger.info("start cleaning up PokemonWithSpawnpoint ");
 		StopWatch stopWatch = StopWatch.createStarted();

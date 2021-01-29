@@ -94,16 +94,20 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 			RaidAtGymEvent incomingRaid = (RaidAtGymEvent) entity;
 			if (incomingRaid.getGymId() != null) {
 				// gymService.updateOrInsertGymWithRaid(incomingRaid);
-				gymService.updateOrInsertGymWithRaid(incomingRaid);
-				telegramService.triggerRaidMessages(incomingRaid);
+				boolean changed = gymService.updateOrInsertGymWithRaid(incomingRaid);
+				if (changed) {
+					telegramService.triggerRaidMessages(incomingRaid);
+				}
 				logger.debug(message.toString());
 			}
 		} else if (entity instanceof RaidWithGym) {
 			RaidWithGym raidWithGym = (RaidWithGym) entity;
 			if (raidWithGym.getGymId() != null) {
 				RaidAtGymEvent incomingRaid = new RaidAtGymEvent(raidWithGym);
-				gymService.updateOrInsertGymWithRaid(incomingRaid);
-				telegramService.triggerRaidMessages(incomingRaid);
+				boolean changed = gymService.updateOrInsertGymWithRaid(incomingRaid);
+				if (changed) {
+					telegramService.triggerRaidMessages(incomingRaid);
+				}
 				logger.debug(message.toString());
 			}
 		} else if (entity instanceof EggWithGym) {
@@ -113,8 +117,10 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 			EggWithGym eggWithGym = (EggWithGym) entity;
 			if (eggWithGym.getGymId() != null) {
 				RaidAtGymEvent incomingRaid = new RaidAtGymEvent(eggWithGym);
-				gymService.updateOrInsertGymWithRaid(incomingRaid);
-				telegramService.triggerRaidMessages(incomingRaid);
+				boolean changed = gymService.updateOrInsertGymWithRaid(incomingRaid);
+				if (changed) {
+					telegramService.triggerRaidMessages(incomingRaid);
+				}
 				logger.debug(message.toString());
 			}
 		} else if (entity instanceof PokemonWithSpawnpoint) {
