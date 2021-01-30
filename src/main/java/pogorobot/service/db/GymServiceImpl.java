@@ -97,12 +97,13 @@ public class GymServiceImpl implements GymService {
 		List<Gym> resultList = entityManager.createQuery(gymCriteria).getResultList();
 
 		boolean changedGym = false;
-		boolean unvisibleChange = false;
+		boolean unvisibleChange = true;
 
 		if (resultList.isEmpty()) {
 			logger.info("new gym/stop found");
 			entityManager.persist(gym);
 			changedGym = true;
+			unvisibleChange = false;
 		} else {
 			Gym oldGym = null;
 			if (resultList.size() > 1) {
@@ -180,13 +181,6 @@ public class GymServiceImpl implements GymService {
 					unvisibleChange = true;
 				}
 			}
-			if (gym.getUrl() != null) {
-				if (gym.getUrl() != oldGym.getUrl()) {
-					oldGym.setUrl(gym.getUrl());
-					changedGym = true;
-					unvisibleChange = true;
-				}
-			}
 			if (gym.getSlotsAvailable() != null) {
 				if (gym.getSlotsAvailable() != oldGym.getSlotsAvailable()) {
 					oldGym.setSlotsAvailable(gym.getSlotsAvailable());
@@ -207,6 +201,13 @@ public class GymServiceImpl implements GymService {
 			if (gym.getEnabled() != null) {
 				if (gym.getEnabled() != oldGym.getEnabled()) {
 					oldGym.setEnabled(gym.getEnabled());
+					changedGym = true;
+					unvisibleChange = true;
+				}
+			}
+			if (gym.getUrl() != null) {
+				if (gym.getUrl() != oldGym.getUrl()) {
+					oldGym.setUrl(gym.getUrl());
 					changedGym = true;
 					unvisibleChange = false;
 				}
