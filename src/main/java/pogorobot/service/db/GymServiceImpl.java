@@ -135,18 +135,6 @@ public class GymServiceImpl implements GymService {
 				}
 			}
 
-			if (gym.getEnabled() != null) {
-				if (gym.getEnabled() != oldGym.getEnabled()) {
-					oldGym.setEnabled(gym.getEnabled());
-					changedGym = true;
-				}
-			}
-			if (gym.getDescription() != null && !gym.getDescription().equals("''")) {
-				if (!gym.getDescription().equals(oldGym.getDescription())) {
-					oldGym.setDescription(gym.getDescription());
-					changedGym = true;
-				}
-			}
 			if (gym.getLastModified() != null && gym.getLastModified() != 0L) {
 				if (gym.getLastModified() != oldGym.getLastModified()) {
 					oldGym.setLastModified(gym.getLastModified());
@@ -168,12 +156,6 @@ public class GymServiceImpl implements GymService {
 					unvisibleChange = true;
 				}
 			}
-			if (StringUtils.isNotEmpty(gym.getName())) {
-				if (!gym.getName().equals(oldGym.getName())) {
-					oldGym.setName(gym.getName());
-					changedGym = true;
-				}
-			}
 			if (gym.getOccupiedSince() != null) {
 				if (gym.getOccupiedSince() != oldGym.getOccupiedSince()) {
 					oldGym.setOccupiedSince(gym.getOccupiedSince());
@@ -190,19 +172,6 @@ public class GymServiceImpl implements GymService {
 				oldGym.setPokemon(temp);
 				changedGym = true;
 				unvisibleChange = true;
-			}
-			if (gym.getRaidActiveUntil() != null) {
-				if (gym.getRaidActiveUntil() != oldGym.getRaidActiveUntil()) {
-					oldGym.setRaidActiveUntil(gym.getRaidActiveUntil());
-					changedGym = true;
-				}
-			}
-			if (gym.getSlotsAvailable() != null) {
-				if (gym.getSlotsAvailable() != oldGym.getSlotsAvailable()) {
-					oldGym.setSlotsAvailable(gym.getSlotsAvailable());
-					changedGym = true;
-					unvisibleChange = true;
-				}
 			}
 			if (gym.getTeamId() != null) {
 				if (gym.getTeamId() != oldGym.getTeamId()) {
@@ -225,6 +194,13 @@ public class GymServiceImpl implements GymService {
 					unvisibleChange = true;
 				}
 			}
+			if (gym.getSlotsAvailable() != null) {
+				if (gym.getSlotsAvailable() != oldGym.getSlotsAvailable()) {
+					oldGym.setSlotsAvailable(gym.getSlotsAvailable());
+					changedGym = true;
+					unvisibleChange = true;
+				}
+			}
 			if (gym.getExraidEglible() != null) {
 				if (gym.getExraidEglible() != oldGym.getExraidEglible()) {
 					if (gym.getExraidEglible()) {
@@ -234,6 +210,34 @@ public class GymServiceImpl implements GymService {
 					changedGym = true;
 					unvisibleChange = true;
 				}
+			if (gym.getEnabled() != null) {
+				if (gym.getEnabled() != oldGym.getEnabled()) {
+					oldGym.setEnabled(gym.getEnabled());
+					changedGym = true;
+					unvisibleChange = false;
+				}
+			}
+			if (gym.getDescription() != null && !gym.getDescription().equals("''")) {
+				if (!gym.getDescription().equals(oldGym.getDescription())) {
+					oldGym.setDescription(gym.getDescription());
+					changedGym = true;
+					unvisibleChange = false;
+				}
+			}
+			if (StringUtils.isNotEmpty(gym.getName())) {
+				if (!gym.getName().equals(oldGym.getName())) {
+					oldGym.setName(gym.getName());
+					changedGym = true;
+					unvisibleChange = false;
+				}
+			}
+			if (gym.getRaidActiveUntil() != null) {
+				if (gym.getRaidActiveUntil() != oldGym.getRaidActiveUntil()) {
+					oldGym.setRaidActiveUntil(gym.getRaidActiveUntil());
+					changedGym = true;
+					unvisibleChange = false;
+				}
+			}
 			}
 			if (oldGym.getAddress() == null || oldGym.getAddress().isEmpty()) {
 				// Reenable this (googlemaps-api update never done...)
@@ -248,7 +252,7 @@ public class GymServiceImpl implements GymService {
 		if (changedGym) {
 			entityManager.flush();
 		}
-		return changedGym && !unvisibleChange;
+		return !unvisibleChange;
 	}
 
 	private CriteriaQuery<Gym> queryGymExisting(Gym gym, CriteriaBuilder cb) {
