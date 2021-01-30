@@ -187,13 +187,6 @@ public class GymServiceImpl implements GymService {
 					unvisibleChange = true;
 				}
 			}
-			if (gym.getRaid() != null) {
-				if (!gym.getRaid().equals(oldGym.getRaid())) {
-					oldGym.setRaid(gym.getRaid());
-					changedGym = true;
-					unvisibleChange = true;
-				}
-			}
 			if (gym.getSlotsAvailable() != null) {
 				if (gym.getSlotsAvailable() != oldGym.getSlotsAvailable()) {
 					oldGym.setSlotsAvailable(gym.getSlotsAvailable());
@@ -210,9 +203,17 @@ public class GymServiceImpl implements GymService {
 					changedGym = true;
 					unvisibleChange = true;
 				}
+			}
 			if (gym.getEnabled() != null) {
 				if (gym.getEnabled() != oldGym.getEnabled()) {
 					oldGym.setEnabled(gym.getEnabled());
+					changedGym = true;
+					unvisibleChange = false;
+				}
+			}
+			if (gym.getRaid() != null) {
+				if (!gym.getRaid().equals(oldGym.getRaid())) {
+					oldGym.setRaid(gym.getRaid());
 					changedGym = true;
 					unvisibleChange = false;
 				}
@@ -237,7 +238,6 @@ public class GymServiceImpl implements GymService {
 					changedGym = true;
 					unvisibleChange = false;
 				}
-			}
 			}
 			if (oldGym.getAddress() == null || oldGym.getAddress().isEmpty()) {
 				// Reenable this (googlemaps-api update never done...)

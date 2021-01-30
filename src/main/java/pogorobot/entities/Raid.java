@@ -144,4 +144,23 @@ public class Raid {
 				+ (move1 != null ? "move1=" + move1 + ", " : "") + (move2 != null ? "move2=" + move2 : "") + "]";
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		boolean equal = false;
+		if (obj != null && obj instanceof Raid) {
+			Raid toCompare = (Raid) obj;
+			equal = start == toCompare.start;
+			equal = equal & end == toCompare.end;
+			equal = equal & raidLevel == toCompare.raidLevel;
+			equal = equal & spawn == toCompare.spawn;
+			equal = equal & pokemonId == toCompare.pokemonId;
+			equal = equal & move1 == toCompare.move1;
+			equal = equal & move2 == toCompare.move2;
+			equal = equal & sponsor_id == toCompare.sponsor_id;
+		} 
+		return equal;
+	}
+
+	
+	
 }

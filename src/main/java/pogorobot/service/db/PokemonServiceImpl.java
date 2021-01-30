@@ -17,18 +17,17 @@
 package pogorobot.service.db;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
+import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import javax.persistence.OptimisticLockException;
 import javax.transaction.Transactional;
 import javax.transaction.Transactional.TxType;
 
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Service;
 import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.PokemonWithSpawnpoint_;
 import pogorobot.entities.ProcessedPokemon;
-import pogorobot.entities.SendMessages;
 import pogorobot.service.db.repositories.ProcessedPokemonRepository;
 
 @Service("pokemonService")
@@ -57,7 +55,6 @@ public class PokemonServiceImpl implements PokemonService {
 	private ProcessedPokemonRepository processedPokemonDAO;
 
 	@Override
-	@Transactional
 	public Iterable<PokemonWithSpawnpoint> getAllPokemon() {
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		return entityManager.createQuery(cb.createQuery(PokemonWithSpawnpoint.class)).getResultList();
@@ -143,7 +140,7 @@ public class PokemonServiceImpl implements PokemonService {
 //	}
 
 	@Override
-	@Transactional(TxType.REQUIRES_NEW)
+	@Transactional(TxType.REQUIRED)
 	public void cleanPokemonWithSpawnpointOnDatabase() {
 		logger.info("start cleaning up PokemonWithSpawnpoint ");
 		StopWatch stopWatch = StopWatch.createStarted();
