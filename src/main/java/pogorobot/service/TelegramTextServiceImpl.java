@@ -78,8 +78,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	private static final Marker LOGTAG = null; // "TELEGRAM TEXT SERVICE";
 
-	private static String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e342f74656c656772616d";
-	private static String serialStringDh = "2f2f2068747470733a2f2f6769746875622e636f6d2f506f676f64656e68656c6465722f737072697465732f626c6f622f6d61737465722f";
+	private static String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e382f74656c656772616d2f";
+	private static String serialStringDh = "68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f6e657069786c2f68695265735f506b6d49636f6e735f54472d446973636f72642f6d61696e2f54656c656772616d5f68695265735f6e6f5368696e795f77697468426f726465722f";
 
 	private static JSONObject jsonMoves;
 
@@ -271,20 +271,27 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	}
 
 	@Override
-	public String getStickerUrl(int pokemonInt) throws DecoderException {
+	public String getStickerUrl(int pokemonInt, String form) throws DecoderException {
 		String decUrl = createDec();
 		String threeDigitFormattedMonId;
+		String formattedForm = idToThreeChars(form);
 		if (pokemonInt < 0) {
 			int level = pokemonInt * -1;
+			
 			logger.debug("Created url for egg level " + level);
-			return decUrl + "/eg" + "gs/" + level + ".we" + "bp";
+			if (PogoBot.getConfiguration().getAlternativeStickers()) {
+				return decUrl + "eg" + "g" + level + ".we" + "bp";				
+			} else {
+				return decUrl + "eg" + "gs/" + level + ".we" + "bp";
+				
+			}
 		}
 		threeDigitFormattedMonId = getThreeDigitFormattedPokemonId(pokemonInt);
 
 		if (PogoBot.getConfiguration().getAlternativeStickers()) {
-			return decUrl + "po" + "kem" + "on_icon_" + threeDigitFormattedMonId + "_00.p" + "ng";
+			return decUrl + "po" + "kem" + "on_icon_" + threeDigitFormattedMonId + "_" + formattedForm + ".we" + "bp";
 		} else {
-			return decUrl + "/mon" + "sters/" + threeDigitFormattedMonId + "_00" + "0.we" + "bp";
+			return decUrl + "mon" + "sters/" + threeDigitFormattedMonId + "_" + formattedForm + ".we" + "bp";
 		}
 	}
 

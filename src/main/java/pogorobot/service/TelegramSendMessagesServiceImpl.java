@@ -408,7 +408,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			String pokemonName = telegramTextService.getPokemonName(pokemon.getPokemonId().toString());
 			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
-		String stUrl = telegramTextService.getStickerUrl(stickerId);
+		String stUrl = telegramTextService.getStickerUrl(stickerId, pokemon.getForm());
 		return sendMessages(chatId, stUrl, latitude, longitude, messageText, type.equals(Type.POKEMON), eventWithSubscribers, gymId,
 				possibleMessageIdToUpdate);
 	}
