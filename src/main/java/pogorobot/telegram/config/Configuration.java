@@ -93,7 +93,7 @@ public class Configuration {
 		this.showStickers = showStickers;
 		this.enableWebPagePreview = enableWebPagePreview;
 		this.showRaidLocation = showLocation;
-		this.showRaidStickers = showStickers;
+		this.showRaidStickers = showRaidStickers;
 		this.enableRaidWebPagePreview = enableRaidWebPagePreview;
 	}
 

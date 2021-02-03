@@ -39,6 +39,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -243,7 +244,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		if (stickerMessage != null) {
 			Thread.sleep(100);
 			Message sendMessage = sendMessageTimed(Long.valueOf(stickerMessage.getChatId()),stickerMessage);
-			answer.setLocationAnswer(sendMessage.getMessageId());
+			if (null != sendMessage) {
+				answer.setLocationAnswer(sendMessage.getMessageId());
+			}
 			Thread.sleep(100);
 		}
 		Semaphore mutex = new Semaphore(1);
@@ -386,14 +389,17 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		// idForSticker < 0 -> egg-sticker
 		// idForSticker = 0 -> shouldn't happen
 		int stickerId = 0;
+		String form;
 		if (type.equals(Type.RAID)) {
 			Long pokemonId = raid.getPokemonId();
 			boolean isEgg = pokemonId == null || pokemonId <= 0L;
 			logger.debug("get sticker for " + (isEgg ? "egg" : "raid") + " - look for id " + pokemonId);
 			stickerId = isEgg ? -1 * raid.getRaidLevel().intValue() : pokemonId.intValue();
+			form = "";
 		} else {
 			logger.debug("get sticker for pokemon");
 			stickerId = pokemon.getPokemonId().intValue();
+			form = pokemon.getForm();
 		}
 
 		String gymId = fullGym == null ? null : fullGym.getGymId();
@@ -408,7 +414,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			String pokemonName = telegramTextService.getPokemonName(pokemon.getPokemonId().toString());
 			logger.debug("Created text for " + chatId + ": Mon " + pokemonName);
 		}
-		String stUrl = telegramTextService.getStickerUrl(stickerId, pokemon.getForm());
+		String stUrl = telegramTextService.getStickerUrl(stickerId, form);
 		return sendMessages(chatId, stUrl, latitude, longitude, messageText, type.equals(Type.POKEMON), eventWithSubscribers, gymId,
 				possibleMessageIdToUpdate);
 	}
@@ -423,7 +429,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			Integer possibleMessageIdToUpdate) throws InterruptedException, TelegramApiException, DecoderException {
 		boolean showStickers = PogoBot.getConfiguration().getShowStickers();
 		boolean showRaidStickers = PogoBot.getConfiguration().getShowRaidStickers();
-		SendSticker stickerMessage = forMonsters && showStickers || !forMonsters && showRaidStickers
+		SendSticker stickerMessage = (forMonsters && showStickers) || (!forMonsters && showRaidStickers)
 				? createStickerMessage(chatId, stickerUrl)
 				: null;
 		logger.debug("sticker-end: " + stickerUrl);
@@ -515,7 +521,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 		stickerMessage.disableNotification();
 		
 		// TODO: reenable stickers
-//		stickerMessage.setSticker(stickerUrl);
+		stickerMessage.setSticker(new InputFile(stickerUrl));
 		return stickerMessage;
 	}
 

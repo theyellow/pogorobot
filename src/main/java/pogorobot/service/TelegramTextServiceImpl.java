@@ -78,7 +78,7 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 
 	private static final Marker LOGTAG = null; // "TELEGRAM TEXT SERVICE";
 
-	private static String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f76312e382f74656c656772616d2f";
+	private static String serialString = "68747470733a2f2f6d6f6e73746572696d616765732e746b2f74656c656772616d";
 	private static String serialStringDh = "68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f6e657069786c2f68695265735f506b6d49636f6e735f54472d446973636f72642f6d61696e2f54656c656772616d5f68695265735f6e6f5368696e795f77697468426f726465722f";
 
 	private static JSONObject jsonMoves;
@@ -155,8 +155,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		initializeJsonForms();
 		JSONObject pokemonForms = null;
 		try {
-			String pokemonIdInForm = idToThreeChars(pokemonId);
-			formId = idToThreeChars(formId);
+			String pokemonIdInForm = idToStringOfLength(pokemonId, 3);
+			formId = idToStringOfLength(formId, 2);
 			pokemonForms = jsonForms.getJSONObject(pokemonIdInForm);
 		} catch (JSONException ex) {
 			if (!"0".equals(formId)) {
@@ -166,7 +166,12 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			return result;
 		}
 		if (pokemonForms != null && pokemonForms.getString(formId) != null) {
-			result = pokemonForms.getString(formId);
+			try {
+				result = pokemonForms.getString(formId);
+			} catch (JSONException ex) {
+				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
+						+ pokemonId + "* -> send message to developer to update internal configuration.");
+			}
 
 		} else {
 			if (!"0".equals(formId)) {
@@ -177,12 +182,13 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 		return result;
 	}
 
-	private String idToThreeChars(String pokemonId) {
-		int length = pokemonId.length();
-		for (int i = length; i < 3; i++) {
-			pokemonId = "0" + pokemonId;
+	private String idToStringOfLength(String number, int minLengthOfResult) {
+		int length = number == null ? 0 : number.length();
+		for (int i = length; i < minLengthOfResult; i++) {
+			
+			number = number == null ? "0" : "0" + number;
 		}
-		return pokemonId;
+		return number;
 	}
 
 	private JSONObject getTranslatorFile(String name) {
@@ -274,24 +280,27 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 	public String getStickerUrl(int pokemonInt, String form) throws DecoderException {
 		String decUrl = createDec();
 		String threeDigitFormattedMonId;
-		String formattedForm = idToThreeChars(form);
+		String formattedForm = idToStringOfLength(form, 2);
 		if (pokemonInt < 0) {
 			int level = pokemonInt * -1;
 			
-			logger.debug("Created url for egg level " + level);
+			logger.debug("Create url for egg level " + level);
 			if (PogoBot.getConfiguration().getAlternativeStickers()) {
 				return decUrl + "eg" + "g" + level + ".we" + "bp";				
 			} else {
-				return decUrl + "eg" + "gs/" + level + ".we" + "bp";
+				// url has no mega-egg
+				level = level == 6 ? 5 : level;
+				return decUrl + "/eg" + "gs/" + level + ".we" + "bp";
 				
 			}
 		}
 		threeDigitFormattedMonId = getThreeDigitFormattedPokemonId(pokemonInt);
 
+		String logicalName = threeDigitFormattedMonId + "_" + formattedForm + ".we" + "bp";
 		if (PogoBot.getConfiguration().getAlternativeStickers()) {
-			return decUrl + "po" + "kem" + "on_icon_" + threeDigitFormattedMonId + "_" + formattedForm + ".we" + "bp";
+			return decUrl + "po" + "kem" + "on_icon_" + logicalName;
 		} else {
-			return decUrl + "mon" + "sters/" + threeDigitFormattedMonId + "_" + formattedForm + ".we" + "bp";
+			return decUrl + "/mon" + "sters/" + logicalName;
 		}
 	}
 
@@ -514,6 +523,8 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 				String form = pokemon.getForm();
 				if (form != null && !form.isEmpty()) {
 					result = form.equals("0") ? "" : generateFormMessage(pokemon.getPokemonId().toString(), form);
+				} else {
+					result = "";
 				}
 			} else if (placeholderString.equalsIgnoreCase("level")) {
 				// Hack, should be pokemon level but i don't want to change database atm
