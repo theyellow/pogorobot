@@ -1,5 +1,6 @@
 version: '3.4'
 services:
+
   postgres:
     image: postgres:11
     container_name: postgres
@@ -9,9 +10,11 @@ services:
       - POSTGRES_PASSWORD=telegram
       - POSTGRES_SCHEMA=telegram
     ports:
+# for debugging, can be disabled
       - "5431:5432"
+
   pogorobot:
-#    container_name: pogorobot_1
+    container_name: pogorobot
     image: pogorobot:latest
     environment:
       - TZ=Europe/Berlin
@@ -22,7 +25,19 @@ services:
     depends_on:
       - postgres
     ports:
+# format: "port-on-docker-host:port-in-docker-container"
+# webhook port
       - "8080:8080"
-      - "12345:8000"
-      - "8010:8010"
-    
+# debug ports
+      - "12345:8800"
+      - "8810:8810"
+    volumes:
+# mount local directories in docker-container
+      - ./config:/config
+      - ./logs:/logs
+
+volumes:
+  config:
+    driver: local
+  logs:
+    driver: local
