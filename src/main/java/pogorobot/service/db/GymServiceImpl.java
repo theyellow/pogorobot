@@ -137,28 +137,28 @@ public class GymServiceImpl implements GymService {
 			}
 
 			if (gym.getLastModified() != null && gym.getLastModified() != 0L) {
-				if (gym.getLastModified() != oldGym.getLastModified()) {
+				if (!gym.getLastModified().equals(oldGym.getLastModified())) {
 					oldGym.setLastModified(gym.getLastModified());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getLatitude() != null) {
-				if (gym.getLatitude() != oldGym.getLatitude()) {
+				if (!gym.getLatitude().equals(oldGym.getLatitude())) {
 					oldGym.setLatitude(gym.getLatitude());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getLongitude() != null) {
-				if (gym.getLongitude() != oldGym.getLongitude()) {
+				if (!gym.getLongitude().equals(oldGym.getLongitude())) {
 					oldGym.setLongitude(gym.getLongitude());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getOccupiedSince() != null) {
-				if (gym.getOccupiedSince() != oldGym.getOccupiedSince()) {
+				if (!gym.getOccupiedSince().equals(oldGym.getOccupiedSince())) {
 					oldGym.setOccupiedSince(gym.getOccupiedSince());
 					changedGym = true;
 					unvisibleChange = true;
@@ -175,21 +175,21 @@ public class GymServiceImpl implements GymService {
 				unvisibleChange = true;
 			}
 			if (gym.getTeamId() != null) {
-				if (gym.getTeamId() != oldGym.getTeamId()) {
+				if (!gym.getTeamId().equals(oldGym.getTeamId())) {
 					oldGym.setTeamId(gym.getTeamId());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getSlotsAvailable() != null) {
-				if (gym.getSlotsAvailable() != oldGym.getSlotsAvailable()) {
+				if (!gym.getSlotsAvailable().equals(oldGym.getSlotsAvailable())) {
 					oldGym.setSlotsAvailable(gym.getSlotsAvailable());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getExraidEglible() != null) {
-				if (gym.getExraidEglible() != oldGym.getExraidEglible()) {
+				if (!gym.getExraidEglible().equals(oldGym.getExraidEglible())) {
 					if (gym.getExraidEglible()) {
 						logger.debug("found exraid gym :)");
 					}
@@ -199,14 +199,14 @@ public class GymServiceImpl implements GymService {
 				}
 			}
 			if (gym.getEnabled() != null) {
-				if (gym.getEnabled() != oldGym.getEnabled()) {
+				if (!gym.getEnabled().equals(oldGym.getEnabled())) {
 					oldGym.setEnabled(gym.getEnabled());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getUrl() != null) {
-				if (gym.getUrl() != oldGym.getUrl()) {
+				if (!gym.getUrl().equals(oldGym.getUrl())) {
 					oldGym.setUrl(gym.getUrl());
 					changedGym = true;
 					unvisibleChange = true;
@@ -237,7 +237,7 @@ public class GymServiceImpl implements GymService {
 				}
 			}
 			if (gym.getRaidActiveUntil() != null) {
-				if (gym.getRaidActiveUntil() != oldGym.getRaidActiveUntil()) {
+				if (!gym.getRaidActiveUntil().equals(oldGym.getRaidActiveUntil())) {
 					logger.warn("raid-active differs, so we update all posts");
 					logger.warn("old raid-active: {}", oldGym.getRaidActiveUntil());
 					logger.warn("new raid-active: {}", gym.getRaidActiveUntil());
@@ -334,25 +334,25 @@ public class GymServiceImpl implements GymService {
 			// oldEvent.setEventsWithSubscribers(eventsWithSubscribers);
 			// }
 			if (raidEvent.getEnd() != null) {
-				if (raidEvent.getEnd() != oldEvent.getEnd()) {
+				if (!raidEvent.getEnd().equals(oldEvent.getEnd())) {
 					oldEvent.setEnd(raidEvent.getEnd());
 					raidEventChanged = true;
 				}
 			}
 			if (raidEvent.getGymId() != null) {
-				if (raidEvent.getGymId() != oldEvent.getGymId()) {
+				if (!raidEvent.getGymId().equals(oldEvent.getGymId())) {
 					oldEvent.setGymId(raidEvent.getGymId());
 					raidEventChanged = true;
 				}
 			}
 			if (raidEvent.getStart() != null) {
-				if (raidEvent.getStart() != oldEvent.getStart()) {
+				if (!raidEvent.getStart().equals(oldEvent.getStart())) {
 					oldEvent.setStart(raidEvent.getStart());
 					raidEventChanged = true;
 				}
 			}
 			if (raidEvent.getPokemonId() != null) {
-				if (raidEvent.getPokemonId() != oldEvent.getPokemonId()) {
+				if (!raidEvent.getPokemonId().equals(oldEvent.getPokemonId())) {
 					oldEvent.setPokemonId(raidEvent.getPokemonId());
 					raidEventChanged = true;
 				}
