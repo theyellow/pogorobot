@@ -241,15 +241,22 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			BotApiMethod<? extends Serializable> message, SendLocation location, boolean isGroupMessage)
 			throws InterruptedException, TelegramApiException {
 		SendMessageAnswer answer = new SendMessageAnswer();
-		if (stickerMessage != null) {
-			Thread.sleep(100);
-			Message sendMessage = sendMessageTimed(Long.valueOf(stickerMessage.getChatId()),stickerMessage);
-			if (null != sendMessage) {
-				answer.setLocationAnswer(sendMessage.getMessageId());
-			}
-			Thread.sleep(100);
-		}
 		Semaphore mutex = new Semaphore(1);
+		if (stickerMessage != null) {
+			Integer next = sendMessageIterator.next();
+			pogoBot.putSendMessages(next, 0);
+			pogoBot.sendTimed(Long.valueOf(stickerMessage.getChatId()),stickerMessage, next, mutex);
+			mutex.acquire();
+			Integer sendMessagesInternalId = pogoBot.getSendMessages(next);
+			if (sendMessagesInternalId == null || sendMessagesInternalId == Integer.MIN_VALUE
+				|| sendMessagesInternalId == Integer.MAX_VALUE) {
+				pogoBot.removeSendMessage(next);
+			} else {
+				answer.setStickerAnswer(sendMessagesInternalId);
+				pogoBot.removeSendMessage(next);
+			}
+			mutex.release();
+		}
 		if (message instanceof SendMessage) {
 			SendMessage sendMessage = (SendMessage) message;
 			sendMessage.enableMarkdown(true);
@@ -337,7 +344,7 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 					|| sendMessagesInternalId == Integer.MAX_VALUE) {
 				pogoBot.removeSendMessage(next);
 			} else {
-				answer.setMainMessageAnswer(sendMessagesInternalId);
+				answer.setLocationAnswer(sendMessagesInternalId);
 				pogoBot.removeSendMessage(next);
 			}
 			mutex.release();

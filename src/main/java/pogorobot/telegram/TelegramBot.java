@@ -20,8 +20,11 @@ import java.io.Serializable;
 import java.util.concurrent.Semaphore;
 
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.ICommandRegistry;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.LongPollingBot;
 
 public interface TelegramBot extends LongPollingBot, ICommandRegistry {
@@ -49,7 +52,7 @@ public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 	 * sendTimed(chatId, sendMessageRequest); // now use this instead of sendMessage() API method<br>
 	 * </code>
 	 **/
-	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
+	void sendTimed(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest);
 
 	/**
 	 * When time of actual send comes this callback is called with the same
@@ -58,19 +61,21 @@ public interface TelegramBot extends LongPollingBot, ICommandRegistry {
 	 * @param chatId
 	 * @param messageRequest
 	 */
-	void sendMessageCallback(Long chatId, BotApiMethod<? extends Serializable> messageRequest);
+	void sendMessageCallback(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest);
 
 	void processNonCommandUpdate(Update update);
 
 	@Override
 	String getBotToken();
 
-	void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer updateId, Semaphore mutex);
+	void sendTimed(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest, Integer updateId, Semaphore mutex);
 
 	Integer putSendMessages(Integer internalId, Integer postedMessageId);
 
 	Integer getSendMessages(Integer internalId);
 
 	void removeSendMessage(Integer next);
+
+	Message executeSendSticker(SendSticker method) throws TelegramApiException;
 
 }

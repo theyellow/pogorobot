@@ -169,7 +169,7 @@ public class PokemonServiceImpl implements PokemonService {
 
 	@Override
 	@Transactional(value = TxType.REQUIRES_NEW)
-	public PokemonWithSpawnpoint updateOrInsertPokemon(PokemonWithSpawnpoint pokemon) {
+	public boolean updateOrInsertPokemon(PokemonWithSpawnpoint pokemon) {
 		if ("None".equalsIgnoreCase(pokemon.getSpawnpointId())) {
 			pokemon.setSpawnpointId(String.valueOf(System.nanoTime()));
 //			return pokemon;
@@ -191,11 +191,13 @@ public class PokemonServiceImpl implements PokemonService {
 		realQuery = realQuery.where(cb.or(spawnpointIdEqual, latLonEqual));
 
 		boolean changedPokemon = false;
+		boolean visibleChange = false;
 		// retrieve result
 		List<PokemonWithSpawnpoint> resultList = entityManager.createQuery(realQuery).getResultList();
 		if (resultList.isEmpty()) {
 			entityManager.persist(pokemon);
 			changedPokemon = true;
+			visibleChange = true;
 		} else {
 			PokemonWithSpawnpoint dbPokemon = resultList.get(0);
 
@@ -223,6 +225,7 @@ public class PokemonServiceImpl implements PokemonService {
 		if (pokemon.getDisappearTime() != null && pokemon.getDisappearTime() != 0 && !pokemon.getDisappearTime().equals(dbPokemon.getDisappearTime())) {
 			dbPokemon.setDisappearTime(pokemon.getDisappearTime());
 			changedPokemon = true;
+			visibleChange = true;
 		}
 		if (pokemon.getSpawnStart() != null && !pokemon.getSpawnStart().equals(dbPokemon.getSpawnStart())) {
 			dbPokemon.setSpawnStart(pokemon.getSpawnStart());
@@ -231,6 +234,7 @@ public class PokemonServiceImpl implements PokemonService {
 		if (pokemon.getSpawnEnd() != null && !pokemon.getSpawnEnd().equals(dbPokemon.getSpawnEnd())) {
 			dbPokemon.setSpawnEnd(pokemon.getSpawnEnd());
 			changedPokemon = true;
+			visibleChange = true;
 		}
 		if (pokemon.getCpMultiplier() != null && pokemon.getCpMultiplier() != 0 && !pokemon.getCpMultiplier().equals(dbPokemon.getCpMultiplier())) {
 			dbPokemon.setCpMultiplier(pokemon.getCpMultiplier());
@@ -239,10 +243,12 @@ public class PokemonServiceImpl implements PokemonService {
 		if (pokemon.getForm() != null && !pokemon.getForm().equals(dbPokemon.getForm())) {
 			dbPokemon.setForm(pokemon.getForm());
 			changedPokemon = true;
+			visibleChange = true;
 		}
 		if (pokemon.getGender() != null && !pokemon.getGender().equals(dbPokemon.getGender())) {
 			dbPokemon.setGender(pokemon.getGender());
 			changedPokemon = true;
+			visibleChange = true;
 		}
 		if (pokemon.getHeight() != null && !pokemon.getHeight().equals(dbPokemon.getHeight())) {
 			dbPokemon.setHeight(pokemon.getHeight());
@@ -303,7 +309,7 @@ public class PokemonServiceImpl implements PokemonService {
 			}
 		}
 		}
-		return pokemon;
+		return visibleChange;
 	}
 
 	private void logOptimisticLockException(OptimisticLockException ex, String methodName) {

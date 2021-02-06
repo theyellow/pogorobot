@@ -92,8 +92,8 @@ public class Configuration {
 		this.showLocation = showLocation;
 		this.showStickers = showStickers;
 		this.enableWebPagePreview = enableWebPagePreview;
-		this.showRaidLocation = showLocation;
 		this.showRaidStickers = showRaidStickers;
+		this.showRaidLocation = showRaidLocation;
 		this.enableRaidWebPagePreview = enableRaidWebPagePreview;
 	}
 

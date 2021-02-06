@@ -136,31 +136,61 @@ public class Raid {
 		this.sponsor_id = sponsor_id;
 	}
 
+
+	
+
 	@Override
 	public String toString() {
 		return "Raid [" + (spawn != null ? "spawn=" + spawn + ", " : "")
-				+ (end != null ? "end=" + end + ", " : "")
+				+ (start != null ? "start=" + start + ", " : "") + (end != null ? "end=" + end + ", " : "")
+				+ (raidLevel != null ? "raidLevel=" + raidLevel + ", " : "")
 				+ (pokemonId != null ? "pokemonId=" + pokemonId + ", " : "")
-				+ (move1 != null ? "move1=" + move1 + ", " : "") + (move2 != null ? "move2=" + move2 : "") + "]";
+				+ (move1 != null ? "move1=" + move1 + ", " : "") + (move2 != null ? "move2=" + move2 + ", " : "")
+				+ (sponsor_id != null ? "sponsor_id=" + sponsor_id : "") + "]";
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((end == null) ? 0 : end.hashCode());
+		result = prime * result + ((pokemonId == null) ? 0 : pokemonId.hashCode());
+		result = prime * result + ((raidLevel == null) ? 0 : raidLevel.hashCode());
+		result = prime * result + ((start == null) ? 0 : start.hashCode());
+		return result;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		boolean equal = false;
-		if (obj != null && obj instanceof Raid) {
-			Raid toCompare = (Raid) obj;
-			equal = start == toCompare.start;
-			equal = equal & end == toCompare.end;
-			equal = equal & raidLevel == toCompare.raidLevel;
-			equal = equal & spawn == toCompare.spawn;
-			equal = equal & pokemonId == toCompare.pokemonId;
-			equal = equal & move1 == toCompare.move1;
-			equal = equal & move2 == toCompare.move2;
-			equal = equal & sponsor_id == toCompare.sponsor_id;
-		} 
-		return equal;
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Raid))
+			return false;
+		Raid other = (Raid) obj;
+		if (end == null) {
+			if (other.end != null)
+				return false;
+		} else if (!end.equals(other.end))
+			return false;
+		if (pokemonId == null) {
+			if (other.pokemonId != null)
+				return false;
+		} else if (!pokemonId.equals(other.pokemonId))
+			return false;
+		if (raidLevel == null) {
+			if (other.raidLevel != null)
+				return false;
+		} else if (!raidLevel.equals(other.raidLevel))
+			return false;
+		if (start == null) {
+			if (other.start != null)
+				return false;
+		} else if (!start.equals(other.start))
+			return false;
+		return true;
 	}
 
-	
 	
 }

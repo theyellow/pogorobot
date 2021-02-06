@@ -97,16 +97,7 @@ public class TelegramMessageCreatorServiceImpl implements TelegramMessageCreator
 	private PossibleRaidPokemonRepository possibleRaidPokemonRepository;
 
 	@Autowired
-	private RaidAtGymEventRepository raidAtGymEventRepository;
-
-	@Autowired
 	private EventWithSubscribersService eventWithSubscribersService;
-
-	@Autowired
-	private SendMessagesRepository sendMessagesRepository;
-
-	@Autowired
-	private ProcessedRaidRepository processedRaidRepository;
 
 	@Autowired
 	private RaidBossListUpdater raidBossListUpdater;

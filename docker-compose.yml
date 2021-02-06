@@ -9,6 +9,8 @@ services:
       - POSTGRES_USER=telegram
       - POSTGRES_PASSWORD=telegram
       - POSTGRES_SCHEMA=telegram
+    volumes:
+      - ./data:/var/lib/postgresql/data
     ports:
 # for debugging, can be disabled
       - "5431:5432"
@@ -28,8 +30,8 @@ services:
 # format: "port-on-docker-host:port-in-docker-container"
 # webhook port
       - "8080:8080"
-# debug ports
-      - "12345:8800"
+# debug ports, can be disabled
+      - "8800:8800"
       - "8810:8810"
     volumes:
 # mount local directories in docker-container
@@ -41,3 +43,6 @@ volumes:
     driver: local
   logs:
     driver: local
+  data:
+    driver: local
+

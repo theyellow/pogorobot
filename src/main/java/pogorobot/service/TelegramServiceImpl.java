@@ -687,8 +687,10 @@ public class TelegramServiceImpl implements TelegramService {
 									eventsWithSubscribers, messageId);
 						}
 						SendMessageAnswer answer = getFutureAnswer(future);
+						
 						if (answer != null && (answer.getLocationAnswer() != null || answer.getStickerAnswer() != null
 								|| answer.getMainMessageAnswer() != null)) {
+							// TODO WARNING: there are side-effects on this call:
 							updateProcessedRaid(processedRaid, answer, groupChatId);
 						}
 						// }

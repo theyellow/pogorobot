@@ -165,19 +165,16 @@ public class TelegramTextServiceImpl<R> implements TelegramTextService {
 			}
 			return result;
 		}
-		if (pokemonForms != null && pokemonForms.getString(formId) != null) {
-			try {
-				result = pokemonForms.getString(formId);
-			} catch (JSONException ex) {
-				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
-						+ pokemonId + "* -> send message to developer to update internal configuration.");
+		try {
+			if (pokemonForms != null && pokemonForms.getString(formId) != null) {
+					result = pokemonForms.getString(formId);
+			} else if (!"0".equals(formId)) {
+					logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
+							+ pokemonId + "* -> send message to developer to update internal configuration.");
 			}
-
-		} else {
-			if (!"0".equals(formId)) {
-				logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
-						+ pokemonId + "* -> send message to developer to update internal configuration.");
-			}
+		} catch (JSONException ex) {
+			logger.warn("Form \"" + formId + "\" not found for pokemon: " + jsonPokemons.getString(pokemonId) + " *"
+					+ pokemonId + "* -> send message to developer to update internal configuration.");
 		}
 		return result;
 	}

@@ -30,7 +30,7 @@ public interface PokemonService {
 	
 	public void deletePokemon(PokemonWithSpawnpoint pokemon);
 
-	public PokemonWithSpawnpoint updateOrInsertPokemon(PokemonWithSpawnpoint pokemon);
+	public boolean updateOrInsertPokemon(PokemonWithSpawnpoint pokemon);
 
 //	public void deleteProcessedPokemonOnDatabase();
 

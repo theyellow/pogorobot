@@ -13,13 +13,15 @@
 /output/
 /src/main/java/pogorobot/tests/
 /logs/
+/data/
 /*.log
 /*.log.1
 /*.log.2
 /*.gz
-/.classpath
-/.project
 /.settings/
+/.project
+/.classpath
+/.factorypath
 /raidbosslist.xml
 .DS_Store
 /pom.xml.releaseBackup

@@ -44,7 +44,9 @@ import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -204,13 +206,17 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			// additional processing
 			Long chatId = sendQueue.getChatId();
 			MessageAnswer answer = sendQueue.getMessage(currentTime);
-			BotApiMethod<? extends Serializable> message = answer.getMessage();
+			PartialBotApiMethod<? extends Serializable> message = answer.getMessage();
 			Semaphore sendMessageSemaphore = answer.getAnswer();
 			Integer sendMessageAnswer = answer.getMessageId();
 			Message response = null;
 			try {
-				
-				Serializable result = execute(message);
+				Serializable result = null;
+				if (message instanceof BotApiMethod<?>) {
+					result = execute((BotApiMethod<? extends Serializable>) message);
+				} else if (message instanceof SendSticker) {
+					result = execute((SendSticker) message);
+				}
 				
 				if (result instanceof Message) {
 					response = (Message) result;
@@ -312,11 +318,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	private static class MessageAnswer {
 	
-		private final BotApiMethod<? extends Serializable> message;
+		private final PartialBotApiMethod<? extends Serializable> message;
 		private final Semaphore answer;
 		private final Integer messageId;
 		
-		public MessageAnswer(BotApiMethod<? extends Serializable> message, Semaphore mutex, Integer messageId) {
+		public MessageAnswer(PartialBotApiMethod<? extends Serializable> message, Semaphore mutex, Integer messageId) {
 			this.message = message;
 			this.answer = mutex;
 			this.messageId = messageId;
@@ -326,7 +332,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			return messageId;
 		}
 
-		public BotApiMethod<? extends Serializable> getMessage() {
+		public PartialBotApiMethod<? extends Serializable> getMessage() {
 			return message;
 		}
 		
@@ -346,7 +352,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 											// for optimisation
 		public static final int GET_MESSAGE = 3; // Queue has message(s) and
 													// ready to send
-		private final ConcurrentLinkedQueue<BotApiMethod<? extends Serializable>> mQueue = new ConcurrentLinkedQueue<>();
+		private final ConcurrentLinkedQueue<PartialBotApiMethod<? extends Serializable>> mQueue = new ConcurrentLinkedQueue<>();
 		private final ConcurrentLinkedQueue<Semaphore> mQueueAnswer = new ConcurrentLinkedQueue<>();
 		private final ConcurrentLinkedQueue<Integer> mQueueAnswerMessageId = new ConcurrentLinkedQueue<>();
 		private final Long mChatId;
@@ -358,7 +364,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			mChatId = chatId;
 		}
 
-		public synchronized void putMessage(BotApiMethod<? extends Serializable> msg, Integer internalMapId,
+		public synchronized void putMessage(PartialBotApiMethod<? extends Serializable> msg, Integer internalMapId,
 				Semaphore mutex) {
 			mQueue.add(msg);
 			if (internalMapId != null) {
@@ -427,7 +433,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	 * @see pogorobot.telegram.bot.TelegramBot#sendTimed(java.lang.Long, org.telegram.telegrambots.api.methods.BotApiMethod)
 	 */
 	@Override
-	public void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest, Integer next,
+	public void sendTimed(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest, Integer next,
 			Semaphore mutex) {
 		mutex.acquireUninterruptibly();
 		MessageQueue queue = mMessagesMap.get(chatId);
@@ -450,7 +456,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	@Override
-	public void sendTimed(Long chatId, BotApiMethod<? extends Serializable> messageRequest) {
+	public void sendTimed(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest) {
 		MessageQueue queue = mMessagesMap.get(chatId);
 		if (queue == null) {
 			queue = new MessageQueue(chatId);
@@ -477,9 +483,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	 * @see pogorobot.telegram.bot.TelegramBot#sendMessageCallback(java.lang.Long, org.telegram.telegrambots.api.methods.BotApiMethod)
 	 */
 	@Override
-	public void sendMessageCallback(Long chatId, BotApiMethod<? extends Serializable> messageRequest) {
+	public void sendMessageCallback(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest) {
 		try {
-			execute(messageRequest);
+			if (messageRequest instanceof BotApiMethod<?>) {
+				execute((BotApiMethod<? extends Serializable>) messageRequest);
+			} else if (messageRequest instanceof SendSticker) {
+				execute((SendSticker) messageRequest);
+			}
 		} catch (TelegramApiException e) {
 			if (INVALID_CHAT.equals(e.getMessage())) {
 				logger.warn("chat with id " + chatId + " doesn't exist.");
@@ -534,6 +544,48 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		return sendApiMethod(method);
 	}
 
+	@Override
+	public Message executeSendSticker(SendSticker method)
+			throws TelegramApiException {
+		try {
+			return super.execute(method);
+		} catch (TelegramApiException e) {
+			if (e instanceof TelegramApiRequestException) {
+				TelegramApiRequestException x = (TelegramApiRequestException) e;
+				Integer errorCode = x.getErrorCode();
+				String apiResponse = x.getApiResponse();
+				if (errorCode == 400 && apiResponse.contains(BAD_REQUEST_CHAT_NOT_FOUND)) {
+					logger.error("somebody deleted bot conversation?");
+					throw new TelegramApiException(INVALID_CHAT);
+				} else if (apiResponse.contains(BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND)) {
+					logger.warn(MESSAGE_ALREADY_DELETED);
+					throw new TelegramApiException(MESSAGE_ALREADY_DELETED);
+				} else if (apiResponse.contains("Unable to execute editmessagetext method")) {
+					logger.warn(MESSAGE_ALREADY_DELETED);
+					throw new TelegramApiException(MESSAGE_ALREADY_DELETED);
+				} else {
+					logger.error(errorCode + " - " + apiResponse
+							+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
+							x.getCause());
+				}
+			} else if (e instanceof TelegramApiValidationException) {
+				TelegramApiValidationException x = (TelegramApiValidationException) e;
+				logger.error(x.getMethod() + " - " + x.getObject() + " - validation error: " + x.toString(),
+						x.getCause());
+			}
+			throw e;
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e.getCause());
+			if (e instanceof TelegramApiException) {
+				throw (TelegramApiException) e;
+			}
+		}
+		if (method == null) {
+			throw new TelegramApiException("Parameter method can not be null");
+		}
+		return null;
+	}
+	
 	public <T extends Serializable, Method extends BotApiMethod<T>> void executeTimed(Long chatId, Method method)
 			throws TelegramApiException {
 		try {

@@ -209,19 +209,22 @@ public class GymServiceImpl implements GymService {
 				if (gym.getUrl() != oldGym.getUrl()) {
 					oldGym.setUrl(gym.getUrl());
 					changedGym = true;
-					unvisibleChange = false;
-				}
-			}
-			if (gym.getRaid() != null) {
-				if (!gym.getRaid().equals(oldGym.getRaid())) {
-					oldGym.setRaid(gym.getRaid());
-					changedGym = true;
-					unvisibleChange = false;
+					unvisibleChange = true;
 				}
 			}
 			if (gym.getDescription() != null && !gym.getDescription().equals("''")) {
 				if (!gym.getDescription().equals(oldGym.getDescription())) {
 					oldGym.setDescription(gym.getDescription());
+					changedGym = true;
+					unvisibleChange = true;
+				}
+			}
+			if (gym.getRaid() != null) {
+				if (!gym.getRaid().equals(oldGym.getRaid())) {
+					logger.warn("Raid differs, so we update all posts");
+					logger.warn("old raid: {}", oldGym.getRaid());
+					logger.warn("new raid: {}", gym.getRaid());
+					oldGym.setRaid(gym.getRaid());
 					changedGym = true;
 					unvisibleChange = false;
 				}
@@ -235,6 +238,9 @@ public class GymServiceImpl implements GymService {
 			}
 			if (gym.getRaidActiveUntil() != null) {
 				if (gym.getRaidActiveUntil() != oldGym.getRaidActiveUntil()) {
+					logger.warn("raid-active differs, so we update all posts");
+					logger.warn("old raid-active: {}", oldGym.getRaidActiveUntil());
+					logger.warn("new raid-active: {}", gym.getRaidActiveUntil());
 					oldGym.setRaidActiveUntil(gym.getRaidActiveUntil());
 					changedGym = true;
 					unvisibleChange = false;

@@ -125,8 +125,10 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 			}
 		} else if (entity instanceof PokemonWithSpawnpoint) {
 			try {
-				pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
-				telegramService.triggerPokemonMessages((PokemonWithSpawnpoint) entity);
+				boolean changed = pokemonService.updateOrInsertPokemon((PokemonWithSpawnpoint) entity);
+				if (changed) {
+					telegramService.triggerPokemonMessages((PokemonWithSpawnpoint) entity);
+				}
 			} catch (TransactionException ex) {
 				logger.error("Transactional {}: {}", ex.getClass().getName(), ex.getMessage());
 				logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
