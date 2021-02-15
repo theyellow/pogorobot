@@ -61,15 +61,17 @@ public class RaidSummaryMessageSender {
 	@Autowired
 	private UserGroupService userGroupService;
 
-	private Map<Long, String> raidSummaries;
-	private boolean chatsUpdated = false;
+	private static MutableInteger chatsUpdated;
 
-	private Logger logger = LoggerFactory.getLogger(RaidSummaryMessageSender.class);
+	private static Logger logger = LoggerFactory.getLogger(RaidSummaryMessageSender.class);
+
+	private static Map<Long, String> raidSummaries;
 
 	public Map<Long, Integer> sendRaidSummaries() {
-		if (!chatsUpdated) {
+		if (chatsUpdated.get() == 0) {
 			pogoBot.updateUserGroups();
-			chatsUpdated = true;
+			chatsUpdated.set(1);
+			;
 		}
 		Map<Long, Integer> result = new HashMap<>();
 		Map<Long, String> createRaidSummariesFromDatabase = createRaidSummariesFromDatabase();
@@ -88,6 +90,7 @@ public class RaidSummaryMessageSender {
 
 	public RaidSummaryMessageSender() {
 		raidSummaries = new HashMap<Long, String>();
+		chatsUpdated = new MutableInteger(0);
 	}
 
 	private Integer sendRaidSummary(Long chatId, String text) {
@@ -106,7 +109,8 @@ public class RaidSummaryMessageSender {
 				logger.debug("Updated raid-summary with id {} on chat {}", raidSummaryMessageId, chatId);
 			}
 		} else {
-			DeleteMessage deleteMessage = DeleteMessage.builder().chatId(String.valueOf(chatId)).messageId(raidSummaryMessageId).build();
+			DeleteMessage deleteMessage = DeleteMessage.builder().chatId(String.valueOf(chatId))
+					.messageId(raidSummaryMessageId).build();
 			SendMessage message = SendMessage.builder().chatId(String.valueOf(chatId)).disableNotification(true)
 					.parseMode("MarkdownV2").disableWebPagePreview(true).text(text).build();
 			Boolean executed = null;
@@ -114,24 +118,23 @@ public class RaidSummaryMessageSender {
 				executed = pogoBot.execute(deleteMessage);
 			} catch (TelegramApiException e) {
 				logger.error("Delete raid summary for {} gave error {}", chatId, e.getMessage());
-				logger.warn("Old message (if existing) was {}deleted.", executed != null && executed? "" : "not ");
+				logger.warn("Old message (if existing) was {}deleted.", executed != null && executed ? "" : "not ");
 			}
 			try {
 				Message messageResult = pogoBot.execute(message);
 				raidSummaryMessageId = messageResult.getMessageId();
 			} catch (TelegramApiException e) {
 				logger.error("Sending new (updated) raid summary for {} gave error {}", chatId, e.getMessage());
-				logger.warn("Old message (if existing) was {}deleted.", executed != null && executed? "" : "not ");
+				logger.warn("Old message (if existing) was {}deleted.", executed != null && executed ? "" : "not ");
 			}
 			logger.debug("Updated raid-summary with id {} on chat {}", raidSummaryMessageId, chatId);
 		}
 		return raidSummaryMessageId;
 	}
 
-	
-	Function<? super EventWithSubscribers, Integer> eventSizeMapper = x -> x.getSubscribers().size();
-	
-	Function<? super EventWithSubscribers, String> eventTimeMapper = x -> {
+	static Function<? super EventWithSubscribers, Integer> eventSizeMapper = x -> x.getSubscribers().size();
+
+	static Function<? super EventWithSubscribers, String> eventTimeMapper = x -> {
 		if (x.getSubscribers().size() > 0) {
 			return x.getTime() + SPACE + x.getSubscribers().size();
 		} else {
@@ -200,7 +203,7 @@ public class RaidSummaryMessageSender {
 		return result;
 	}
 
-	private Comparator<? super RaidAtGymEvent> raidStartComparator = new Comparator<RaidAtGymEvent>() {
+	private static Comparator<? super RaidAtGymEvent> raidStartComparator = new Comparator<RaidAtGymEvent>() {
 
 		@Override
 		public int compare(RaidAtGymEvent o1, RaidAtGymEvent o2) {
@@ -224,7 +227,7 @@ public class RaidSummaryMessageSender {
 			String pokemonName = level > 0 && pokemonId > 0
 					? telegramTextService.getPokemonName(String.valueOf(pokemonId))
 					: "Ei";
-			pokemonName =+ level == 6 || level == 7 ? "(Mega) " : "";
+			pokemonName = +level == 6 || level == 7 ? "(Mega) " : "";
 
 			SortedSet<EventWithSubscribers> eventsWithSubscribers = raidEvent.getEventsWithSubscribers();
 			SortedSet<String> participatingGroups = new TreeSet<>();
@@ -272,4 +275,24 @@ public class RaidSummaryMessageSender {
 		return userGroupService.saveRaidSummaries(raidSummaries);
 	}
 
+	private class MutableInteger {
+
+		private int value;
+
+		public MutableInteger(int vauel) {
+			this.value = vauel;
+		}
+
+		public int get() {
+			return value;
+		}
+
+		public void set(int value) {
+			this.value = value;
+		}
+
+		public String toString() {
+			return Integer.toString(value);
+		}
+	}
 }
