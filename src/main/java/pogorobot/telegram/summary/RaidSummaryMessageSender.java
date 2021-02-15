@@ -118,7 +118,7 @@ public class RaidSummaryMessageSender {
 				executed = pogoBot.execute(deleteMessage);
 			} catch (TelegramApiException e) {
 				logger.error("Delete raid summary for {} gave error {}", chatId, e.getMessage());
-				logger.warn("Old message (if existing) was {}deleted.", executed != null && executed ? "" : "not ");
+				logger.warn("Old message (if existing) was not deleted.");
 			}
 			try {
 				Message messageResult = pogoBot.execute(message);
@@ -164,7 +164,7 @@ public class RaidSummaryMessageSender {
 
 							}
 						}
-						result.put(Long.valueOf(chatId), toText(getTelegramLink(chatId), raidsOfChat));
+						result.put(chatId, toText(getTelegramLink(chatId), raidsOfChat));
 					}
 					logger.debug("chat {} has {} participating raiders", chatId, size);
 					size = 0;
