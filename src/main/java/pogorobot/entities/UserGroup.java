@@ -38,14 +38,27 @@ public class UserGroup extends AbstractPersistable<Long> {
 	@OneToOne(cascade = CascadeType.ALL)
 	private Filter groupFilter;
 
-	
-	// public UserGroup() {
-	//// this(null);
-	// }
+//	private boolean publicGroup;
 
-	// public UserGroup(Long id) {
-	// this.setId(id);
-	// }
+	private String linkOfGroup;
+
+	private Integer raidSummaryLink;
+
+	public String getLinkOfGroup() {
+		return linkOfGroup;
+	}
+
+	public void setLinkOfGroup(String linkOfGroup) {
+		this.linkOfGroup = linkOfGroup;
+	}
+
+//	public boolean isPublicGroup() {
+//		return publicGroup;
+//	}
+//
+//	public void setPublicGroup(boolean publicGroup) {
+//		this.publicGroup = publicGroup;
+//	}
 
 	public String getGroupName() {
 		return groupName;
@@ -79,11 +92,52 @@ public class UserGroup extends AbstractPersistable<Long> {
 		this.chatId = chatId;
 	}
 
+	public Integer getRaidSummaryLink() {
+		return raidSummaryLink;
+	}
+
+	public void setRaidSummaryLink(Integer raidSummaryLink) {
+		this.raidSummaryLink = raidSummaryLink;
+	}
+
 	@Override
 	public String toString() {
-		return "UserGroup [" + (groupName != null ? "groupName=" + groupName + ", " : "")
-				+ (chatId != null ? "chatId=" + chatId + ", " : "")
-				+ (picture != null ? "picture=" + picture + ", " : "") + "]";
+		StringBuilder builder = new StringBuilder();
+		builder.append("UserGroup [");
+		if (groupName != null) {
+			builder.append("groupName=");
+			builder.append(groupName);
+			builder.append(", ");
+		}
+		if (chatId != null) {
+			builder.append("chatId=");
+			builder.append(chatId);
+			builder.append(", ");
+		}
+		if (picture != null) {
+			builder.append("picture=");
+			builder.append(picture);
+			builder.append(", ");
+		}
+		if (groupFilter != null) {
+			builder.append("groupFilter=");
+			builder.append(groupFilter);
+			builder.append(", ");
+		}
+//		builder.append("publicGroup=");
+//		builder.append(publicGroup);
+//		builder.append(", ");
+		if (linkOfGroup != null) {
+			builder.append("linkOfGroup=");
+			builder.append(linkOfGroup);
+			builder.append(", ");
+		}
+		if (raidSummaryLink != null) {
+			builder.append("raidSummaryLink=");
+			builder.append(raidSummaryLink);
+		}
+		builder.append("]");
+		return builder.toString();
 	}
 
 }

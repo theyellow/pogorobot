@@ -111,13 +111,6 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	}
 
 	@Override
-	public SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId,
-			SortedSet<EventWithSubscribers> eventWithSubscribers)
-			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException {
-		return sendStandardMessage(pokemon, null, eventWithSubscribers, chatId, null);
-	}
-
-	@Override
 	public SendMessageAnswer sendRaidMessage(Gym gym, String chatId,
 			SortedSet<EventWithSubscribers> eventWithSubscribers, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException {
@@ -130,71 +123,8 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException {
 
 		return sendStandardMessage(null, gym, eventWithSubscribers, chatId, possibleMessageIdToUpdate);
-
-		// Long end = fullGym.getRaid().getEnd();
-		// Double latitude = fullGym.getLatitude();
-		// Double longitude = fullGym.getLongitude();
-		// String pokemonFound = telegramTextService.createEggMessageText(fullGym, end,
-		// level, latitude, longitude);
-		// String url = telegramTextService.createDec() + "/eg" + "gs/" + level + ".we"
-		// + "bp";
-		// if (PogoBot.getConfiguration().getAlternativeStickers()) {
-		// url = "";
-		// }
-		// SendMessageAnswer answer = sendMessages(chatId, url, latitude, longitude,
-		// pokemonFound + telegramTextService.getParticipantsText(eventWithSubscribers),
-		// false,
-		// eventWithSubscribers,
-		// fullGym.getGymId(), possibleMessageIdToUpdate);
-		// logger.info("Sent to: " + chatId + ": Egg lvl. " + level);
-		// logger.info("Answer: \nSticker:\n" + answer.getStickerAnswer() +
-		// "\nMainMessage: \n"
-		// + answer.getMainMessageAnswer() + "\nLocationMessage: \n" +
-		// answer.getLocationAnswer());
-		// return answer;
 	}
 
-	@Override
-	public Message sendMessage(PartialBotApiMethod<Message> message) {
-		Message result = null;
-		try {
-			Message sentMessage = null;
-			if (message instanceof SendSticker) {
-				sentMessage = pogoBot.execute((SendSticker) message);
-			} else if (message != null) {
-				sentMessage = pogoBot.execute((BotApiMethod<Message>) message);
-			}
-			if (null != sentMessage) {
-				result = sentMessage;
-			}
-		} catch (TelegramApiException e) {
-			if (e instanceof TelegramApiRequestException) {
-				TelegramApiRequestException x = (TelegramApiRequestException) e;
-				logger.error(
-						"errorCode " + x.getErrorCode() + " - "
-								+ (x.getApiResponse() != null ? x.getApiResponse() : x.getMessage())
-								+ (x.getParameters() != null ? " - parameter: " + x.getParameters().toString() : ""),
-						x.getCause());
-			} else if (e instanceof TelegramApiValidationException) {
-				TelegramApiValidationException x = (TelegramApiValidationException) e;
-				logger.error("method: " + x.getMethod() + " - " + x.getObject() + " - error: " + x.toString(),
-						x.getCause());
-			} else {
-				logger.error("Unknown error: ", e);
-			}
-			if (message instanceof SendSticker) {
-				SendSticker myMessage = (SendSticker) message;
-				logger.error("Chat : " + myMessage.getChatId());
-			} else {
-				BotApiMethod<Message> myMessage = (BotApiMethod<Message>) message;
-				if (message != null) {
-					logger.error("Method : " + myMessage.getMethod());
-
-				}
-			}
-		}
-		return result;
-	}
 
 	@Override
 	public Message sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message) {
@@ -353,22 +283,6 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 	}
 
 	private ConcurrentLinkedQueue<EventMessage<?>> eventQueue = new ConcurrentLinkedQueue<>();
-
-	// private void waitUntilPosted(Integer next) {
-	// while (next != Integer.MIN_VALUE && next != Integer.MAX_VALUE &&
-	// pogoBot.getSendMessages(next) != null
-	// && pogoBot.getSendMessages(next) == 0) {
-	//
-	// try {
-	// Thread.sleep(123L);
-	// } catch (InterruptedException e) {
-	// logger.warn("wait until posted message got interupted - shutting down this
-	// thread -> "
-	// + Thread.currentThread().getName());
-	// Thread.currentThread().interrupt();
-	// }
-	// }
-	// }
 
 	@Override
 	public SendMessageAnswer sendStandardMessage(PokemonWithSpawnpoint pokemon, Gym fullGym,
@@ -635,17 +549,9 @@ public class TelegramSendMessagesServiceImpl implements TelegramSendMessagesServ
 					+ possibleException.getMessage());
 		}
 
-		// if (possibleException != null) {
-		// throw possibleException;
-		// }
 		return errorsWhileDeleting;
 	}
 
-	// private boolean deleteMessage(Long chatId, Integer locationId) throws
-	// TelegramApiException {
-	// // TODO Auto-generated method stub
-	// return false;
-	// }
 
 	@Override
 	public boolean deleteMessage(Long groupChatId, Integer messageId) throws TelegramApiException {

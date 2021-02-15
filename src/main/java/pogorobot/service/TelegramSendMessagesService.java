@@ -51,26 +51,9 @@ public interface TelegramSendMessagesService {
 			Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
-	/**
-	 * method should not be used, there are no events for monster-meetings
-	 */
-	@Deprecated
-	SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId,
-			SortedSet<EventWithSubscribers> eventWithSubscribers)
-			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
-
 	SendMessageAnswer sendMonMessage(PokemonWithSpawnpoint pokemon, String chatId, Integer possibleMessageIdToUpdate)
 			throws FileNotFoundException, TelegramApiException, InterruptedException, DecoderException;
 
-	/**
-	 * Use {@code TelegramSendMessagesService.sendMessageTimed(Long chatId,
-	 * PartialBotApiMethod<Message> message)} instead.
-	 * 
-	 * @param message
-	 * @return
-	 */
-	@Deprecated
-	Message sendMessage(PartialBotApiMethod<Message> message);
 
 	Message sendMessageTimed(Long chatId, PartialBotApiMethod<Message> message);
 

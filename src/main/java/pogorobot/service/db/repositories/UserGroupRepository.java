@@ -1,5 +1,5 @@
 /**
- Copyright 2019 Benjamin Marstaller
+ Copyright 2021 Benjamin Marstaller
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -24,4 +24,6 @@ import pogorobot.entities.UserGroup;
 
 public interface UserGroupRepository extends CrudRepository<UserGroup, Serializable> {
 
+	public UserGroup findByChatId(Long chatId);
+	
 }

@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -83,6 +84,7 @@ import pogorobot.telegram.commands.StartCommand;
 import pogorobot.telegram.commands.StopCommand;
 import pogorobot.telegram.commands.StopallCommand;
 import pogorobot.telegram.config.StandardConfiguration;
+import pogorobot.telegram.summary.RaidSummaryMessageSender;
 import pogorobot.util.RaidBossListFetcher;
 
 @SpringBootApplication
@@ -128,6 +130,13 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		};
 	}
 
+	private Runnable getSendRaidSummariesTask(RaidSummaryMessageSender messageSender) {
+		return () -> {
+			Map<Long, Integer> raidSummaries = messageSender.sendRaidSummaries();
+			boolean wasWritten = messageSender.saveRaidSummaries(raidSummaries);
+		};
+	}
+	
 	private Runnable getReloadConfigurationTask(ConfigReader configReader) {
 		return () -> {
 			logger.debug("Check for new configuration timestamps");
@@ -179,8 +188,6 @@ public class PoGoRobotApplication implements ApplicationRunner {
 			} else {
 				logger.debug("fast telegram cleanup took {} seconds", time);
 			}
-			
-			
 		}
 	}
 	
@@ -462,6 +469,8 @@ public class PoGoRobotApplication implements ApplicationRunner {
 
 			taskScheduler.schedule(new CleanupMessageTask(processedElementsService, telegramSendMessagesService),
 					new PeriodicTrigger(60 * 1000L));
+			taskScheduler.schedule(getSendRaidSummariesTask(ctx.getBean(RaidSummaryMessageSender.class)), new PeriodicTrigger(10, TimeUnit.SECONDS));
+//					new CronTrigger("5,15,25,35,45,55 * * * * *"));
 //			taskScheduler.schedule(new CleanupPokemonTask(pokemonService), new PeriodicTrigger(10 * 60 * 1000L));
 
 			
@@ -640,6 +649,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		pogoBot.register(stopallCommand);
 		pogoBot.register(helpCommand);
 		pogoBot.register(startCommand);
+		// TODO create command for update of raid-summary-links
 		return pogoBot;
 	}
 

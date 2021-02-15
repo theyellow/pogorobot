@@ -1,5 +1,5 @@
 /**
- Copyright 2019 Benjamin Marstaller
+ Copyright 2021 Benjamin Marstaller
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -18,10 +18,15 @@ package pogorobot.service.db.repositories;
 
 import java.io.Serializable;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import pogorobot.entities.Gym;
 
 public interface GymRepository extends CrudRepository<Gym, Serializable> {
+
+	@Query(value="select g.name from Gym g where g.gymId = :gymId")
+	public String findNameByGymId(@Param("gymId") String gymId);
 
 }

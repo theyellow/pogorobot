@@ -351,19 +351,19 @@ public class ConfigReaderImpl implements ConfigReader {
 		userGroupDAO.findAll().forEach(x -> userGroups.add(x));
 		for (Entry<String, List<Long>> entry : groupIds.entrySet()) {
 			boolean changed = false;
-			String key = entry.getKey();
+			String name = entry.getKey();
 			List<Long> value = entry.getValue();
 			if (value == null || value.size() != 1) {
-				logger.warn("No value or too many values for " + key + "   ---->  " + value);
+				logger.warn("No value or too many values for " + name + "   ---->  " + value);
 			} else {
 				for (UserGroup userGroup : userGroups) {
-					if (userGroup.getGroupName().equals(key)) {
+					if (userGroup.getGroupName().equals(name)) {
 						userGroup.setChatId(value.get(0));
 						userGroupDAO.save(userGroup);
 						changed = true;
 						break;
-					} else if (userGroup.getChatId().equals(value.get(0))) {
-						userGroup.setGroupName(key);
+					} else if (userGroup.getChatId() != null && userGroup.getChatId().equals(value.get(0))) {
+						userGroup.setGroupName(name);
 						userGroupDAO.save(userGroup);
 						changed = true;
 						break;
@@ -371,7 +371,7 @@ public class ConfigReaderImpl implements ConfigReader {
 				}
 				if (!changed) {
 					UserGroup newEntity = new UserGroup();
-					newEntity.setGroupName(key);
+					newEntity.setGroupName(name);
 					newEntity.setChatId(value.get(0));
 					userGroupDAO.save(newEntity);
 				}
