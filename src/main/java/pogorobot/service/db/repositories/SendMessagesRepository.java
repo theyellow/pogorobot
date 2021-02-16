@@ -30,12 +30,12 @@ public interface SendMessagesRepository extends CrudRepository<SendMessages, Ser
 
 	public List<SendMessages> findByGroupChatId(Long groupchatId);
 
-	@Query(value = "SELECT s "
+	@Query(value = "SELECT distinct(s) "
 			+ "	FROM SendMessages s "
 			+ "	WHERE s.groupChatId = :chatId AND s.owningRaid IS NOT NULL AND s.owningRaid.gymId LIKE :gymId")
 	public List<SendMessages> findSendMessagesByChatAndGym(@Param("chatId") Long chatId, @Param("gymId") String gymId);
 
-	@Query(value = "SELECT r "
+	@Query(value = "SELECT distinct(r) "
 			+ "	FROM RaidAtGymEvent r, SendMessages s JOIN FETCH r.eventsWithSubscribers t JOIN FETCH t.subscribers"
 			+ "	WHERE s.groupChatId = :chatId AND s.owningRaid IS NOT NULL AND s.owningRaid.gymId LIKE r.gymId")
 	public List<RaidAtGymEvent> findRaidAtGymEventsByChat(@Param("chatId") Long chatId);
