@@ -239,7 +239,15 @@ public class RaidSummaryMessageSender {
 			for (EventWithSubscribers eventWithSubscribers : eventsWithSubscribers) {
 				Set<Subscriber> subscribers = eventWithSubscribers.getSubscribers();
 				if (subscribers != null) {
-					int size = subscribers.size();
+					int size = 0;
+					for (Subscriber subscriberForEvent : subscribers) {
+						size++;
+						Integer additionalParticipants = subscriberForEvent.getAdditionalParticipants();
+						if (additionalParticipants == null) {
+							additionalParticipants = 0;
+						}
+						size += additionalParticipants;
+					}
 					if (size > 0) {
 						StringBuilder builder = new StringBuilder();
 						builder.append(eventWithSubscribers.getTime());
