@@ -71,7 +71,6 @@ public class RaidSummaryMessageSender {
 		if (chatsUpdated.get() == 0) {
 			pogoBot.updateUserGroups();
 			chatsUpdated.set(1);
-			;
 		}
 		Map<Long, Integer> result = new HashMap<>();
 		Map<Long, String> createRaidSummariesFromDatabase = createRaidSummariesFromDatabase();
@@ -184,6 +183,8 @@ public class RaidSummaryMessageSender {
 		Iterable<UserGroup> allGroups = userGroupRepository.findAll();
 		if (allGroups != null) {
 			allGroups.forEach(userGroup -> {
+				if(Boolean.TRUE.equals(userGroup.getPostRaidSummary())) {
+					
 				Map<RaidAtGymEvent, SendMessages> chatResult = new HashMap<>();
 				Long chatId = userGroup.getChatId();
 				List<RaidAtGymEvent> raids = sendMessagesRepository.findRaidAtGymEventsByChat(chatId);
@@ -198,6 +199,7 @@ public class RaidSummaryMessageSender {
 					}
 				}
 				result.put(chatId, chatResult);
+				}
 			});
 		}
 		return result;

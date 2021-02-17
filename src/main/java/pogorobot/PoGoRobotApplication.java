@@ -219,6 +219,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		private long timestampGroupChatIdFile;
 		private long timestampGroupXraidFile;
 		private long timestampGeofencesFile;
+		private long timestampGroupRaidSummaries;
 
 		public GroupfilesTimestamps() {
 			String relativePath = System.getProperty("ext.properties.dir").substring(5);
@@ -292,6 +293,14 @@ public class PoGoRobotApplication implements ApplicationRunner {
 						"Couldn't retrieve timestamps for individual monster geofences settings at " + relativePath);
 			}
 			try {
+				timestampGroupRaidSummaries = Files
+						.getLastModifiedTime(Paths.get(relativePath, "groupraidsummaries.txt")).toMillis();
+			} catch (IOException e) {
+				timestampGroupGeofencesFileMonster = 0;
+				logger.debug(
+						"Couldn't retrieve timestamps for individual monster geofences settings at " + relativePath);
+			}
+			try {
 				timestampGroupGeofencesFileRaids = Files
 						.getLastModifiedTime(Paths.get(relativePath, "groupgeofencesraids.txt")).toMillis();
 
@@ -318,6 +327,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 				timestampGroupIvFile == o.timestampGroupIvFile &&
 				timestampGroupMonsterFile == o.timestampGroupMonsterFile &&
 				timestampGroupRaidMonstersFile == o.timestampGroupRaidMonstersFile &&
+				timestampGroupRaidSummaries == o.timestampGroupRaidSummaries &&
 				timestampGroupRaidLevelFile == o.timestampGroupRaidLevelFile) {
 			// @formatter:on
 				return 0;
@@ -490,6 +500,7 @@ public class PoGoRobotApplication implements ApplicationRunner {
 		configReader.updateGroupFilterWithRaidMons();
 		configReader.updateGroupFilterWithIV();
 		configReader.updateGroupFilterWithLevel();
+		configReader.updateGroupsWithRaidSummaryFlag();
 	}
 
 	// private TimerTask getCleanupMessagesGymsTask(TelegramSendMessagesService

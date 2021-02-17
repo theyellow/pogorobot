@@ -144,6 +144,13 @@ public class ConfigReaderImpl implements ConfigReader {
 	}
 
 	@Override
+	public void updateGroupsWithRaidSummaryFlag() throws IOException {
+		String fileName = "groupraidsummaries.txt";
+		Map<String, List<Boolean>> groupIds = parseGroupConfigFile(fileName, x -> Boolean.parseBoolean(x));
+		updateUserGroupsRaidSummaryFlag(groupIds);
+	}
+
+	@Override
 	public void updateGroupFilterWithMons() throws IOException {
 		List<Filter> newFilters = getFiltersWithGroupPokemonFromFile();
 		updateFilterWithGroupsInternally(newFilters);
@@ -378,7 +385,39 @@ public class ConfigReaderImpl implements ConfigReader {
 			}
 		}
 	}
-
+	private void updateUserGroupsRaidSummaryFlag(Map<String, List<Boolean>> groupIds) {
+		List<UserGroup> userGroups = new ArrayList<>();
+		userGroupDAO.findAll().forEach(x -> userGroups.add(x));
+		for (Entry<String, List<Boolean>> entry : groupIds.entrySet()) {
+			boolean changed = false;
+			String name = entry.getKey();
+			List<Boolean> value = entry.getValue();
+			if (value == null || value.size() != 1) {
+				logger.warn("No value or too many values for " + name + "   ---->  " + value);
+			} else {
+				for (UserGroup userGroup : userGroups) {
+					if (userGroup.getGroupName().equals(name)) {
+						userGroup.setPostRaidSummary(value.get(0));
+						userGroupDAO.save(userGroup);
+						changed = true;
+						break;
+					} else if (userGroup.getChatId() != null && userGroup.getChatId().equals(value.get(0))) {
+						userGroup.setGroupName(name);
+						userGroupDAO.save(userGroup);
+						changed = true;
+						break;
+					}
+				}
+				if (!changed) {
+					UserGroup newEntity = new UserGroup();
+					newEntity.setGroupName(name);
+					newEntity.setPostRaidSummary(value.get(0));
+					userGroupDAO.save(newEntity);
+				}
+			}
+		}
+	}
+	
 	private List<Geofence> getGeofences() throws IOException {
 		List<Geofence> result = new ArrayList<>();
 		Map<String, List<Double>> resultContent = new HashMap<>();

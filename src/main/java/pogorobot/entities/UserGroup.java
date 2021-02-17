@@ -34,6 +34,7 @@ public class UserGroup extends AbstractPersistable<Long> {
 	private String groupName;
 	private Long chatId;
 	private String picture;
+	private Boolean postRaidSummary;
 	
 	@OneToOne(cascade = CascadeType.ALL)
 	private Filter groupFilter;
@@ -100,6 +101,20 @@ public class UserGroup extends AbstractPersistable<Long> {
 		this.raidSummaryLink = raidSummaryLink;
 	}
 
+	/**
+	 * @return the postRaidSummary
+	 */
+	public Boolean getPostRaidSummary() {
+		return postRaidSummary;
+	}
+
+	/**
+	 * @param postRaidSummary the postRaidSummary to set
+	 */
+	public void setPostRaidSummary(Boolean postRaidSummary) {
+		this.postRaidSummary = postRaidSummary;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -135,6 +150,10 @@ public class UserGroup extends AbstractPersistable<Long> {
 		if (raidSummaryLink != null) {
 			builder.append("raidSummaryLink=");
 			builder.append(raidSummaryLink);
+		}
+		if (postRaidSummary != null) {
+			builder.append("postRaidSummary=");
+			builder.append(postRaidSummary);
 		}
 		builder.append("]");
 		return builder.toString();

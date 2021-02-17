@@ -43,4 +43,6 @@ public interface ConfigReader {
 
 	void updateGroupsWithExRaidFlags() throws IOException;
 
+	void updateGroupsWithRaidSummaryFlag() throws IOException;
+
 }
