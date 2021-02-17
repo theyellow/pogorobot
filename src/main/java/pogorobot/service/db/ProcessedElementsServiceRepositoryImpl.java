@@ -411,4 +411,10 @@ public class ProcessedElementsServiceRepositoryImpl implements ProcessedElements
 		// return null;
 	}
 
+//	@Transactional
+//	public List<Set<SendMessages>> retrieveRaidSummariesToUpdate(PokemonWithSpawnpoint pokemon, boolean deepScan,
+//			List<Long> updatedChats, List<SendMessages> sendMessageAnswers) {
+//		return null;
+//	}
+//	
 }

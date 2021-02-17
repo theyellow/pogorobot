@@ -1,5 +1,5 @@
 /**
- Copyright 2019 Benjamin Marstaller
+ Copyright 2021 Benjamin Marstaller
  
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -18,13 +18,17 @@ package pogorobot.service.db.repositories;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import pogorobot.entities.ProcessedRaids;
+import pogorobot.entities.RaidAtGymEvent;
 
 public interface ProcessedRaidRepository extends CrudRepository<ProcessedRaids, Serializable> {
 
 	public List<ProcessedRaids> findByGymId(String gymId);
-
+	
 }

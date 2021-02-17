@@ -161,6 +161,7 @@ public class Raid {
 	}
 
 	@Override
+	@SuppressWarnings("squid:S2162") // because equals SHOULD be broken on raids
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;

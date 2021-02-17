@@ -39,17 +39,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
-//import org.telegram.telegrambots.meta.ApiContext;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.AnswerInlineQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.PartialBotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Location;
@@ -66,11 +67,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiValidationException;
 
 import pogorobot.entities.User;
+import pogorobot.entities.UserGroup;
 import pogorobot.events.telegrambot.IncomingManualRaid;
 import pogorobot.service.MessageContentProcessor;
 import pogorobot.service.TelegramKeyboardService;
 import pogorobot.service.TelegramMessageCreatorService;
 import pogorobot.service.db.UserService;
+import pogorobot.service.db.repositories.UserGroupRepository;
 import pogorobot.telegram.config.Configuration;
 import pogorobot.telegram.util.Emoji;
 import pogorobot.telegram.util.Type;
@@ -102,6 +105,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	private TelegramMessageCreatorService telegramHandlerService;
 
 	@Autowired
+	private UserGroupRepository userGroupDAO;
+
+	@Autowired
 	private RaidImageScanner raidImageScanner;
 
 	private Map<Integer, Integer> sendMessages = new ConcurrentHashMap<>();
@@ -111,13 +117,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	private static final long MAXIMUM_NR_OF_MESSAGES_PER_MINUTE = 29;
 	private static final long ONE_CHAT_SEND_INTERVAL = 2000;
 	private static final long CHAT_INACTIVE_INTERVAL = 1000 * 60 * 10L;
-	private final Timer mSendTimer = new Timer("Shutdown-listener",true);
+	private final Timer mSendTimer = new Timer("Shutdown-listener", true);
 	private final ConcurrentHashMap<Long, MessageQueue> mMessagesMap = new ConcurrentHashMap<>(32, 0.75f, 1);
 	private final ArrayList<MessageQueue> mSendQueues = new ArrayList<>();
 	private final AtomicBoolean mSendRequested = new AtomicBoolean(false);
 	private final static AtomicLong NR_OF_MESSAGES_IN_LAST_SECOND = new AtomicLong(0);
 	private final static AtomicLong LAST_SENDING_TIME_IN_SECONDS = new AtomicLong(System.currentTimeMillis() / 1000);
-	
+
 	private String bottoken;
 
 	private static Configuration configuration;
@@ -145,7 +151,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	public void removeSendMessage(Integer next) {
 		sendMessages.remove(next);
 	}
-		
+
 	private final class MessageSenderTask extends TimerTask {
 
 		private static final int HTTP_FORBIDDEN = 403;
@@ -201,7 +207,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 									// chats in state GET_MESSAGE
 				return;
 
-
 			// Invoke the send callback. ChatId is passed for possible
 			// additional processing
 			Long chatId = sendQueue.getChatId();
@@ -210,6 +215,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			Semaphore sendMessageSemaphore = answer.getAnswer();
 			Integer sendMessageAnswer = answer.getMessageId();
 			Message response = null;
+			String inChat = " in chat ";
 			try {
 				Serializable result = null;
 				if (message instanceof BotApiMethod<?>) {
@@ -217,11 +223,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				} else if (message instanceof SendSticker) {
 					result = execute((SendSticker) message);
 				}
-				
+
 				if (result instanceof Message) {
 					response = (Message) result;
 				} else if (message instanceof DeleteMessage) {
-					logger.info("delete message " + ((DeleteMessage) message).getMessageId() + " in chat " + chatId
+					logger.info("delete message " + ((DeleteMessage) message).getMessageId() + inChat + chatId
 							+ " gave " + result + " - internal answer (id) is " + sendMessageAnswer);
 					int resultValue = (Boolean) result ? Integer.MAX_VALUE : Integer.MIN_VALUE;
 					sendMessages.put(sendMessageAnswer, resultValue);
@@ -229,17 +235,19 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					logger.warn("response of PogoBot.execute(...) is no message but " + result + " | sent message was "
 							+ message);
 				}
-				
+
+				String wroteMessage = "wrote message ";
 				if (response == null || (sendMessageAnswer != null && sendMessageAnswer == Integer.MIN_VALUE)
 						|| (sendMessageAnswer != null && sendMessageAnswer == Integer.MAX_VALUE)
 						|| (sendMessageAnswer != null && sendMessageAnswer == 0)) {
-					logger.info("wrote message in chat " + chatId + " without answer or with special return-value: " + sendMessageAnswer);
+					logger.info(wroteMessage + inChat + chatId + " without answer or with special return-value: "
+							+ sendMessageAnswer);
 					sendMessageAnswer = null;
 				} else {
 					Integer messageId = response.getMessageId();
 					sendMessages.put(sendMessageAnswer, messageId);
 					logger.info(
-							"wrote message " + messageId + " in chat " + chatId + " - answer was " + sendMessageAnswer);
+							wroteMessage + messageId + inChat + chatId + " - answer was " + sendMessageAnswer);
 				}
 				if (sendMessageSemaphore != null) {
 					sendMessageSemaphore.release();
@@ -255,52 +263,53 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 					if ((sendMessageAnswer != null && sendMessageAnswer == Integer.MIN_VALUE)
 							|| (sendMessageAnswer != null && sendMessageAnswer == Integer.MAX_VALUE)
 							|| (sendMessageAnswer != null && sendMessageAnswer == 0)) {
-						logger.warn("tried to delete message "
-								+ ((DeleteMessage) message).getMessageId() + " in chat " + chatId + " wich couldn't be deleted and with special return-value: " + sendMessageAnswer);
+						logger.warn("tried to delete message " + ((DeleteMessage) message).getMessageId() + inChat
+								+ chatId + " wich couldn't be deleted and with special return-value: "
+								+ sendMessageAnswer);
 						sendMessageAnswer = null;
 					} else {
-						logger.warn("in chat " + sendQueue.getChatId() + " message "
+						logger.warn(inChat + sendQueue.getChatId() + " message "
 								+ ((DeleteMessage) message).getMessageId() + " couldn't be deleted.");
-						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);						
+						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
 					}
 				} else if (e instanceof TelegramApiRequestException) {
 					TelegramApiRequestException requestException = (TelegramApiRequestException) e;
 					String apiResponse = requestException.getApiResponse();
 					Integer errorCode = requestException.getErrorCode();
 					ResponseParameters parameters = requestException.getParameters();
-					
+
 					if (errorCode == HTTP_TOO_MANY_MESSAGES) {
 						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
 						Integer retryAfter = parameters.getRetryAfter();
 						logger.warn(RETRY_TIMEOUT, retryAfter);
-					} else if (errorCode == HTTP_FORBIDDEN) {
-						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
-						logger.warn("Telegram returned ");
-						if (parameters != null) {
-							String optionalParameters = "migrateToChatId - " + parameters.getMigrateToChatId()
-											+ " | retry after " + parameters.getRetryAfter();
-							logger.warn("Parameters where given: {}", optionalParameters);
+					} else {
+						String string = " | retry after ";
+						if (errorCode == HTTP_FORBIDDEN) {
+							sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+							logger.warn("Telegram returned ");
+							if (parameters != null) {
+								String optionalParameters = "migrateToChatId - " + parameters.getMigrateToChatId()
+										+ string + parameters.getRetryAfter();
+								logger.warn("Parameters where given: {}", optionalParameters);
+							}
+						} else if (BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND.equals(apiResponse)) {
+							logger.error("Message " + ((DeleteMessage) message).getMessageId() + inChat + chatId
+									+ " can't be deleted because it's missing");
+							sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+						} else if (MESSAGE_SENDING_ERROR.equals(e.getMessage())) {
+							Integer retryAfter = parameters.getRetryAfter();
+							logger.warn(inChat + sendQueue.getChatId() + " message " + ((SendMessage) message).getText()
+									+ " couldn't be send, retry after " + retryAfter + " seconds");
+							sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+						} else {
+							sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
+							String optionalParameters = parameters != null
+									? " | parameters: migrateToChatId - " + parameters.getMigrateToChatId()
+											+ string + parameters.getRetryAfter()
+									: "";
+							logger.warn("TelegramApiRequestException was thrown: " + errorCode + " || " + apiResponse
+									+ optionalParameters);
 						}
-					}
-					else if (BAD_REQUEST_MESSAGE_TO_DELETE_NOT_FOUND.equals(apiResponse)) {
-						logger.error("Message " + ((DeleteMessage) message).getMessageId() + " in chat " + chatId
-								+ " can't be deleted because it's missing");
-						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
-					} else if (MESSAGE_SENDING_ERROR.equals(e.getMessage())) {
-						Integer retryAfter = parameters.getRetryAfter();
-						logger.warn("in chat " + sendQueue.getChatId() + " message "
-								+ ((SendMessage) message).getText() + " couldn't be send, retry after " + retryAfter 
-										+ " seconds");
-						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
-					}
-					else {
-						sendMessages.put(sendMessageAnswer, Integer.MAX_VALUE);
-						String optionalParameters = parameters != null
-								? " | parameters: migrateToChatId - " + parameters.getMigrateToChatId()
-										+ " | retry after " + parameters.getRetryAfter()
-								: "";
-						logger.warn("TelegramApiRequestException was thrown: " + errorCode + " || " + apiResponse
-								+ optionalParameters);
 					}
 				} else {
 					logger.error(e.getMessage(), e);
@@ -317,17 +326,17 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	private static class MessageAnswer {
-	
+
 		private final PartialBotApiMethod<? extends Serializable> message;
 		private final Semaphore answer;
 		private final Integer messageId;
-		
+
 		public MessageAnswer(PartialBotApiMethod<? extends Serializable> message, Semaphore mutex, Integer messageId) {
 			this.message = message;
 			this.answer = mutex;
 			this.messageId = messageId;
 		}
-		
+
 		public Integer getMessageId() {
 			return messageId;
 		}
@@ -335,17 +344,17 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		public PartialBotApiMethod<? extends Serializable> getMessage() {
 			return message;
 		}
-		
+
 		public Semaphore getAnswer() {
 			return answer;
 		}
-		
+
 	}
-	
+
 	private static class MessageQueue {
 		public static final int EMPTY = 0; // Queue is empty
 		public static final int WAIT_SIG = 1; // Queue has message(s) but not yet
-											// allowed to send
+												// allowed to send
 		public static final int DELETE = 2; // No one message of given queue was
 											// sent longer than
 											// CHAT_INACTIVE_INTERVAL, delete
@@ -358,7 +367,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		private final Long mChatId;
 		private long mLastSendTime; // Time of last peek from queue
 		private volatile long mLastPutTime; // Time of last put into queue
-		
 
 		public MessageQueue(Long chatId) {
 			mChatId = chatId;
@@ -382,7 +390,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			if (System.currentTimeMillis() / 1000 > LAST_SENDING_TIME_IN_SECONDS.get()) {
 				NR_OF_MESSAGES_IN_LAST_SECOND.lazySet(0);
 			}
-			boolean maxMessagesPerSecondAllowed = NR_OF_MESSAGES_IN_LAST_SECOND.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
+			boolean maxMessagesPerSecondAllowed = NR_OF_MESSAGES_IN_LAST_SECOND
+					.get() < MAXIMUM_NR_OF_MESSAGES_PER_MINUTE;
 			long interval = currentTime - mLastSendTime;
 			boolean empty = mQueue.isEmpty();
 			if (!empty && interval > ONE_CHAT_SEND_INTERVAL && maxMessagesPerSecondAllowed)
@@ -411,7 +420,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	// Something like destructor
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pogorobot.telegram.bot.TelegramBot#finish()
 	 */
 	@Override
@@ -429,9 +440,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	// order of calls. Sends to different chats can be out-of-order depending on
 	// timing.
 	// Example of call:
-	/* (non-Javadoc)
-	 * @see pogorobot.telegram.bot.TelegramBot#sendTimed(java.lang.Long, org.telegram.telegrambots.api.methods.BotApiMethod)
-	 */
 	@Override
 	public void sendTimed(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest, Integer next,
 			Semaphore mutex) {
@@ -465,9 +473,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		} else {
 			queue.putMessage(messageRequest, null, null);
 			MessageQueue absent = mMessagesMap.putIfAbsent(chatId, queue); // Double check, because
-														// the queue can be
-														// removed from hashmap
-														// on state DELETE
+			// the queue can be
+			// removed from hashmap
+			// on state DELETE
 			if (absent == null) {
 				logger.warn("no mapping of chat " + chatId + " , now queue state is "
 						+ queue.getCurrentState(System.currentTimeMillis()));
@@ -479,9 +487,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	// When time of actual send comes this callback is called with the same
 	// parameters as in call to sendTimed().
 	// @Override
-	/* (non-Javadoc)
-	 * @see pogorobot.telegram.bot.TelegramBot#sendMessageCallback(java.lang.Long, org.telegram.telegrambots.api.methods.BotApiMethod)
-	 */
 	@Override
 	public void sendMessageCallback(Long chatId, PartialBotApiMethod<? extends Serializable> messageRequest) {
 		try {
@@ -500,7 +505,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			logger.error(e.getMessage(), e);
 		}
 	}
-	// */
 
 	@Override
 	public <T extends Serializable, Method extends BotApiMethod<T>> T execute(Method method)
@@ -545,8 +549,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	}
 
 	@Override
-	public Message executeSendSticker(SendSticker method)
-			throws TelegramApiException {
+	public Message executeSendSticker(SendSticker method) throws TelegramApiException {
 		try {
 			return super.execute(method);
 		} catch (TelegramApiException e) {
@@ -585,7 +588,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		}
 		return null;
 	}
-	
+
 	public <T extends Serializable, Method extends BotApiMethod<T>> void executeTimed(Long chatId, Method method)
 			throws TelegramApiException {
 		try {
@@ -619,15 +622,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 	/**
 	 * Start PogoBot
 	 * 
-	 * @param options
-	 *            telegramOptions
-	 * @param allowCommandsWithUsername
-	 *            true if allowed with user name
-	 * @param botUsername
-	 *            name of the bot
+	 * @param options                   telegramOptions
+	 * @param allowCommandsWithUsername true if allowed with user name
+	 * @param botUsername               name of the bot
 	 */
 	public PogoBot(DefaultBotOptions options, boolean allowCommandsWithUsername, String botUsername) {
-		// TODO: Reset name (own method at the moment -> instance-variable would be better
+		// TODO: Reset name (own method at the moment -> instance-variable would be
+		// better
 		super(options, true);
 //		super(options, true, botUsername);
 		Executor executor = new ThreadPerTaskExecutor();
@@ -666,24 +667,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		});
 	}
 
-	/**
-	 * 
-	 * @param botUsername
-	 *            name of the bot
-	 * @param bottoken
-	 *            token from botfather
-	 */
-//	public PogoBot(String botUsername, String bottoken) {
-//		this(ApiContext.getInstance(DefaultBotOptions.class));
-//		this.bottoken = bottoken;
-//	}
 
 	/**
 	 * 
-	 * @param options
-	 *            telegram options
-	 * @param botUsername
-	 *            name of the bot
+	 * @param options     telegram options
+	 * @param botUsername name of the bot
 	 */
 	public PogoBot(DefaultBotOptions options, String botUsername, String bottoken) {
 		this(options, true, botUsername);
@@ -698,9 +686,11 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		PogoBot.configuration = configuration;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see pogorobot.telegram.bot.TelegramBot#processNonCommandUpdate(org.telegram.telegrambots.api.objects.Update)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see pogorobot.telegram.bot.TelegramBot#processNonCommandUpdate(org.telegram.
+	 * telegrambots.api.objects.Update)
 	 */
 	@Override
 	public void processNonCommandUpdate(Update update) {
@@ -917,8 +907,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		// Handling distance/area based messages
 		if (callbackCommand.equals(TelegramKeyboardService.DISTANCESELECT)) {
 			handleSettingsDistanceselect(callbackquery, data);
-		}
-		else if (callbackCommand.equals(TelegramKeyboardService.ADDAREA)) {
+		} else if (callbackCommand.equals(TelegramKeyboardService.ADDAREA)) {
 			handleSettingsLocationarea(callbackquery, data, Type.POKEMON);
 		} else if (callbackCommand.equals(TelegramKeyboardService.ADDRAIDAREA)) {
 			handleSettingsLocationarea(callbackquery, data, Type.RAID);
@@ -958,11 +947,6 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 				ses.schedule(updater, delay, TimeUnit.MILLISECONDS);
 				delay += 3334;
 			}
-			// editMessages.stream().forEach(editMessage -> {
-			// Runnable updater = () -> executeBotApiMethod(editMessage);
-			// //run this task after 5 seconds, nonblock for task3
-			// ses.schedule(updater, delay, TimeUnit.MILLISECONDS);
-			// });
 		}
 	}
 
@@ -1064,9 +1048,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		// message.
 		IncomingManualRaid manualRaid = telegramHandlerService.getManualRaid(callbackQuery, data);
 		messageContentProcessor.processContent(manualRaid);
-		
+
 		String share = data.length > 6 ? data[6] : "";
-		
+
 		// chat
 		// callbackQuery.getMessage().
 
@@ -1075,7 +1059,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			logger.info("Somebody shared a raid!");
 			// messageContentProcessor.shareRaid(manualRaid);
 		}
-		
+
 		// EditMessageText editMessage =
 		// telegramHandlerService.getChooseShareRaidDialog(callbackQuery, data,
 		// manualRaid);
@@ -1095,16 +1079,7 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		// asynchronous");
 		return null;
 	}
-	// private void handleSettingsLocation(CallbackQuery callbackquery, String[]
-	// data) {
-	// SendMessage message =
-	// telegramHandlerService.getLiveLocationDialog(callbackquery.getFrom().getId().toString(),
-	// data);
-	// if (null == message) {
-	// return;
-	// }
-	// executeBotApiMethod(message);
-	// }
+
 
 	private <T extends Serializable, Method extends BotApiMethod<T>> T executeBotApiMethod(Method message) {
 		T result = null;
@@ -1115,9 +1090,8 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 			if (e instanceof TelegramApiRequestException) {
 				TelegramApiRequestException x = (TelegramApiRequestException) e;
 				logger.error(
-						x.getErrorCode() + " - " + x.getApiResponse() + (x.getParameters() != null
-								? " - Parameter: " + x.getParameters().toString()
-								: ""),
+						x.getErrorCode() + " - " + x.getApiResponse()
+								+ (x.getParameters() != null ? " - Parameter: " + x.getParameters().toString() : ""),
 						x.getCause());
 			} else if (e instanceof TelegramApiValidationException) {
 				TelegramApiValidationException x = (TelegramApiValidationException) e;
@@ -1167,16 +1141,13 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 
 	/**
 	 * 
-	 * @param text
-	 *            The text that should be shown
-	 * @param alert
-	 *            If the text should be shown as a alert or not
+	 * @param text          The text that should be shown
+	 * @param alert         If the text should be shown as a alert or not
 	 * @param callbackquery
 	 * @return
 	 * @throws TelegramApiException
 	 */
-	private Boolean sendAnswerCallbackQuery(String text, boolean alert,
-			CallbackQuery callbackquery) {
+	private Boolean sendAnswerCallbackQuery(String text, boolean alert, CallbackQuery callbackquery) {
 		AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
 		answerCallbackQuery.setCallbackQueryId(callbackquery.getId());
 		answerCallbackQuery.setShowAlert(alert);
@@ -1204,7 +1175,9 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		return true;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see pogorobot.telegram.bot.TelegramBot#getBotToken()
 	 */
 	@Override
@@ -1219,6 +1192,79 @@ public class PogoBot extends TelegramLongPollingCommandBot implements TelegramBo
 		user.getUserFilter().setLongitude(longitude);
 		user = userService.updateOrInsertUser(user);
 		return user;
+	}
+
+	public void updateUserGroups() {
+		List<UserGroup> userGroups = new ArrayList<>();
+		Iterable<UserGroup> allGroups = userGroupDAO.findAll();
+		allGroups.forEach(x -> userGroups.add(x));
+		for (UserGroup entry : userGroups) {
+			Long chatId = entry.getChatId();
+			if (chatId != null) {
+				String linkOfGroup = "";
+				ChannelInformation channelInformation = getChannelInformation(chatId);
+				if (channelInformation != null) {
+	//				publicGroup = channelInformation.getPublicGroup();
+					linkOfGroup = channelInformation.getLinkOfGroup();
+					entry.setLinkOfGroup(linkOfGroup);
+				}
+				userGroupDAO.save(entry);
+			}
+		}
+	}
+
+	private ChannelInformation getChannelInformation(Long chatId) {
+		GetChat getChat = GetChat.builder().chatId(String.valueOf(chatId)).build();
+		try {
+			Chat chat = execute(getChat);
+			Long id = chat.getId();
+			String type = chat.getType();
+			String userName = chat.getUserName();
+			String linkName = "";
+			boolean publicGroup = false;
+			if (null != userName) {
+				linkName += "https://t.me/";
+				linkName += userName;
+				publicGroup = true;
+			}
+			if (!publicGroup && ("supergroup".equals(type) || "channel".equals(type))) {
+				String realChannelId = String.valueOf(id * -1L).substring(3);
+				linkName += "https://t.me/";
+				linkName += "c/" + realChannelId;
+			}
+			ChannelInformation channelInformation = new ChannelInformation(publicGroup, type, linkName);
+			return channelInformation;
+		} catch (TelegramApiException e) {
+			logger.error("bot-execute of getChat information of {} failed", chatId);
+			logger.debug("getChat information of {} failed with {}", chatId, e.getMessage());
+		}
+		return null;
+	}
+
+	private class ChannelInformation {
+
+		boolean publicGroup;
+		String typeOfGroup;
+		String linkOfGroup;
+
+		public ChannelInformation(boolean publicGroup, String typeOfGroup, String linkOfGroup) {
+			this.publicGroup = publicGroup;
+			this.typeOfGroup = typeOfGroup;
+			this.linkOfGroup = linkOfGroup;
+		}
+
+		public boolean getPublicGroup() {
+			return publicGroup;
+		}
+
+		public String getTypeOfGroup() {
+			return typeOfGroup;
+		}
+
+		public String getLinkOfGroup() {
+			return linkOfGroup;
+		}
+
 	}
 
 	@Override

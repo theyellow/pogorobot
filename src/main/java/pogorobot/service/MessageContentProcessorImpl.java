@@ -36,6 +36,7 @@ import pogorobot.events.webservice.WebserviceQuest;
 import pogorobot.events.webservice.WebserviceRaid;
 import pogorobot.service.db.GymService;
 import pogorobot.service.db.PokemonService;
+import pogorobot.service.pure.LoggingHelperService;
 
 @Service("messageContentProcessor")
 public class MessageContentProcessorImpl implements MessageContentProcessor {
@@ -48,6 +49,9 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 
 	@Autowired
 	private TelegramService telegramService;
+
+	@Autowired
+	private LoggingHelperService loggingHelperService;
 
 	private static Logger logger = LoggerFactory.getLogger(MessageContentProcessor.class);
 
@@ -131,10 +135,10 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 				}
 			} catch (TransactionException ex) {
 				logger.error("Transactional {}: {}", ex.getClass().getName(), ex.getMessage());
-				logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
+				loggingHelperService.logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
 			} catch (Exception ex) {
 				logger.error("{}: {}", ex.getClass().getName(), ex.getMessage());
-				logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
+				loggingHelperService.logStacktraceForMethod(ex.getStackTrace(), "pogorobot");
 			}
 		} else if (message instanceof WebserviceQuest) {
 			logger.trace("Quest found " + ((WebserviceQuest) message).toString());
@@ -146,20 +150,5 @@ public class MessageContentProcessorImpl implements MessageContentProcessor {
 		return message;
 	}
 
-	private void logStacktraceForMethod(StackTraceElement[] stackTrace, String methodName) {
-		boolean lastLineMatched = false;
-		for (StackTraceElement stackTraceElement : stackTrace) {
-			if (stackTraceElement.getMethodName().contains(methodName)) {
-				logStacktraceElement(stackTraceElement);
-				lastLineMatched = true;
-			} else if (lastLineMatched) {
-				logStacktraceElement(stackTraceElement);
-				lastLineMatched = false;
-			}
-		}
-	}
 
-	private void logStacktraceElement(StackTraceElement stackTraceElement) {
-		logger.error("tracelog: {}.{} (line {})", stackTraceElement.getClassName(), stackTraceElement.getMethodName(), stackTraceElement.getLineNumber());
-	}
 }

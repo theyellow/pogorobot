@@ -41,6 +41,7 @@ import pogorobot.entities.PokemonWithSpawnpoint;
 import pogorobot.entities.PokemonWithSpawnpoint_;
 import pogorobot.entities.ProcessedPokemon;
 import pogorobot.service.db.repositories.ProcessedPokemonRepository;
+import pogorobot.service.pure.LoggingHelperService;
 
 @Service("pokemonService")
 public class PokemonServiceImpl implements PokemonService {
@@ -52,7 +53,7 @@ public class PokemonServiceImpl implements PokemonService {
 	private EntityManager entityManager;
 
 	@Autowired
-	private ProcessedPokemonRepository processedPokemonDAO;
+	private LoggingHelperService loggingHelperService;
 
 	@Override
 	public Iterable<PokemonWithSpawnpoint> getAllPokemon() {
@@ -297,49 +298,16 @@ public class PokemonServiceImpl implements PokemonService {
 			if (pokemon.getPlayerLevel() != null && !pokemon.getPlayerLevel().equals(dbPokemon.getPlayerLevel())) {
 				dbPokemon.setPlayerLevel(pokemon.getPlayerLevel());
 			}
-			// if (pokemon.getPokemonEncounterId() != null) {
-			// dbPokemon.setPokemonEncounterId(pokemon.getPokemonEncounterId());
-			// }
 			try {
 				pokemon = entityManager.merge(dbPokemon);
 				entityManager.flush();
 			} catch (OptimisticLockException ex) {
 				String methodName = "updateOrInsert";
-				logOptimisticLockException(ex, methodName);
+				loggingHelperService.logOptimisticLockException(ex, methodName);
 			}
 		}
 		}
 		return visibleChange;
-	}
-
-	private void logOptimisticLockException(OptimisticLockException ex, String methodName) {
-		logger.error("{} caused OptimisticLockException: ", methodName);
-		logger.error("{}", ex.getMessage());
-		logStacktraceForMethod(ex.getStackTrace(), methodName);
-		if (ex.getCause() != null) {
-			logger.error("caused by {}: {}", ex.getCause().getClass().getSimpleName(), ex.getCause().getMessage());
-		}
-		if (ex.getEntity() != null) {
-			logger.error("Entity with problems {}: {}", ex.getEntity().getClass().getSimpleName(), ex.getEntity());
-			
-		}
-	}
-
-	private void logStacktraceForMethod(StackTraceElement[] stackTrace, String methodName) {
-		boolean lastLineMatched = false;
-		for (StackTraceElement stackTraceElement : stackTrace) {
-			if (stackTraceElement.getMethodName().contains(methodName)) {
-				logStacktraceElement(stackTraceElement);
-				lastLineMatched = true;
-			} else if (lastLineMatched) {
-				logStacktraceElement(stackTraceElement);
-				lastLineMatched = false;
-			}
-		}
-	}
-
-	private void logStacktraceElement(StackTraceElement stackTraceElement) {
-		logger.error("tracelog: {}.{} (line {})", stackTraceElement.getClassName(), stackTraceElement.getMethodName(), stackTraceElement.getLineNumber());
 	}
 
 }

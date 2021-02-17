@@ -143,15 +143,26 @@ public class GymServiceImpl implements GymService {
 					unvisibleChange = true;
 				}
 			}
+			double maxGeoDiff = 0.00001d;
 			if (gym.getLatitude() != null) {
-				if (!gym.getLatitude().equals(oldGym.getLatitude())) {
+				double diffLat = 1;
+				if (oldGym.getLatitude() != null) {
+					diffLat = oldGym.getLatitude() - gym.getLatitude();
+					diffLat = diffLat < 0 ? -diffLat : diffLat;
+				}
+				if (diffLat > maxGeoDiff) {
 					oldGym.setLatitude(gym.getLatitude());
 					changedGym = true;
 					unvisibleChange = true;
 				}
 			}
 			if (gym.getLongitude() != null) {
-				if (!gym.getLongitude().equals(oldGym.getLongitude())) {
+				double diffLon = 1;
+				if (oldGym.getLongitude() != null) {
+					diffLon = oldGym.getLongitude() - gym.getLongitude();
+					diffLon = diffLon < 0 ? -diffLon : diffLon;
+				}
+				if (diffLon > maxGeoDiff) {
 					oldGym.setLongitude(gym.getLongitude());
 					changedGym = true;
 					unvisibleChange = true;
