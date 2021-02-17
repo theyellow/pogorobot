@@ -401,12 +401,7 @@ public class ConfigReaderImpl implements ConfigReader {
 						userGroupDAO.save(userGroup);
 						changed = true;
 						break;
-					} else if (userGroup.getChatId() != null && userGroup.getChatId().equals(value.get(0))) {
-						userGroup.setGroupName(name);
-						userGroupDAO.save(userGroup);
-						changed = true;
-						break;
-					}
+					} 
 				}
 				if (!changed) {
 					UserGroup newEntity = new UserGroup();
