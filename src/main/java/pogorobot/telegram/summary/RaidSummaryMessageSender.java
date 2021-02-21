@@ -270,7 +270,7 @@ public class RaidSummaryMessageSender {
 			sb.append(SPACE);
 			sb.append("\\-");
 			sb.append(SPACE);
-			if (!telegramLink.isEmpty()) {
+			if (telegramLink != null && !telegramLink.isEmpty()) {
 				sb.append("*[" + gymName + "](" + telegramLink + "/" + events.get(raidEvent).getMessageId() + ")*");
 			} else {
 				sb.append("*" + gymName + "*");
