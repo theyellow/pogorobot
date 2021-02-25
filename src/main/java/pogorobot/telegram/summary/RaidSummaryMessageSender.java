@@ -1,6 +1,7 @@
 package pogorobot.telegram.summary;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import pogorobot.entities.EventWithSubscribers;
+import pogorobot.entities.Gym;
+import pogorobot.entities.Raid;
 import pogorobot.entities.RaidAtGymEvent;
 import pogorobot.entities.SendMessages;
 import pogorobot.entities.Subscriber;
@@ -32,6 +35,7 @@ import pogorobot.entities.UserGroup;
 import pogorobot.service.TelegramTextService;
 import pogorobot.service.db.UserGroupService;
 import pogorobot.service.db.repositories.GymRepository;
+import pogorobot.service.db.repositories.RaidAtGymEventRepository;
 import pogorobot.service.db.repositories.SendMessagesRepository;
 import pogorobot.service.db.repositories.UserGroupRepository;
 import pogorobot.telegram.PogoBot;
@@ -54,6 +58,9 @@ public class RaidSummaryMessageSender {
 
 	@Autowired
 	private SendMessagesRepository sendMessagesRepository;
+
+	@Autowired
+	private RaidAtGymEventRepository raidAtGymEventRepository;
 
 	@Autowired
 	private PogoBot pogoBot;
@@ -131,8 +138,6 @@ public class RaidSummaryMessageSender {
 		return raidSummaryMessageId;
 	}
 
-	static Function<? super EventWithSubscribers, Integer> eventSizeMapper = x -> x.getSubscribers().size();
-
 	static Function<? super EventWithSubscribers, String> eventTimeMapper = x -> {
 		if (x.getSubscribers().size() > 0) {
 			return x.getTime() + SPACE + x.getSubscribers().size();
@@ -143,7 +148,8 @@ public class RaidSummaryMessageSender {
 
 	private Map<Long, String> createRaidSummariesFromDatabase() {
 		Map<Long, String> result = new HashMap<>();
-		Map<Long, Map<RaidAtGymEvent, SendMessages>> fullRaids = getRaidsFromDatabaseByUserGroup();
+		Map<Long, Map<RaidAtGymEvent, SendMessages>> fullRaids = getActiveRaidsFromDatabaseByUserGroup();
+		Map<Long, Map<Gym, SendMessages>> inactiveRaids = getInactiveRaidsFromDatabaseByUserGroup();
 		int size = 0;
 		if (fullRaids != null) {
 			for (Entry<Long, Map<RaidAtGymEvent, SendMessages>> chatWithRaids : fullRaids.entrySet()) {
@@ -160,10 +166,9 @@ public class RaidSummaryMessageSender {
 								if (subscribers != null) {
 									size += subscribers.size();
 								}
-
 							}
 						}
-						result.put(chatId, toText(getTelegramLink(chatId), raidsOfChat));
+						result.put(chatId, toText(getTelegramLink(chatId), raidsOfChat, inactiveRaids.get(chatId)));
 					}
 					logger.debug("chat {} has {} participating raiders", chatId, size);
 					size = 0;
@@ -178,27 +183,51 @@ public class RaidSummaryMessageSender {
 		return userGroup.getLinkOfGroup();
 	}
 
-	private Map<Long, Map<RaidAtGymEvent, SendMessages>> getRaidsFromDatabaseByUserGroup() {
+	private Map<Long, Map<RaidAtGymEvent, SendMessages>> getActiveRaidsFromDatabaseByUserGroup() {
 		Map<Long, Map<RaidAtGymEvent, SendMessages>> result = new HashMap<>();
 		Iterable<UserGroup> allGroups = userGroupRepository.findAll();
 		if (allGroups != null) {
 			allGroups.forEach(userGroup -> {
-				if(Boolean.TRUE.equals(userGroup.getPostRaidSummary())) {
-					
-				Map<RaidAtGymEvent, SendMessages> chatResult = new HashMap<>();
-				Long chatId = userGroup.getChatId();
-				List<RaidAtGymEvent> raids = sendMessagesRepository.findRaidAtGymEventsByChat(chatId);
-				for (RaidAtGymEvent raid : raids) {
-					List<Subscriber> size = raid.getEventsWithSubscribers().stream()
-							.flatMap(x -> x.getSubscribers().stream()).collect(Collectors.toList());
-					logger.debug("Got {} subscribers for chat {} on raid {}", size.size(), chatId, raid.getId());
-					List<SendMessages> processedRaid = sendMessagesRepository.findSendMessagesByChatAndGym(chatId,
-							raid.getGymId());
-					if (processedRaid != null && !processedRaid.isEmpty()) {
-						chatResult.put(raid, processedRaid.get(0));
+				if (Boolean.TRUE.equals(userGroup.getPostRaidSummary())) {
+
+					Map<RaidAtGymEvent, SendMessages> chatResult = new HashMap<>();
+					Long chatId = userGroup.getChatId();
+					List<RaidAtGymEvent> raids = raidAtGymEventRepository.findRaidAtGymEventsByChat(chatId);
+					for (RaidAtGymEvent raid : raids) {
+						List<Subscriber> size = raid.getEventsWithSubscribers().stream()
+								.flatMap(x -> x.getSubscribers().stream()).collect(Collectors.toList());
+						logger.debug("Got {} subscribers for chat {} on raid {}", size.size(), chatId, raid.getId());
+						List<SendMessages> sendMessages = sendMessagesRepository.findSendMessagesByChatAndGym(chatId,
+								raid.getGymId());
+						if (sendMessages != null && !sendMessages.isEmpty()) {
+							chatResult.put(raid, sendMessages.get(0));
+						}
 					}
+					result.put(chatId, chatResult);
 				}
-				result.put(chatId, chatResult);
+			});
+		}
+		return result;
+	}
+
+	private Map<Long, Map<Gym, SendMessages>> getInactiveRaidsFromDatabaseByUserGroup() {
+		Map<Long, Map<Gym, SendMessages>> result = new HashMap<>();
+		Iterable<UserGroup> allGroups = userGroupRepository.findAll();
+		if (allGroups != null) {
+			allGroups.forEach(userGroup -> {
+				if (Boolean.TRUE.equals(userGroup.getPostRaidSummary())) {
+					Map<Gym, SendMessages> chatResult = new HashMap<>();
+					Long chatId = userGroup.getChatId();
+					List<SendMessages> allSentRaids = sendMessagesRepository
+							.findAllSendMessagesRaidsByGroupChatId(chatId);
+					for (SendMessages sendMessage : allSentRaids) {
+						Gym gym = gymRepository.findByGymId(sendMessage.getOwningRaid().getGymId());
+						Raid raid = gym.getRaid();
+						Long start = raid.getStart();
+						logger.debug("Start of inactive-raid: {}", start);
+						chatResult.put(gym, sendMessage);
+					}
+					result.put(chatId, chatResult);
 				}
 			});
 		}
@@ -214,9 +243,10 @@ public class RaidSummaryMessageSender {
 
 	};
 
-	private String toText(String telegramLink, Map<RaidAtGymEvent, SendMessages> events) {
+	private String toText(String telegramLink, Map<RaidAtGymEvent, SendMessages> events,
+			Map<Gym, SendMessages> inactiveRaids) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("*Raids*");
+		sb.append("*Raids mit Teilnehmern \\(" + events.size()+ "\\)*");
 		sb.append("\n");
 		sb.append("*");
 		for (int i = 0; i < 35; i++) {
@@ -224,10 +254,13 @@ public class RaidSummaryMessageSender {
 		}
 		sb.append("*");
 		sb.append("\n");
+		List<String> gymsWithEvent = new ArrayList<String>();
 		events.entrySet().stream().map(x -> x.getKey()).sorted(raidStartComparator).forEach(raidEvent -> {
 			String beginning = telegramTextService.formatTimeFromSeconds(raidEvent.getStart());
 			String ending = telegramTextService.formatTimeFromSeconds(raidEvent.getEnd());
-			String gymName = gymRepository.findNameByGymId(raidEvent.getGymId());
+			String gymId = raidEvent.getGymId();
+			gymsWithEvent.add(gymId);
+			String gymName = gymRepository.findNameByGymId(gymId);
 			gymName = escapeForMarkdown(gymName);
 			Long level = raidEvent.getLevel();
 			Long pokemonId = raidEvent.getPokemonId();
@@ -270,7 +303,7 @@ public class RaidSummaryMessageSender {
 			sb.append(SPACE);
 			sb.append("\\-");
 			sb.append(SPACE);
-			if (!telegramLink.isEmpty()) {
+			if (telegramLink != null && !telegramLink.isEmpty()) {
 				sb.append("*[" + gymName + "](" + telegramLink + "/" + events.get(raidEvent).getMessageId() + ")*");
 			} else {
 				sb.append("*" + gymName + "*");
@@ -280,6 +313,50 @@ public class RaidSummaryMessageSender {
 				sb.append("└ " + group + "\n");
 			}
 		});
+
+		sb.append("\n");
+		sb.append("*Raids ohne Teilnehmer \\(" + inactiveRaids.size() + "\\)*");
+		sb.append("\n");
+		sb.append("*");
+		for (int i = 0; i < 35; i++) {
+			sb.append("\\-");
+		}
+		sb.append("*");
+		sb.append("\n");
+		for (Entry<Gym, SendMessages> inactiveRaid : inactiveRaids.entrySet()) {
+			Gym gym = inactiveRaid.getKey();
+			if (!gymsWithEvent.contains(gym.getGymId())) {
+				SendMessages sendMessage = inactiveRaid.getValue();
+				Raid raid = gym.getRaid();
+
+				String beginning = telegramTextService.formatTimeFromSeconds(raid.getStart());
+				String ending = telegramTextService.formatTimeFromSeconds(raid.getEnd());
+				String gymName = gym.getName();
+				gymName = escapeForMarkdown(gymName);
+				Long level = raid.getRaidLevel();
+				Long pokemonId = raid.getPokemonId();
+				String pokemonName = level > 0 && pokemonId > 0
+						? telegramTextService.getPokemonName(String.valueOf(pokemonId))
+						: "Ei";
+				pokemonName = level == 6 || level == 7 ? "(Mega) " + pokemonName : pokemonName;
+				pokemonName = escapeForMarkdown(pokemonName);
+
+				sb.append(pokemonName);
+				sb.append(SPACE);
+				sb.append(beginning);
+				sb.append("\\-");
+				sb.append(ending);
+				sb.append(SPACE);
+				sb.append("\\-");
+				sb.append(SPACE);
+				if (telegramLink != null && !telegramLink.isEmpty()) {
+					sb.append("*[" + gymName + "](" + telegramLink + "/" + sendMessage.getMessageId() + ")*");
+				} else {
+					sb.append("*" + gymName + "*");
+				}
+				sb.append("\n");
+			}
+		}
 		if (events.isEmpty()) {
 			sb.append("Niemand will raiden\\.\n");
 		}
