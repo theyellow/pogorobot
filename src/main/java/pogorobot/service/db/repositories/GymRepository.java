@@ -29,4 +29,6 @@ public interface GymRepository extends CrudRepository<Gym, Serializable> {
 	@Query(value="select g.name from Gym g where g.gymId = :gymId")
 	public String findNameByGymId(@Param("gymId") String gymId);
 
+	@Query(value="select g from Gym g where g.gymId = :gymId")
+	public Gym findByGymId(@Param("gymId") String gymId);
 }

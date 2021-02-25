@@ -26,9 +26,14 @@ import org.springframework.data.repository.query.Param;
 
 import pogorobot.entities.ProcessedRaids;
 import pogorobot.entities.RaidAtGymEvent;
+import pogorobot.entities.SendMessages;
 
 public interface ProcessedRaidRepository extends CrudRepository<ProcessedRaids, Serializable> {
 
 	public List<ProcessedRaids> findByGymId(String gymId);
 	
+//	@Query(value = "SELECT distinct(s) "
+//			+ "	FROM SendMessages s JOIN FETCH s.owningRaid t  "
+//			+ "	WHERE s.groupChatId = :chatId AND s.owningRaid IS NOT NULL")
+//	public List<SendMessages> findAllSendMessagesRaidsByChat(@Param("chatId") Long chatId);
 }
