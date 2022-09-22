@@ -45,7 +45,7 @@
 		<liquibase-maven-plugin.version>3.6.3</liquibase-maven-plugin.version>
 
 		<mysql.version>8.0.17</mysql.version>
-		<postgresql.version>42.3.3</postgresql.version>
+		<postgresql.version>42.3.7</postgresql.version>
 		<liquibase.hibernate.version>3.6</liquibase.hibernate.version>
 		<hibernate5-ddl-maven-plugin.version>2.1.0</hibernate5-ddl-maven-plugin.version>
 
